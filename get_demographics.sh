@@ -35,18 +35,21 @@ fi
 QUERYGDC="$QUERYGDC_HOME/queryGDC"
 
 # print header
-printf "# case\tethnicity\tgender\trace\tdays_to_birth\n"
+printf "# case\tdisease\tethnicity\tgender\trace\tdays_to_birth\n"
 
 # Loop over all case names in file $CASES
-while read CASE; do
+while read L; do
 
-    [[ $CASE = \#* ]] && continue  # Skip commented out entries
+    [[ $L = \#* ]] && continue  # Skip commented out entries
+
+    CASE=$(echo "$L" | cut -f 1 )
+    DIS=$(echo "$L" | cut -f 2 )
 
     Q=$(demo_from_case_query $CASE)
     R=$(echo $Q | $QUERYGDC -r -)
     LINE=$(echo $R | jq -r '.data.demographic[] | "\(.ethnicity)\t\(.gender)\t\(.race)\t\(.days_to_birth)"')
 
-    printf "$CASE\t$LINE\n" 
+    printf "$CASE\t$DIS\t$LINE\n" 
 
 done < $CASES
 
