@@ -46,31 +46,37 @@ DIS=$2
 #    11	MD5
 
 
-#Primary Tumor
-#Blood Derived Normal
-
-TT="Primary Tumor"
-ES="WGS"
+#Primary Tumor = T
+#Blood Derived Normal = B
+#Solid Tissue Normal = S
 
 # Get number of matches for each data category
 WGS_T=$(awk -v c=$CASE 'BEGIN{FS="\t";OFS="\t"}{if ( ($2 == c) && ($4 == "WGS") && ($5 == "Primary Tumor")) print}' $DAT | wc -l)
-WGS_N=$(awk -v c=$CASE 'BEGIN{FS="\t";OFS="\t"}{if ( ($2 == c) && ($4 == "WGS") && ($5 == "Blood Derived Normal")) print}' $DAT | wc -l)
+WGS_B=$(awk -v c=$CASE 'BEGIN{FS="\t";OFS="\t"}{if ( ($2 == c) && ($4 == "WGS") && ($5 == "Blood Derived Normal")) print}' $DAT | wc -l)
+WGS_S=$(awk -v c=$CASE 'BEGIN{FS="\t";OFS="\t"}{if ( ($2 == c) && ($4 == "WGS") && ($5 == "Solid Tissue Normal")) print}' $DAT | wc -l)
 
 WXS_T=$(awk -v c=$CASE 'BEGIN{FS="\t";OFS="\t"}{if ( ($2 == c) && ($4 == "WXS") && ($5 == "Primary Tumor")) print}' $DAT | wc -l)
-WXS_N=$(awk -v c=$CASE 'BEGIN{FS="\t";OFS="\t"}{if ( ($2 == c) && ($4 == "WXS") && ($5 == "Blood Derived Normal")) print}' $DAT | wc -l)
+WXS_B=$(awk -v c=$CASE 'BEGIN{FS="\t";OFS="\t"}{if ( ($2 == c) && ($4 == "WXS") && ($5 == "Blood Derived Normal")) print}' $DAT | wc -l)
+WXS_S=$(awk -v c=$CASE 'BEGIN{FS="\t";OFS="\t"}{if ( ($2 == c) && ($4 == "WXS") && ($5 == "Solid Tissue Normal")) print}' $DAT | wc -l)
 
 RNA_T=$(awk -v c=$CASE 'BEGIN{FS="\t";OFS="\t"}{if ( ($2 == c) && ($4 == "RNA-Seq") && ($5 == "Primary Tumor")) print}' $DAT | wc -l)
-RNA_N=$(awk -v c=$CASE 'BEGIN{FS="\t";OFS="\t"}{if ( ($2 == c) && ($4 == "RNA-Seq") && ($5 == "Blood Derived Normal")) print}' $DAT | wc -l)
+RNA_B=$(awk -v c=$CASE 'BEGIN{FS="\t";OFS="\t"}{if ( ($2 == c) && ($4 == "RNA-Seq") && ($5 == "Blood Derived Normal")) print}' $DAT | wc -l)
+RNA_S=$(awk -v c=$CASE 'BEGIN{FS="\t";OFS="\t"}{if ( ($2 == c) && ($4 == "RNA-Seq") && ($5 == "Solid Tissue Normal")) print}' $DAT | wc -l)
 
 # Get string representations, given character repeated as many times as datasets 
 WGS_TS=$(repN T $WGS_T)
-WGS_NS=$(repN N $WGS_N)
-WXS_TS=$(repN T $WXS_T)
-WXS_NS=$(repN N $WXS_N)
-RNA_TS=$(repN T $RNA_T)
-RNA_NS=$(repN N $RNA_N)
+WGS_BS=$(repN B $WGS_B)
+WGS_SS=$(repN S $WGS_S)
 
-printf "$CASE\t$DIS\tWGS $WGS_TS $WGS_NS\tWXS $WXS_TS $WXS_NS\tRNA $RNA_TS $RNA_NS\n"
+WXS_TS=$(repN T $WXS_T)
+WXS_BS=$(repN B $WXS_B)
+WXS_SS=$(repN S $WXS_S)
+
+RNA_TS=$(repN T $RNA_T)
+RNA_BS=$(repN B $RNA_B)
+RNA_SS=$(repN S $RNA_S)
+
+printf "$CASE\t$DIS\tWGS $WGS_TS $WGS_BS $WGS_SS\tWXS $WXS_TS $WXS_BS $WSS_SS\tRNA $RNA_TS $RNA_BS $RNA_SS\n"
 
 }
 
