@@ -76,8 +76,7 @@ function process_case {
     # test for cases with no samples, print to stderr and return
     if [ ! -s $SAMP_FN ]; then
 
-    >&2 echo $SAMP_FN is empty
-    exit 1
+    >&2 echo Warning: $SAMP_FN is empty
 
     fi
 
