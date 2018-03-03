@@ -44,6 +44,7 @@ while read L; do
 
     CASE=$(echo "$L" | cut -f 1 )
     DIS=$(echo "$L" | cut -f 2 )
+    >&2 echo Processing $CASE
 
     Q=$(demo_from_case_query $CASE)
     R=$(echo $Q | $QUERYGDC -r -)
