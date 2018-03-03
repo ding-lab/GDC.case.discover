@@ -17,7 +17,7 @@ function read_group_from_sample_query {
     SAMPLE=$1 # E.g C3L-00004-31
     cat <<EOF
     {
-        read_group(with_path_to: {type: "sample", submitter_id:"$SAMPLE"}, first:1000)
+        read_group(with_path_to: {type: "sample", submitter_id:"$SAMPLE"}, first:10000)
         {
             submitter_id
             library_strategy
