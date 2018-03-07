@@ -39,7 +39,7 @@ function get_SN {
     if [ "$STL" == "Blood Derived Normal" ]; then
         ST="N"
     elif [ "$STL" == "Solid Tissue Normal" ]; then
-        ST="N"
+        ST="A"
     elif [ "$STL" == "Primary Tumor" ]; then
         ST="T"
     else
