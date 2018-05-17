@@ -5,7 +5,7 @@
 # where 
 #   sample_name is an ad hoc name for this file, generated for convenience and consistency
 #   experimental_strategy is one of WGS, WXS, RNA-Seq
-#   sample_type is one of "Primary Tumor", "Blood Derived Normal"
+#   sample_type is one of "Primary Tumor", "Blood Derived Normal", "Primary Tumor", or "Primary Blood Derived Cancer - Bone Marrow"
 #   samples is ;-separated list of all sample names associated with this SR
 #   data_format is either BAM for FASTQ
 
@@ -42,6 +42,8 @@ function get_SN {
         ST="A"
     elif [ "$STL" == "Primary Tumor" ]; then
         ST="T"
+    elif [ "Primary Blood Derived Cancer - Bone Marrow" ]; then
+        ST="M"
     else
         >&2 echo Error: Unknown sample type: $STL
         exit
@@ -116,7 +118,8 @@ function process_case {
             ST=$(grep $S $SAMP_FN | cut -f 3)
             if [ ! -z "$SAMP_TYPE" ] && [ "$SAMP_TYPE" != "$ST" ]; then
                 >&2 echo ERROR: Multiple sample types for Case $CASE ID $ID \( $SAMP_TYPE and $ST \)
-                exit
+                >&2 echo Continuing
+                # exit
             fi
             SAMP_TYPE=$ST
         done < <(grep $ID $SR_FN | cut -f 1)  # loop over all samples 
