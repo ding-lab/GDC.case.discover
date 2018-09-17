@@ -2,14 +2,15 @@ source discover.paths.sh
 DAT="dat/$PROJECT.SR.dat"
 rm -f $OUT
 
-if [ "$#" -ne 2 ]; then
+if [ "$#" -ne 3 ]; then
     echo Error: Wrong number of arguments
-    echo Usage: summarize_cases.sh CASE_FILE OUTFN
+    echo Usage: summarize_cases.sh CASE_FILE SR_FILE OUTFN
     exit
 fi
 
 CASES=$1
-OUT=$2
+DAT=$2
+OUT=$3
 
 # Usage: repN X N
 # will return a string consisting of character X repeated N times
@@ -86,6 +87,8 @@ while read L; do
 
     CASE=$(echo "$L" | cut -f 1 )
     DIS=$(echo "$L" | cut -f 2 )
+
+    >&2 echo Processing $CASE
 
     summarize_case $CASE $DIS >> $OUT
 
