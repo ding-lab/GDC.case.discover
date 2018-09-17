@@ -44,7 +44,7 @@ function sample_from_case_query {
 CASE=$1 # E.g C3L-00004
 cat <<EOF
 {
-    sample(with_path_to: {type: "case", submitter_id:"$CASE"})
+    sample(with_path_to: {type: "case", submitter_id:"$CASE"}, first:100)
     {
         submitter_id
         id
