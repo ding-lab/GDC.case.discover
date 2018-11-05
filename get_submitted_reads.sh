@@ -83,7 +83,7 @@ while read L; do
 
         echo $R | jq -r '.data.submitted_aligned_reads[] | "\(.experimental_strategy)\t\(.data_category)\t\(.data_format)\t\(.file_name)\t\(.file_size)\t\(.id)\t\(.md5sum)"' | sed "s/^/$SAMPLE\t/" >> $OUTTMP
 
-    elif [ $LIB == "RNA-Seq" ]; then 
+    elif [ $LIB == "RNA-Seq" ] || [ $LIB == "miRNA-Seq" ]; then   # Assuming miRNA-Seq can be treated the same way
 
         Q=$(SUR_from_read_group $RG)
         >&2 echo QUERY: $Q
