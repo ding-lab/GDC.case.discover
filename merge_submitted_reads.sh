@@ -1,13 +1,14 @@
 # Provide comprehensive summary of submitted reads (aligned and unaligned)
 # Reads SR_from_read_group, writes to stdout the following, one line per 
 # submitted_aligned_reads/submitted_unaligned_reads ("SR"):
-#   sample_name, case, disease, experimental_strategy, sample_type, samples, filename, filesize, data_format, UUID, md5sum
+#   sample_name, case, disease, experimental_strategy, sample_type, samples, filename, filesize, data_format, UUID, md5sum, reference
 # where 
 #   sample_name is an ad hoc name for this file, generated for convenience and consistency
 #   experimental_strategy is one of WGS, WXS, RNA-Seq
 #   sample_type is one of "Primary Tumor", "Blood Derived Normal", "Primary Tumor", or "Primary Blood Derived Cancer - Bone Marrow"
 #   samples is ;-separated list of all sample names associated with this SR
 #   data_format is either BAM for FASTQ
+#   reference is hg19 for all results here (will be different in harmonized data)
 
 # Usage: merge_submitted_reads.sh CASES outfn
 # where CASES is filename of list of cases and their disease
@@ -140,7 +141,7 @@ function process_case {
 
         SN=$(get_SN $CASE "$SAMP_TYPE" $ES $FN $DF)
 
-        printf "$SN\t$CASE\t$DISEASE\t$ES\t$SAMP_TYPE\t$SAMPS\t$FN\t$FS\t$DF\t$ID\t$MD\n"
+        printf "$SN\t$CASE\t$DISEASE\t$ES\t$SAMP_TYPE\t$SAMPS\t$FN\t$FS\t$DF\t$ID\t$MD\thg19\n"
 
     done < <(cut -f 7 $SR_FN | sort -u)
 }
@@ -149,7 +150,7 @@ function process_case {
 CASES=$1
 OUT=$2
 
-printf "# sample_name\tcase\tdisease\texperimental_strategy\tsample_type\tsamples\tfilename\tfilesize\tdata_format\tUUID\tMD5\n" > $OUT
+printf "# sample_name\tcase\tdisease\texperimental_strategy\tsample_type\tsamples\tfilename\tfilesize\tdata_format\tUUID\tMD5\treference\n" > $OUT
 
 while read L; do
 
