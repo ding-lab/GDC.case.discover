@@ -36,14 +36,26 @@ function get_SN {
     FN=$4
     DF=$5
 
+# N:   Blood Derived Normal
+# B:   Buccal Cell Normal
+# Tbm: Primary Blood Derived Cancer - Bone Marrow
+# Tpb: Primary Blood Derived Cancer - Peripheral Blood
+# T:   Primary Tumor
+# A:   Solid Tissue Normal
+
+
     if [ "$STL" == "Blood Derived Normal" ]; then
         ST="N"
     elif [ "$STL" == "Solid Tissue Normal" ]; then
         ST="A"
     elif [ "$STL" == "Primary Tumor" ]; then
         ST="T"
-    elif [ "Primary Blood Derived Cancer - Bone Marrow" ]; then
-        ST="M"
+    elif [ "$STL" == "Buccal Cell Normal" ]; then
+        ST="B"
+    elif [ "$STL" == "Primary Blood Derived Cancer - Bone Marrow" ]; then
+        ST="Tbm"
+    elif [ "$STL" == "Primary Blood Derived Cancer - Peripheral Blood" ]; then
+        ST="Tpb"
     else
         >&2 echo Error: Unknown sample type: $STL
         exit
@@ -82,7 +94,6 @@ function process_case {
 
     fi
 
-
     # Strategy: go over SR (submitted reads) list, and group by ID (of submitted read object)
     # Fields we want, and source:
     # Case, disease: passed 
@@ -106,10 +117,7 @@ function process_case {
     # 2. id
     # 3. sample_type
 
-
-
     while read ID; do 
-
         SAMPS=$(grep $ID $SR_FN | cut -f 1 | tr '\n' ';' | sed 's/;$//')  # Merge all sample names associated with this ID into ;-separated string
 
         SAMP_TYPE="" # final value here
