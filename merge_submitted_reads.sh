@@ -8,7 +8,7 @@
 #   sample_type is one of "Primary Tumor", "Blood Derived Normal", "Primary Tumor", or "Primary Blood Derived Cancer - Bone Marrow"
 #   samples is ;-separated list of all sample names associated with this SR
 #   data_format is either BAM for FASTQ
-#   reference is hg19 for all results here (will be different in harmonized data)
+#   reference is hg19 for all BAMs here (will be different in harmonized data).  RNA-Seq and miRNA-Seq (FASTQ) have NA as reference
 
 # Usage: merge_submitted_reads.sh CASES outfn
 # where CASES is filename of list of cases and their disease
@@ -18,7 +18,7 @@
 if [ "$#" -ne 2 ]; then
     echo Error: Wrong number of arguments
     echo Usage: merge_submitted_reads.sh CASES outfn
-    exit
+    exit 1
 fi
 
 # Utility function to generate unique, human-readable sample name for downstream processing convenience.
@@ -59,10 +59,11 @@ function get_SN {
         ST="Tpb"
     else
         >&2 echo Error: Unknown sample type: $STL
-        exit
+        exit 1
     fi
 
-    if [ $ES == "RNA-Seq" ] && [ $DF == "FASTQ" ]; then
+#    if [ $ES == "RNA-Seq" ] && [ $DF == "FASTQ" ]; then
+    if [ $DF == "FASTQ" ]; then
     # Identify R1, R2 by matching for _R1_ or _R2_ in filename.  This only works for FASTQs.
     # RNA-Seq filename 170830_UNC31-K00269_0078_AHLCVMBBXX_AGTCAA_S18_L006_R1_001.fastq.gz
 
@@ -72,7 +73,7 @@ function get_SN {
             RN="R2"
         else
             >&2 echo "Unknown filename format (cannot find _R1_ or _R2_): $FN"
-            exit
+            exit 1
         fi
         ES="$ES.$RN"
     fi
@@ -127,8 +128,8 @@ function process_case {
             ST=$(grep $S $SAMP_FN | cut -f 3)
             if [ ! -z "$SAMP_TYPE" ] && [ "$SAMP_TYPE" != "$ST" ]; then
                 >&2 echo ERROR: Multiple sample types for Case $CASE ID $ID \( $SAMP_TYPE and $ST \)
-                >&2 echo Continuing
-                # exit
+                # >&2 echo Continuing
+                exit 1
             fi
             SAMP_TYPE=$ST
         done < <(grep $ID $SR_FN | cut -f 1)  # loop over all samples 
@@ -141,7 +142,13 @@ function process_case {
 
         SN=$(get_SN $CASE "$SAMP_TYPE" $ES $FN $DF)
 
-        printf "$SN\t$CASE\t$DISEASE\t$ES\t$SAMP_TYPE\t$SAMPS\t$FN\t$FS\t$DF\t$ID\t$MD\thg19\n"
+        if [ $DF == "FASTQ" ]; then
+            REF="NA"
+        else
+            REF="hg19"
+        fi
+
+        printf "$SN\t$CASE\t$DISEASE\t$ES\t$SAMP_TYPE\t$SAMPS\t$FN\t$FS\t$DF\t$ID\t$MD\t$REF\n"
 
     done < <(cut -f 7 $SR_FN | sort -u)
 }

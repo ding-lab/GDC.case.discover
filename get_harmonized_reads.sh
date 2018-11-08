@@ -7,8 +7,8 @@
 # HAR file has the same format as SR file, but with updated fields
 #
 # Example SR file:
-#     sample_name   case    disease experimental_strategy   sample_type samples filename    filesize    data_format UUID    MD5
-#     11LU013.WXS.N   11LU013 LUAD    WXS Blood Derived Normal    c7788b82-8190-4784-ab76-0d1185  CPT0040210002.WholeExome.RP-1303.bam    32888241174 BAM 29f82e93-1da2-4c11-9cdb-5ee1aaf05549    0dcb3aa42e3fc50136ff87a763478695
+#     sample_name   case    disease experimental_strategy   sample_type samples filename    filesize    data_format UUID    MD5 Reference
+#     11LU013.WXS.N   11LU013 LUAD    WXS Blood Derived Normal    c7788b82-8190-4784-ab76-0d1185  CPT0040210002.WholeExome.RP-1303.bam    32888241174 BAM 29f82e93-1da2-4c11-9cdb-5ee1aaf05549    0dcb3aa42e3fc50136ff87a763478695  hg19
 #
 # Fields marked with * are replaced in the HAR (harmonized aligned reads) file
 #     1    sample_name    * (.hg38 is appended)
@@ -61,7 +61,7 @@ QUERYGDC="$QUERYGDC_HOME/queryGDC"
 
 >&2 echo Reading $SR, writing to $OUT
 
-printf "# harmonized_sample_name\tcase\tdisease\texperimental_strategy\tsample_type\tsamples\tfilename\tfilesize\tdata_format\tUUID\tMD5\n" > $OUT
+printf "# harmonized_sample_name\tcase\tdisease\texperimental_strategy\tsample_type\tsamples\tfilename\tfilesize\tdata_format\tUUID\tMD5\tReference\n" > $OUT
 
 #     sample_name   case    disease experimental_strategy   sample_type samples filename    filesize    data_format UUID    MD5
 while read L; do
@@ -78,6 +78,7 @@ while read L; do
     ST=$(echo "$L" | cut -f 5)
     SAMP=$(echo "$L" | cut -f 6)
     ID19=$(echo "$L" | cut -f 10)
+    REF="hg38"
 
 #     1    sample_name    * (.hg38 is appended)
 #     2    case
@@ -103,9 +104,9 @@ while read L; do
         else
             >&2 echo $SN has results, processing...  # 1:UUID 2:FN 3:FS 4:DF 5:MD5
             echo $R | jq -r '.data.aligned_reads[] | "\(.id)\t\(.file_name)\t\(.file_size)\t\(.data_format)\t\(.md5sum)"' | \
-                awk -v sn="$SN" -v c="$CASE" -v dis="$DIS" -v es="$ES" -v st="$ST" -v samp="$SAMP" 'BEGIN{FS="\t"; OFS="\t"}{print sn".hg38", c, dis, es, st, samp, $2, $3, $4, $1, $5}' >> $OUT
+                awk -v sn="$SN" -v c="$CASE" -v dis="$DIS" -v es="$ES" -v st="$ST" -v samp="$SAMP" -v ref="$REF" 'BEGIN{FS="\t"; OFS="\t"}{print sn".hg38", c, dis, es, st, samp, $2, $3, $4, $1, $5, ref}' >> $OUT
         fi
-    elif [ $ES == "RNA-Seq" ]; then 
+    elif [ $ES == "RNA-Seq" ] || [ $ES == "miRNA-Seq" ]; then 
         >&2 echo Not processing RNA-Seq $SN
     else 
 # Fatal error if unknown ES
