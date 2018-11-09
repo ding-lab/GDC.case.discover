@@ -148,7 +148,24 @@ function process_case {
             REF="hg19"
         fi
 
-        printf "$SN\t$CASE\t$DISEASE\t$ES\t$SAMP_TYPE\t$SAMPS\t$FN\t$FS\t$DF\t$ID\t$MD\t$REF\n"
+        if [ "$SAMP_TYPE" == "Blood Derived Normal" ]; then
+            STS="blood_normal"
+        elif [ "$SAMP_TYPE" == "Solid Tissue Normal" ]; then
+            STS="tissue_normal"
+        elif [ "$SAMP_TYPE" == "Primary Tumor" ]; then
+            STS="tumor"
+        elif [ "$SAMP_TYPE" == "Buccal Cell Normal" ]; then
+            STS="buccal_normal"
+        elif [ "$SAMP_TYPE" == "Primary Blood Derived Cancer - Bone Marrow" ]; then
+            STS="tumor_bone_marrow"
+        elif [ "$SAMP_TYPE" == "Primary Blood Derived Cancer - Peripheral Blood" ]; then
+            STS="tumor_peripheral_blood"
+        else
+            >&2 echo Error: Unknown sample type: $SAMP_TYPE
+            exit 1
+        fi
+
+        printf "$SN\t$CASE\t$DISEASE\t$ES\t$STS\t$SAMPS\t$FN\t$FS\t$DF\t$ID\t$MD\t$REF\n"
 
     done < <(cut -f 7 $SR_FN | sort -u)
 }
