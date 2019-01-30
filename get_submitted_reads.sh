@@ -96,11 +96,16 @@ while read L; do
         >&2 echo WARNING: Unknown Library Strategy $LIB
 
     fi
-    printf "\n"
+    printf "\n" 1>&2
 
 done < $DAT
 
-sort -u $OUTTMP > $OUT
-
-echo Written to $OUT \( temp file $OUTTMP \)
-printf "\n"
+# Skip sorting in the event $DAT is empty
+if [ -e $OUTTMP ]; then
+    sort -u $OUTTMP > $OUT
+    >&2 echo Written to $OUT \( temp file $OUTTMP \)
+else
+    >&2 echo No data.  Creating empty file $OUT
+    touch $OUT
+fi
+printf "\n" 1>&2

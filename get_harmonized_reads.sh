@@ -38,7 +38,7 @@ if [ -z $GDC_TOKEN ]; then
 fi
 
 function HAR_from_SAR {
-    ID=$1 # ID of SAR (hg19 data), e.g., 29f82e93-1da2-4c11-9cdb-5ee1aaf05549
+    ID=$1 # ID of SAR (submitted aligned read), e.g., 29f82e93-1da2-4c11-9cdb-5ee1aaf05549
     cat <<EOF
 {
     aligned_reads(with_path_to: {type: "submitted_aligned_reads", id:"$ID"})

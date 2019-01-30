@@ -32,7 +32,7 @@ function summarize_case {
 CASE=$1
 DIS=$2
 
-# Get counts for (tumor, normal, tissue) x (WGS.hg19, WXS.hg19, WGS.hg38, WXS.hg38, RNA-Seq, miRNA-Seq)
+# Get counts for (tumor, normal, tissue) x (WGS.sub, WXS.sub, WGS.hg38, WXS.hg38, RNA-Seq, miRNA-Seq)
 # Columns of SR.dat
 #     1  sample_name
 #     2  case
@@ -52,14 +52,18 @@ DIS=$2
 # tissue_normal = A
 # tumor = T
 
-# Get number of matches for each data category
-WGS19_T=$(awk -v c=$CASE 'BEGIN{FS="\t";OFS="\t"}{if ( ($2 == c) && ($4 == "WGS") && ($5 == "tumor") && ($12 == "hg19")) print}' $DAT | wc -l)
-WGS19_N=$(awk -v c=$CASE 'BEGIN{FS="\t";OFS="\t"}{if ( ($2 == c) && ($4 == "WGS") && ($5 == "blood_normal") && ($12 == "hg19")) print}' $DAT | wc -l)
-WGS19_A=$(awk -v c=$CASE 'BEGIN{FS="\t";OFS="\t"}{if ( ($2 == c) && ($4 == "WGS") && ($5 == "tissue_normal") && ($12 == "hg19")) print}' $DAT | wc -l)
+# Note that Submitted Aligned Reads were previously (y1) all hg19.  that will not necessarily
+# be the case, but we don't know what they are. Instead, we will list the reference of all submitted
+# aligned reads as "SUB"
 
-WXS19_T=$(awk -v c=$CASE 'BEGIN{FS="\t";OFS="\t"}{if ( ($2 == c) && ($4 == "WXS") && ($5 == "tumor") && ($12 == "hg19")) print}' $DAT | wc -l)
-WXS19_N=$(awk -v c=$CASE 'BEGIN{FS="\t";OFS="\t"}{if ( ($2 == c) && ($4 == "WXS") && ($5 == "blood_normal") && ($12 == "hg19")) print}' $DAT | wc -l)
-WXS19_A=$(awk -v c=$CASE 'BEGIN{FS="\t";OFS="\t"}{if ( ($2 == c) && ($4 == "WXS") && ($5 == "tissue_normal") && ($12 == "hg19")) print}' $DAT | wc -l)
+# Get number of matches for each data category
+WGS19_T=$(awk -v c=$CASE 'BEGIN{FS="\t";OFS="\t"}{if ( ($2 == c) && ($4 == "WGS") && ($5 == "tumor") && ($12 == "SUB")) print}' $DAT | wc -l)
+WGS19_N=$(awk -v c=$CASE 'BEGIN{FS="\t";OFS="\t"}{if ( ($2 == c) && ($4 == "WGS") && ($5 == "blood_normal") && ($12 == "SUB")) print}' $DAT | wc -l)
+WGS19_A=$(awk -v c=$CASE 'BEGIN{FS="\t";OFS="\t"}{if ( ($2 == c) && ($4 == "WGS") && ($5 == "tissue_normal") && ($12 == "SUB")) print}' $DAT | wc -l)
+
+WXS19_T=$(awk -v c=$CASE 'BEGIN{FS="\t";OFS="\t"}{if ( ($2 == c) && ($4 == "WXS") && ($5 == "tumor") && ($12 == "SUB")) print}' $DAT | wc -l)
+WXS19_N=$(awk -v c=$CASE 'BEGIN{FS="\t";OFS="\t"}{if ( ($2 == c) && ($4 == "WXS") && ($5 == "blood_normal") && ($12 == "SUB")) print}' $DAT | wc -l)
+WXS19_A=$(awk -v c=$CASE 'BEGIN{FS="\t";OFS="\t"}{if ( ($2 == c) && ($4 == "WXS") && ($5 == "tissue_normal") && ($12 == "SUB")) print}' $DAT | wc -l)
 
 WGS38_T=$(awk -v c=$CASE 'BEGIN{FS="\t";OFS="\t"}{if ( ($2 == c) && ($4 == "WGS") && ($5 == "tumor") && ($12 == "hg38")) print}' $DAT | wc -l)
 WGS38_N=$(awk -v c=$CASE 'BEGIN{FS="\t";OFS="\t"}{if ( ($2 == c) && ($4 == "WGS") && ($5 == "blood_normal") && ($12 == "hg38")) print}' $DAT | wc -l)
@@ -102,7 +106,7 @@ MIRNA_TS=$(repN T $MIRNA_T)
 MIRNA_NS=$(repN N $MIRNA_N)
 MIRNA_AS=$(repN A $MIRNA_A)
 
-printf "$CASE\t$DIS\tWGS.hg19 $WGS19_TS $WGS19_NS $WGS19_AS\tWXS.hg19 $WXS19_TS $WXS19_NS $WXS19_AS\tWGS.hg38 $WGS38_TS $WGS38_NS $WGS38_AS\tWXS.hg38 $WXS38_TS $WXS38_NS $WXS38_AS\tRNA $RNA_TS $RNA_NS $RNA_AS\tmiRNA $MIRNA_TS $MIRNA_NS $MIRNA_AS\n"
+printf "$CASE\t$DIS\tWGS.sub $WGS19_TS $WGS19_NS $WGS19_AS\tWXS.sub $WXS19_TS $WXS19_NS $WXS19_AS\tWGS.hg38 $WGS38_TS $WGS38_NS $WGS38_AS\tWXS.hg38 $WXS38_TS $WXS38_NS $WXS38_AS\tRNA $RNA_TS $RNA_NS $RNA_AS\tmiRNA $MIRNA_TS $MIRNA_NS $MIRNA_AS\n"
 
 }
 
