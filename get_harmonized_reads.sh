@@ -53,6 +53,22 @@ function HAR_from_SAR {
 EOF
 }
 
+function HAR_from_SUR {
+    ID=$1 # ID of SUR (submitted unaligned read)
+    cat <<EOF
+{
+    aligned_reads(with_path_to: {type: "submitted_unaligned_reads", id:"$ID"})
+    { 
+        id
+        file_name
+        file_size
+        data_format
+        md5sum 
+    }
+}
+EOF
+}
+
 if [ -z $QUERYGDC_HOME ]; then
     QUERYGDC_HOME="./queryGDC"
     >&2 echo QUERYGDC_HOME not set, using default ./queryGDC
@@ -92,9 +108,15 @@ while read L; do
 #    10    UUID        * 
 #    11    MD5        * 
 
-    if [ $ES == "WGS" ] || [ $ES == "WXS" ]; then 
-        Q=$(HAR_from_SAR $ID19)
-        >&2 echo QUERY: $Q
+    if [ $ES == "WGS" ] || [ $ES == "WXS" ] || [ $ES == "RNA-Seq" ] || [ $ES == "miRNA-Seq" ]; then 
+        if [ $ES == "WGS" ] || [ $ES == "WXS" ]; then
+            Q=$(HAR_from_SAR $ID19)
+            >&2 echo QUERY \(WGS / WXS\) : $Q
+        else
+            Q=$(HAR_from_SUR $ID19) # this is the difference with the WGS / WXS
+            >&2 echo QUERY \(RNA-Seq / miRNA-Seq\): $Q
+        fi
+
         R=$(echo $Q | $QUERYGDC -r -v -)
         
         # Test to see if query result is empty
@@ -106,8 +128,6 @@ while read L; do
             echo $R | jq -r '.data.aligned_reads[] | "\(.id)\t\(.file_name)\t\(.file_size)\t\(.data_format)\t\(.md5sum)"' | \
                 awk -v sn="$SN" -v c="$CASE" -v dis="$DIS" -v es="$ES" -v st="$ST" -v samp="$SAMP" -v ref="$REF" 'BEGIN{FS="\t"; OFS="\t"}{print sn".hg38", c, dis, es, st, samp, $2, $3, $4, $1, $5, ref}' >> $OUT
         fi
-    elif [ $ES == "RNA-Seq" ] || [ $ES == "miRNA-Seq" ]; then 
-        >&2 echo Not processing RNA-Seq $SN
     else 
 # Fatal error if unknown ES
         >&2 echo ERROR: Unknown Experimental Strategy $ES    
