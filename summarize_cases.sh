@@ -56,30 +56,47 @@ DIS=$2
 # be the case, but we don't know what they are. Instead, we will list the reference of all submitted
 # aligned reads as "SUB"
 
+function count_entries {
+CASE=$1
+ES=$2
+ST=$3
+REF=$4
+
+awk -v c=$CASE -v es=$ES -v st=$ST -v ref=$REF 'BEGIN{FS="\t";OFS="\t"}{if ( ($2 == c) && ($4 == es) && ($5 == st) && ($12 == ref)) print}' $DAT | wc -l
+}
+
 # Get number of matches for each data category
-WGS19_T=$(awk -v c=$CASE 'BEGIN{FS="\t";OFS="\t"}{if ( ($2 == c) && ($4 == "WGS") && ($5 == "tumor") && ($12 == "SUB")) print}' $DAT | wc -l)
-WGS19_N=$(awk -v c=$CASE 'BEGIN{FS="\t";OFS="\t"}{if ( ($2 == c) && ($4 == "WGS") && ($5 == "blood_normal") && ($12 == "SUB")) print}' $DAT | wc -l)
-WGS19_A=$(awk -v c=$CASE 'BEGIN{FS="\t";OFS="\t"}{if ( ($2 == c) && ($4 == "WGS") && ($5 == "tissue_normal") && ($12 == "SUB")) print}' $DAT | wc -l)
+WGS19_T=$(count_entries $CASE WGS tumor SUB)
+WGS19_N=$(count_entries $CASE WGS blood_normal SUB)
+WGS19_A=$(count_entries $CASE WGS tissue_normal SUB)
 
-WXS19_T=$(awk -v c=$CASE 'BEGIN{FS="\t";OFS="\t"}{if ( ($2 == c) && ($4 == "WXS") && ($5 == "tumor") && ($12 == "SUB")) print}' $DAT | wc -l)
-WXS19_N=$(awk -v c=$CASE 'BEGIN{FS="\t";OFS="\t"}{if ( ($2 == c) && ($4 == "WXS") && ($5 == "blood_normal") && ($12 == "SUB")) print}' $DAT | wc -l)
-WXS19_A=$(awk -v c=$CASE 'BEGIN{FS="\t";OFS="\t"}{if ( ($2 == c) && ($4 == "WXS") && ($5 == "tissue_normal") && ($12 == "SUB")) print}' $DAT | wc -l)
+WXS19_T=$(count_entries $CASE WXS tumor SUB)
+WXS19_N=$(count_entries $CASE WXS blood_normal SUB)
+WXS19_A=$(count_entries $CASE WXS tissue_normal SUB)
 
-WGS38_T=$(awk -v c=$CASE 'BEGIN{FS="\t";OFS="\t"}{if ( ($2 == c) && ($4 == "WGS") && ($5 == "tumor") && ($12 == "hg38")) print}' $DAT | wc -l)
-WGS38_N=$(awk -v c=$CASE 'BEGIN{FS="\t";OFS="\t"}{if ( ($2 == c) && ($4 == "WGS") && ($5 == "blood_normal") && ($12 == "hg38")) print}' $DAT | wc -l)
-WGS38_A=$(awk -v c=$CASE 'BEGIN{FS="\t";OFS="\t"}{if ( ($2 == c) && ($4 == "WGS") && ($5 == "tissue_normal") && ($12 == "hg38")) print}' $DAT | wc -l)
+WGS38_T=$(count_entries $CASE WGS tumor hg38)
+WGS38_N=$(count_entries $CASE WGS blood_normal hg38)
+WGS38_A=$(count_entries $CASE WGS tissue_normal hg38)
 
-WXS38_T=$(awk -v c=$CASE 'BEGIN{FS="\t";OFS="\t"}{if ( ($2 == c) && ($4 == "WXS") && ($5 == "tumor") && ($12 == "hg38")) print}' $DAT | wc -l)
-WXS38_N=$(awk -v c=$CASE 'BEGIN{FS="\t";OFS="\t"}{if ( ($2 == c) && ($4 == "WXS") && ($5 == "blood_normal") && ($12 == "hg38")) print}' $DAT | wc -l)
-WXS38_A=$(awk -v c=$CASE 'BEGIN{FS="\t";OFS="\t"}{if ( ($2 == c) && ($4 == "WXS") && ($5 == "tissue_normal") && ($12 == "hg38")) print}' $DAT | wc -l)
+WXS38_T=$(count_entries $CASE WXS tumor hg38)
+WXS38_N=$(count_entries $CASE WXS blood_normal hg38)
+WXS38_A=$(count_entries $CASE WXS tissue_normal hg38)
 
-RNA_T=$(awk -v c=$CASE 'BEGIN{FS="\t";OFS="\t"}{if ( ($2 == c) && ($4 == "RNA-Seq") && ($5 == "tumor")) print}' $DAT | wc -l)
-RNA_N=$(awk -v c=$CASE 'BEGIN{FS="\t";OFS="\t"}{if ( ($2 == c) && ($4 == "RNA-Seq") && ($5 == "blood_normal")) print}' $DAT | wc -l)
-RNA_A=$(awk -v c=$CASE 'BEGIN{FS="\t";OFS="\t"}{if ( ($2 == c) && ($4 == "RNA-Seq") && ($5 == "tissue_normal")) print}' $DAT | wc -l)
+RNA_T=$(count_entries $CASE RNA-Seq tumor NA)
+RNA_N=$(count_entries $CASE RNA-Seq blood_normal NA)
+RNA_A=$(count_entries $CASE RNA-Seq tissue_normal NA)
 
-MIRNA_T=$(awk -v c=$CASE 'BEGIN{FS="\t";OFS="\t"}{if ( ($2 == c) && ($4 == "miRNA-Seq") && ($5 == "tumor")) print}' $DAT | wc -l)
-MIRNA_N=$(awk -v c=$CASE 'BEGIN{FS="\t";OFS="\t"}{if ( ($2 == c) && ($4 == "miRNA-Seq") && ($5 == "blood_normal")) print}' $DAT | wc -l)
-MIRNA_A=$(awk -v c=$CASE 'BEGIN{FS="\t";OFS="\t"}{if ( ($2 == c) && ($4 == "miRNA-Seq") && ($5 == "tissue_normal")) print}' $DAT | wc -l)
+RNA38_T=$(count_entries $CASE RNA-Seq tumor hg38)
+RNA38_N=$(count_entries $CASE RNA-Seq blood_normal hg38)
+RNA38_A=$(count_entries $CASE RNA-Seq tissue_normal hg38)
+
+MIRNA_T=$(count_entries $CASE miRNA-Seq tumor NA)
+MIRNA_N=$(count_entries $CASE miRNA-Seq blood_normal NA)
+MIRNA_A=$(count_entries $CASE miRNA-Seq tissue_normal NA)
+
+MIRNA38_T=$(count_entries $CASE miRNA-Seq tumor hg38)
+MIRNA38_N=$(count_entries $CASE miRNA-Seq blood_normal hg38)
+MIRNA38_A=$(count_entries $CASE miRNA-Seq tissue_normal hg38)
 
 # Get string representations, given character repeated as many times as datasets 
 WGS19_TS=$(repN T $WGS19_T)
@@ -106,7 +123,23 @@ MIRNA_TS=$(repN T $MIRNA_T)
 MIRNA_NS=$(repN N $MIRNA_N)
 MIRNA_AS=$(repN A $MIRNA_A)
 
-printf "$CASE\t$DIS\tWGS.sub $WGS19_TS $WGS19_NS $WGS19_AS\tWXS.sub $WXS19_TS $WXS19_NS $WXS19_AS\tWGS.hg38 $WGS38_TS $WGS38_NS $WGS38_AS\tWXS.hg38 $WXS38_TS $WXS38_NS $WXS38_AS\tRNA $RNA_TS $RNA_NS $RNA_AS\tmiRNA $MIRNA_TS $MIRNA_NS $MIRNA_AS\n"
+RNA38_TS=$(repN T $RNA38_T)
+RNA38_NS=$(repN N $RNA38_N)
+RNA38_AS=$(repN A $RNA38_A)
+
+MIRNA38_TS=$(repN T $MIRNA38_T)
+MIRNA38_NS=$(repN N $MIRNA38_N)
+MIRNA38_AS=$(repN A $MIRNA38_A)
+
+printf "$CASE\t$DIS\t\
+WGS.sub $WGS19_TS $WGS19_NS $WGS19_AS\t\
+WXS.sub $WXS19_TS $WXS19_NS $WXS19_AS\t\
+RNA.sub $RNA_TS $RNA_NS $RNA_AS\t\
+miRNA.sub $MIRNA_TS $MIRNA_NS $MIRNA_AS\t\
+WGS.hg38 $WGS38_TS $WGS38_NS $WGS38_AS\t\
+WXS.hg38 $WXS38_TS $WXS38_NS $WXS38_AS\t\
+RNA.hg38 $RNA38_TS $RNA38_NS $RNA38_AS\t\
+miRNA.hg38 $MIRNA38_TS $MIRNA38_NS $MIRNA38_AS\n"
 
 }
 

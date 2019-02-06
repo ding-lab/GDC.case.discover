@@ -3,7 +3,7 @@
 # Usage: get_harmonized_reads.sh SR.dat HAR.dat
 # Read SR.dat and write to HAR.dat
 #
-# Retain only WGS and WXS data 
+# Both WGS/WXS and RNA-Seq entries are processed
 # HAR file has the same format as SR file, but with updated fields
 #
 # Example SR file:
@@ -108,6 +108,8 @@ while read L; do
 #    10    UUID        * 
 #    11    MD5        * 
 
+# In the case of RNA-Seq / miRNA-Seq, remove ".R1." and ".R2." from sample name, becase BAMs combine both datasets.  Duplicates will be removed at a later step
+
     if [ $ES == "WGS" ] || [ $ES == "WXS" ] || [ $ES == "RNA-Seq" ] || [ $ES == "miRNA-Seq" ]; then 
         if [ $ES == "WGS" ] || [ $ES == "WXS" ]; then
             Q=$(HAR_from_SAR $ID19)
@@ -115,6 +117,7 @@ while read L; do
         else
             Q=$(HAR_from_SUR $ID19) # this is the difference with the WGS / WXS
             >&2 echo QUERY \(RNA-Seq / miRNA-Seq\): $Q
+            SN=$(echo $SN | sed "s/\.R1\./\./" | sed "s/\.R2\./\./")
         fi
 
         R=$(echo $Q | $QUERYGDC -r -v -)
