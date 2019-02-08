@@ -32,7 +32,7 @@ function summarize_case {
 CASE=$1
 DIS=$2
 
-# Get counts for (tumor, normal, tissue) x (WGS.sub, WXS.sub, WGS.hg38, WXS.hg38, RNA-Seq, miRNA-Seq)
+# Get counts for (tumor, normal, tissue) x (WGS.hg19, WXS.hg19, WGS.hg38, WXS.hg38, RNA-Seq, miRNA-Seq)
 # Columns of SR.dat
 #     1  sample_name
 #     2  case
@@ -132,15 +132,13 @@ MIRNA38_NS=$(repN N $MIRNA38_N)
 MIRNA38_AS=$(repN A $MIRNA38_A)
 
 printf "$CASE\t$DIS\t\
-WGS.sub $WGS19_TS $WGS19_NS $WGS19_AS\t\
-WXS.sub $WXS19_TS $WXS19_NS $WXS19_AS\t\
-RNA.sub $RNA_TS $RNA_NS $RNA_AS\t\
-miRNA.sub $MIRNA_TS $MIRNA_NS $MIRNA_AS\t\
+WGS.hg19 $WGS19_TS $WGS19_NS $WGS19_AS\t\
+WXS.hg19 $WXS19_TS $WXS19_NS $WXS19_AS\t\
+RNA.fq $RNA_TS $RNA_NS $RNA_AS\t\
+miRNA.fq $MIRNA_TS $MIRNA_NS $MIRNA_AS\t\
 WGS.hg38 $WGS38_TS $WGS38_NS $WGS38_AS\t\
 WXS.hg38 $WXS38_TS $WXS38_NS $WXS38_AS\t\
-RNA.hg38 $RNA38_TS $RNA38_NS $RNA38_AS\t\
-miRNA.hg38 $MIRNA38_TS $MIRNA38_NS $MIRNA38_AS\n"
-
+RNA.hg38 $RNA38_TS $RNA38_NS $RNA38_AS\n"
 }
 
 while read L; do
