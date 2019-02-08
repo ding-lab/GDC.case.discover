@@ -8,7 +8,8 @@
 #   sample_type is one of "Primary Tumor", "Blood Derived Normal", "Primary Tumor", or "Primary Blood Derived Cancer - Bone Marrow"
 #   samples is ;-separated list of all sample names associated with this SR
 #   data_format is either BAM for FASTQ
-#   reference is "SUB" for all BAMs here (previously, hg19), since we don't actually know.  RNA-Seq and miRNA-Seq (FASTQ) have NA as reference
+#   reference is "hg19" for all BAMs here; we don't actually know the reference of these, but assume it is hg19 for now.  
+#       RNA-Seq and miRNA-Seq (FASTQ) have NA as reference
 
 # Usage: merge_submitted_reads.sh CASES outfn
 # where CASES is filename of list of cases and their disease
@@ -146,7 +147,7 @@ function process_case {
         if [ $DF == "FASTQ" ]; then
             REF="NA"
         else
-            REF="SUB"   # The reference is whatever was submitted - we don't actually know
+            REF="hg19"   # The reference is whatever was submitted - we don't actually know, but assume hg19 based on Y1 submission
         fi
 
         if [ "$SAMP_TYPE" == "Blood Derived Normal" ]; then

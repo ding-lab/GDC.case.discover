@@ -52,9 +52,9 @@ DIS=$2
 # tissue_normal = A
 # tumor = T
 
-# Note that Submitted Aligned Reads were previously (y1) all hg19.  that will not necessarily
-# be the case, but we don't know what they are. Instead, we will list the reference of all submitted
-# aligned reads as "SUB"
+# Note that Submitted Aligned Reads were previously (y1) all hg19.  That will not necessarily always
+# be the case, but we don't know what they are. For now, for simplicity, we will list the reference of all submitted
+# aligned reads as "hg19"
 
 function count_entries {
 CASE=$1
@@ -66,13 +66,13 @@ awk -v c=$CASE -v es=$ES -v st=$ST -v ref=$REF 'BEGIN{FS="\t";OFS="\t"}{if ( ($2
 }
 
 # Get number of matches for each data category
-WGS19_T=$(count_entries $CASE WGS tumor SUB)
-WGS19_N=$(count_entries $CASE WGS blood_normal SUB)
-WGS19_A=$(count_entries $CASE WGS tissue_normal SUB)
+WGS19_T=$(count_entries $CASE WGS tumor hg19)
+WGS19_N=$(count_entries $CASE WGS blood_normal hg19)
+WGS19_A=$(count_entries $CASE WGS tissue_normal hg19)
 
-WXS19_T=$(count_entries $CASE WXS tumor SUB)
-WXS19_N=$(count_entries $CASE WXS blood_normal SUB)
-WXS19_A=$(count_entries $CASE WXS tissue_normal SUB)
+WXS19_T=$(count_entries $CASE WXS tumor hg19)
+WXS19_N=$(count_entries $CASE WXS blood_normal hg19)
+WXS19_A=$(count_entries $CASE WXS tissue_normal hg19)
 
 WGS38_T=$(count_entries $CASE WGS tumor hg38)
 WGS38_N=$(count_entries $CASE WGS blood_normal hg38)
