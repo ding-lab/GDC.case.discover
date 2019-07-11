@@ -4,7 +4,7 @@
 #   sample_name, case, disease, experimental_strategy, sample_type, samples, filename, filesize, data_format, UUID, md5sum, reference
 # where 
 #   sample_name is an ad hoc name for this file, generated for convenience and consistency
-#   experimental_strategy is one of WGS, WXS, RNA-Seq
+#   experimental_strategy is one of WGS, WXS, RNA-Seq, miRNA-Seq
 #   sample_type is one of "Primary Tumor", "Blood Derived Normal", "Primary Tumor", or "Primary Blood Derived Cancer - Bone Marrow"
 #   samples is ;-separated list of all sample names associated with this SR
 #   data_format is either BAM for FASTQ
