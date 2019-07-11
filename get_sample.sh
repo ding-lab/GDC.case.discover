@@ -61,7 +61,7 @@ fi
 QUERYGDC="$QUERYGDC_HOME/queryGDC"
 
 
-OUTD="dat/$CASE"
+OUTD="dat/cases/$CASE"
 mkdir -p $OUTD
 OUT="$OUTD/sample_from_case.$CASE.dat"
 
