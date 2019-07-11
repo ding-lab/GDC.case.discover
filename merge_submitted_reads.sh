@@ -87,8 +87,8 @@ function process_case {
     CASE=$1
     DISEASE=$2
 
-    SAMP_FN="dat/$CASE/sample_from_case.$CASE.dat"
-    SR_FN="dat/$CASE/SR_from_read_group.$CASE.dat"
+    SAMP_FN="dat/cases/$CASE/sample_from_case.$CASE.dat"
+    SR_FN="dat/cases/$CASE/SR_from_read_group.$CASE.dat"
 
     # test for cases with no samples, print to stderr and return
     if [ ! -s $SAMP_FN ]; then

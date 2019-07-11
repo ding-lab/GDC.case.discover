@@ -56,8 +56,8 @@ fi
 QUERYGDC="$QUERYGDC_HOME/queryGDC"
 
 
-DAT="dat/$CASE/read_group_from_case.$CASE.dat"
-OUTD="dat/$CASE"
+DAT="dat/cases/$CASE/read_group_from_case.$CASE.dat"
+OUTD="dat/cases/$CASE"
 mkdir -p $OUTD
 OUT="$OUTD/SR_from_read_group.$CASE.dat"
 OUTTMP="$OUT.tmp"
