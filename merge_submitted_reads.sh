@@ -77,6 +77,10 @@ function get_SN {
             exit 1
         fi
         ES="$ES.$RN"
+    else
+        if [ $ES == "miRNA-Seq" ]; then
+            ST="${ST}.hg38"  # For consistency with harmonized BAMs, add .hg38 suffix to miRNA-Seq BAMs
+        fi
     fi
 
     SN="$CASE.$ES.$ST"
