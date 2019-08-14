@@ -10,6 +10,7 @@
 #   data_format is either BAM for FASTQ
 #   reference is assumed to be "hg19" for all WGS and WXS BAMs here (we don't actually have a way to evaluate the reference)
 #       RNA-Seq and miRNA-Seq (FASTQ) have NA as reference.  miRNA-Seq BAMs have 'hg38' as a reference, per discussion with GDC 
+#       However, we will not append .hg38 to miRNA-Seq names because they are not harmonized, maintaining consistency with all data discovered as SR
 
 # Usage: merge_submitted_reads.sh CASES outfn
 # where CASES is filename of list of cases and their disease
@@ -77,10 +78,6 @@ function get_SN {
             exit 1
         fi
         ES="$ES.$RN"
-    else
-        if [ $ES == "miRNA-Seq" ]; then
-            ST="${ST}.hg38"  # For consistency with harmonized BAMs, add .hg38 suffix to miRNA-Seq BAMs
-        fi
     fi
 
     SN="$CASE.$ES.$ST"
