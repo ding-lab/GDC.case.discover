@@ -8,6 +8,8 @@
 # GDC_TOKEN logic should be similar to that in queryGDC - can be set with -t or environment variable
 # currently, token is not passed but read from GDC_TOKEN
 
+# turn this on to get more output from queryGDC
+# VERBOSE="-v"
 
 if [ "$#" -ne 1 ]; then
     >&2 echo Error: Wrong number of arguments
@@ -70,7 +72,7 @@ Q=$(sample_from_case_query $CASE)
 >&2 echo QUERY: $Q
 
 # The actual call to queryGDC script
-R=$(echo $Q | $QUERYGDC -r -v -)
+R=$(echo $Q | $QUERYGDC -r $VERBOSE -)
 test_exit_status
 
 

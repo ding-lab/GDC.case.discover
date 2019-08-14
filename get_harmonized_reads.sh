@@ -30,6 +30,9 @@ if [ "$#" -ne 2 ]; then
     exit
 fi
 
+# turn this on to get more output from queryGDC
+# VERBOSE="-v"
+
 SR=$1
 OUT=$2
 if [ -z $GDC_TOKEN ]; then
@@ -120,7 +123,7 @@ while read L; do
             SN=$(echo $SN | sed "s/\.R1\./\./" | sed "s/\.R2\./\./")
         fi
 
-        R=$(echo $Q | $QUERYGDC -r -v -)
+        R=$(echo $Q | $QUERYGDC -r $VERBOSE -)
         
         # Test to see if query result is empty
         DAR=$(echo $R | jq -r '.data.aligned_reads[]')
