@@ -21,7 +21,7 @@ NJOBS=0
 
 # Using rungo as a template for parallel: https://github.com/ding-lab/TinDaisy/blob/master/src/rungo
 # http://wiki.bash-hackers.org/howto/getopts_tutorial
-while getopts ":hdN:" opt; do
+while getopts ":hdJ:" opt; do
   case $opt in
     h)
       echo "$USAGE"
@@ -30,9 +30,8 @@ while getopts ":hdN:" opt; do
     d)  # example of binary argument
       DRYRUN=1
       ;;
-    N) # example of value argument
+    J) # example of value argument
       NJOBS=$OPTARG
-      >&2 echo "Setting memory $MEMGB Gb"
       ;;
     \?)
       >&2 echo "Invalid option: -$OPTARG"
