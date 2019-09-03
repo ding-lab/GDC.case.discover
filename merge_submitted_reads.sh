@@ -131,8 +131,8 @@ function process_case {
             ST=$(grep $S $SAMP_FN | cut -f 3)
             if [ ! -z "$SAMP_TYPE" ] && [ "$SAMP_TYPE" != "$ST" ]; then
                 >&2 echo ERROR: Multiple sample types for Case $CASE ID $ID \( $SAMP_TYPE and $ST \)
-                # >&2 echo Continuing
-                exit 1
+                >&2 echo Continuing
+                # exit 1
             fi
             SAMP_TYPE=$ST
         done < <(grep $ID $SR_FN | cut -f 1)  # loop over all samples 

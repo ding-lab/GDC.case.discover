@@ -8,7 +8,7 @@ if [ "$#" -ne 1 ]; then
 fi
 
 # turn this on to get more output from queryGDC
-# VERBOSE="-v"
+VERBOSE="-v"
 
 CASE=$1
 if [ -z $GDC_TOKEN ]; then

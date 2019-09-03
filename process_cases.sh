@@ -107,8 +107,7 @@ else
     >&2 echo Job submission with $NJOBS cases in parallel
 fi
 
-LOGD="./logs"
-mkdir -p $LOGD
+LOGBASE="./logs"
 
 # Case file has two tab separated columns, case name and disease
 while read L; do
@@ -118,6 +117,8 @@ while read L; do
     CASE=$(echo "$L" | cut -f 1 )
     DIS=$(echo "$L" | cut -f 2 )
 
+    LOGD="$LOGBASE/$CASE"
+    mkdir -p $LOGD
     STDOUT_FN="$LOGD/${CASE}.out"
     STDERR_FN="$LOGD/${CASE}.err"
 
