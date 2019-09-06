@@ -117,7 +117,7 @@ while read L; do
     CASE=$(echo "$L" | cut -f 1 )
     DIS=$(echo "$L" | cut -f 2 )
 
-    LOGD="$LOGBASE/$CASE"
+    LOGD="$LOGBASE/cases/$CASE"
     mkdir -p $LOGD
     STDOUT_FN="$LOGD/${CASE}.out"
     STDERR_FN="$LOGD/${CASE}.err"

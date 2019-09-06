@@ -51,7 +51,7 @@ function get_SN {
         ST="N"
     elif [ "$STL" == "Solid Tissue Normal" ]; then
         ST="A"
-    elif [ "$STL" == "Primary Tumor" ]; then
+    elif [ "$STL" == "Primary Tumor" ] || [ "$STL" == "Tumor" ]; then
         ST="T"
     elif [ "$STL" == "Buccal Cell Normal" ]; then
         ST="B"
@@ -132,7 +132,7 @@ function process_case {
             if [ ! -z "$SAMP_TYPE" ] && [ "$SAMP_TYPE" != "$ST" ]; then
                 >&2 echo ERROR: Multiple sample types for Case $CASE ID $ID \( $SAMP_TYPE and $ST \)
                 >&2 echo Continuing
-                # exit 1
+                #exit 1
             fi
             SAMP_TYPE=$ST
         done < <(grep $ID $SR_FN | cut -f 1)  # loop over all samples 
@@ -159,7 +159,7 @@ function process_case {
             STS="blood_normal"
         elif [ "$SAMP_TYPE" == "Solid Tissue Normal" ]; then
             STS="tissue_normal"
-        elif [ "$SAMP_TYPE" == "Primary Tumor" ]; then
+        elif [ "$SAMP_TYPE" == "Primary Tumor" ] || [ "$SAMP_TYPE" == "Tumor" ]; then
             STS="tumor"
         elif [ "$SAMP_TYPE" == "Buccal Cell Normal" ]; then
             STS="buccal_normal"
