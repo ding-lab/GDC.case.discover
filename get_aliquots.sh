@@ -4,23 +4,26 @@
 # https://dinglab.wustl.edu/
 
 read -r -d '' USAGE <<'EOF'
-Query GDC to obtain aliquot details associated with a given case
+Query GDC to obtain sample and aliquot details associated with a given case
 
 Usage:
-  get_aliquot.sh [options] CASE
+  get_aliquots.sh [options] CASE
 
 Options:
 -h: Print this help message
--v: Verbose
+-v: Verbose.  May be repeated to get verbose output from queryGDC
 -o OUTFN: write results to output file instead of STDOUT.  Will be overwritten if exists
 
 Writes the following columns for each aliquot:
     * case
-    * submitter_id
-    * id
+    * sample submitter id
+    * sample id
+    * sample type
+    * aliquot submitter id
+    * aliquot id
     * analyte_type
 
-Require GDC_TOKEN environment variable to be defined containing GDC token content
+Require GDC_TOKEN environment variable to be defined with path to gdc-user-token.*.txt file
 EOF
 
 QUERYGDC="CPTAC3.case.discover/queryGDC"
@@ -36,7 +39,7 @@ while getopts ":hdvo:" opt; do
       CMD="echo"
       ;;
     v)  
-      VERBOSE="-v"
+      VERBOSE="${VERBOSE}v"
       ;;
     o)  
       OUTFN="$OPTARG"
@@ -90,11 +93,16 @@ function aliquot_from_case {
     SAMPLE=$1 # E.g C3L-00004-31
     cat <<EOF
     {
-        aliquot(with_path_to: {type: "case", submitter_id:"$CASE"}, first:10000)
+        sample(with_path_to: {type: "case", submitter_id:"$CASE"}, first:10000)
         {
+          submitter_id
+          id
+          sample_type
+          aliquots {
             submitter_id
             id
             analyte_type
+          }
         }
     }
 EOF
@@ -105,19 +113,34 @@ EOF
 # OUT="$OUTD/aliquot_from_case.$CASE.dat"
 
 Q=$(aliquot_from_case $CASE)
->&2 echo QUERY: $Q
+if [ $VERBOSE ]; then
+    >&2 echo QUERY: $Q
+    if [ "$VERBOSE" == "vv" ] ; then
+        GDC_VERBOSE="-v"
+    fi
+fi
 
 # The actual call to queryGDC script
-R=$(echo $Q | $QUERYGDC -r $VERBOSE -)
+R=$(echo $Q | $QUERYGDC -r $GDC_VERBOSE -)
 test_exit_status
 
-OUTLINE=$(echo $R | jq -r '.data.aliquot[] | "\(.submitter_id)\t\(.id)\t\(.analyte_type)"' | sed "s/^/$CASE\t/")
-test_exit_status
-
-if [ ! -z $OUTFN ]; then
-    echo "$OUTLINE" >> $OUTFN
-    >&2 echo Written to $OUTFN
-else
-    echo "$OUTLINE"
+if [ $VERBOSE ]; then
+    >&2 echo RESULT: $R
 fi
+
+#OUTLINE=$(echo $R | jq -r '.data.aliquot[] | "\(.submitter_id)\t\(.id)\t\(.analyte_type)"' | sed "s/^/$CASE\t/")
+
+# this is a bit messy because I don't know how to get rid of the ["x","y"] for aliquot info
+OUTLINE=$(echo $R | jq -r '.data.sample[] | "\(.submitter_id)\t\(.id)\t\(.sample_type)\t\(.aliquots[] | [.submitter_id, .id, .analyte_type]  )"' | tr -d '\"' | tr ',' '\t' | tr -d '[]' | sed "s/^/$CASE\t/")
+test_exit_status
+
+if [ "$OUTLINE" ]; then
+    if [ ! -z $OUTFN ]; then
+        echo "$OUTLINE" > $OUTFN
+        >&2 echo Written to $OUTFN
+    else
+        echo "$OUTLINE"
+    fi
+fi
+
 
