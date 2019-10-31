@@ -98,7 +98,7 @@ if [ "$#" -ne 2 ]; then
     echo "$USAGE"
     exit 1
 fi
-CASE=$1
+PASSED_CASE=$1
 DISEASE=$2
 
 # Called after running scripts to catch fatal (exit 1) errors
@@ -278,6 +278,9 @@ function get_sample_type {
 function process_reads {
     RFN=$1
     ALIQUOTS_FN=$2
+    PASSED_CASE=$3      # Sanity check - make sure looking at right dataset
+    DISEASE=$4
+  
 # columns of RFN
 #    * case
 #    * aliquot submitter id
@@ -300,6 +303,11 @@ function process_reads {
         FS=$(echo "$L" | cut -f 7)
         ID=$(echo "$L" | cut -f 8)
         MD5=$(echo "$L" | cut -f 9)
+    
+        if [ $CASE != $PASSED_CASE ]; then
+            >&2 echo ERROR: CASE mismatch: passed $PASSED_CASE , $RFN = $CASE
+            exit 1
+        fi
 
         SAMPLE_TYPE=$(get_sample_type $ALIQUOT_NAME $ALIQUOTS_FN)
         test_exit_status
@@ -317,13 +325,15 @@ function process_reads {
         STS=$(get_sample_short_name "$SAMPLE_TYPE")
         test_exit_status
 
-        printf "$SN\t$CASE\t$DISEASE\t$ES\t$STS\t$SAMPS\t$FN\t$FS\t$DF\t$ID\t$MD\t$REF\n"
+        printf "$SN\t$CASE\t$DISEASE\t$ES\t$STS\t$ALIQUOT_NAME\t$FN\t$FS\t$DF\t$ID\t$MD5\t$REF\n"
     done < $RFN
 }
 
 function process_methylation_array {
     MAFN=$1
     ALIQUOTS_FN=$2
+    PASSED_CASE=$3
+    DISEASE=$4
 # columns of MAFN / methylation array 
 #    1 case
 #    2 aliquot submitter id
@@ -350,10 +360,22 @@ function process_methylation_array {
         ES=$(echo "$L" | cut -f 10)
         MD5=$(echo "$L" | cut -f 11)
 
+        if [ "$ES" == "Methylation Array" ]; then
+            MYES="MethArray"
+        else
+            >&2 echo ERROR: Unexpected experimental strategy: $ES
+            exit 1
+        fi
+
+        if [ $CASE != $PASSED_CASE ]; then
+            >&2 echo ERROR: CASE mismatch: passed $PASSED_CASE , $RFN = $CASE
+            exit 1
+        fi
+
         SAMPLE_TYPE=$(get_sample_type $ALIQUOT_NAME $ALIQUOTS_FN)
         test_exit_status
 
-        SN=$(get_SN $CASE "$SAMPLE_TYPE" $ES $FN $DF $REF $CHANNEL)
+        SN=$(get_SN $CASE "$SAMPLE_TYPE" $MYES $FN $DF $REF $CHANNEL)
         test_exit_status
 
         # ad hoc suffix is added based on UUID or aliquot name if SUFFIX_LIST is defined
@@ -365,14 +387,11 @@ function process_methylation_array {
 
         STS=$(get_sample_short_name "$SAMPLE_TYPE")
 
-        printf "$SN\t$CASE\t$DISEASE\t$ES\t$STS\t$SAMPS\t$FN\t$FS\t$DF\t$ID\t$MD\t$REF\n"
+        printf "$SN\t$CASE\t$DISEASE\t$MYES\t$STS\t$ALIQUOT_NAME\t$FN\t$FS\t$DF\t$ID\t$MD5\t$REF\n"
     done < $MAFN
 }
 
 confirm $ALIQUOTS_FN
-
-CASE=$1
-DISEASE=$2
 
 if [ -z $NO_HEADER ]; then
     OUTLINE=$(printf "# sample_name\tcase\tdisease\texperimental_strategy\tsample_type\taliquot\tfilename\tfilesize\tdata_format\tUUID\tMD5\treference\n" )
@@ -388,7 +407,7 @@ fi
 
 if [ ! -z $SUBMITTED_FN ]; then
     confirm $SUBMITTED_FN
-    LINES=$(process_reads $SUBMITTED_FN $ALIQUOTS_FN)
+    LINES=$(process_reads $SUBMITTED_FN $ALIQUOTS_FN $PASSED_CASE $DISEASE)
     test_exit_status
     if [ ! -z $OUTFN ]; then
         echo "$LINES" >> $OUTFN
@@ -399,7 +418,7 @@ fi
 
 if [ ! -z $HARMONIZED_FN ]; then
     confirm $HARMONIZED_FN
-    LINES=$(process_reads $HARMONIZED_FN $ALIQUOTS_FN)
+    LINES=$(process_reads $HARMONIZED_FN $ALIQUOTS_FN $PASSED_CASE $DISEASE)
     test_exit_status
     if [ ! -z $OUTFN ]; then
         echo "$LINES" >> $OUTFN
@@ -410,7 +429,7 @@ fi
 
 if [ ! -z $METHYL_FN ]; then
     confirm $METHYL_FN
-    LINES=$(process_reads $METHYL_FN $ALIQUOTS_FN)
+    LINES=$(process_methylation_array $METHYL_FN $ALIQUOTS_FN $PASSED_CASE $DISEASE)
     test_exit_status
     if [ ! -z $OUTFN ]; then
         echo "$LINES" >> $OUTFN
