@@ -5,6 +5,7 @@
 
 read -r -d '' USAGE <<'EOF'
 Query GDC with series of GraphQL calls to obtain information about submitted reads and methylation data for a given case
+Writes out file dat/cases/CASE/AR.dat with summary of such data
 
 Usage:
   process_case.sh [options] CASE DISEASE
@@ -18,9 +19,15 @@ Writes the following intermediate files
 Options:
 -h: Print this help message
 -v: Verbose.  May be repeated to get verbose output from called scripts
+-d: dry run
+-O OUTD: intermediate file output directory.  Default: ./dat
+-o OUTFN: write final results to output file instead of STDOUT.  Will be overwritten if exists
+-s SUFFIX_LIST: data file for appending suffix to sample names
 
-Query GDC to obtain submitted reads from GDC.  Writes the following files to dat/cases/CASE:
+Require GDC_TOKEN environment variable to be defined with path to gdc-user-token.*.txt file
 
+SUFFIX_LIST is a TSV file listing a UUID or Aliquot ID in first column,
+second column is suffix to be added to sample_name.  This allows specific samples to have modified names
 EOF
 
 # An optimization which can be performed is to reuse results from past runs
@@ -29,9 +36,9 @@ EOF
 
 # Where scripts live
 BIND="CPTAC3.case.discover"
-
+OUTD="./dat"
 # http://wiki.bash-hackers.org/howto/getopts_tutorial
-while getopts ":hdf:" opt; do
+while getopts ":hdf:O:o:s:v" opt; do
   case $opt in
     h)
       echo "$USAGE"
@@ -39,6 +46,22 @@ while getopts ":hdf:" opt; do
       ;;
     v)  
       VERBOSE="${VERBOSE}v"
+      ;;
+    d)
+      DRYRUN="d"
+      ;;
+    O)
+      OUTD="$OPTARG"
+      ;;
+    o)  
+      OUTFN="$OPTARG"
+      if [ -f $OUTFN ]; then
+          >&2 echo WARNING: $OUTFN exists.  Deleting
+          rm -f $OUTFN
+      fi
+      ;;
+    s)
+      SUFFIX_ARG="-s $OPTARG"
       ;;
     \?)
       >&2 echo "Invalid option: -$OPTARG"
@@ -54,7 +77,6 @@ while getopts ":hdf:" opt; do
 done
 shift $((OPTIND-1))
 
-
 if [ "$#" -ne 2 ]; then
     >&2 echo Error: Wrong number of arguments
     echo "$USAGE"
@@ -62,11 +84,28 @@ if [ "$#" -ne 2 ]; then
 fi
 
 CASE=$1
-DIS=$2
+DISEASE=$2
+
+mkdir -p $OUTD
+
+function run_cmd {
+    CMD=$1
+
+    NOW=$(date)
+    if [ "$DRYRUN" == "d" ]; then
+        >&2 echo [ $NOW ] Dryrun: $CMD
+    else
+        >&2 echo [ $NOW ] Running: $CMD
+        eval $CMD
+        test_exit_status
+    fi
+}
+
 
 # If verbose flag repeated multiple times (e.g., VERBOSE="vvv"), pass the value of VERBOSE with one flag popped off (i.e., VERBOSE_ARG="vv")
 if [ $VERBOSE ]; then
     VERBOSE_ARG=${VERBOSE%?}
+    VERBOSE_ARG="-$VERBOSE_ARG"
 fi
 
 # Called after running scripts to catch fatal (exit 1) errors
@@ -84,19 +123,15 @@ function test_exit_status {
     done
 }
 
->&2 echo Processing $CASE \($DIS\)
+>&2 echo Processing $CASE \($DISEASE\)
 
 OUTD="dat/cases/$CASE"
 mkdir -p $OUTD
 test_exit_status
 
-if [ $VERBOSE ]; then
-    >&2 echo xxx
-fi
-
 A_OUT="$OUTD/aliquots.dat"
-bash $BIND/get_aliquots.sh -o $A_OUT $VERBOSE_ARG $CASE 
-test_exit_status
+CMD="bash $BIND/get_aliquots.sh -o $A_OUT $VERBOSE_ARG $CASE "
+run_cmd "$CMD"
 
 if [ ! -s $A_OUT ]; then
     >&2 echo $A_OUT is empty.  Skipping case
@@ -104,19 +139,24 @@ if [ ! -s $A_OUT ]; then
 fi
 
 RG_OUT="$OUTD/read_groups.dat"
-bash $BIND/get_read_groups.sh -o $RG_OUT $VERBOSE_ARG $A_OUT
-test_exit_status
+CMD="bash $BIND/get_read_groups.sh -o $RG_OUT $VERBOSE_ARG $A_OUT"
+run_cmd "$CMD"
 
 SR_OUT="$OUTD/submitted_reads.sh"
-bash $BIND/get_submitted_reads.sh -o $SR_OUT $VERBOSE_ARG $RG_OUT
-test_exit_status
+CMD="bash $BIND/get_submitted_reads.sh -o $SR_OUT $VERBOSE_ARG $RG_OUT"
+run_cmd "$CMD"
 
 HR_OUT="$OUTD/harmonized_reads.sh"
-bash $BIND/get_harmonized_reads.sh -o $HR_OUT $VERBOSE_ARG $SR_OUT
-test_exit_status
+CMD="bash $BIND/get_harmonized_reads.sh -o $HR_OUT $VERBOSE_ARG $SR_OUT"
+run_cmd "$CMD"
 
 MA_OUT="$OUTD/methylation_array.dat"
-bash $BIND/get_methylation_array.sh -o $MA_OUT $VERBOSE_ARG $A_OUT
-test_exit_status
+CMD="bash $BIND/get_methylation_array.sh -o $MA_OUT $VERBOSE_ARG $A_OUT"
+run_cmd "$CMD"
 
+if [ ! -z $OUTFN ]; then
+    AR_OUT="-o $OUTFN"
+fi
+CMD="bash $BIND/make_AR.sh -Q $A_OUT -R $SR_OUT -H $HR_OUT -M $MA_OUT $SUFFIX_ARG $AR_OUT $VERBOSE_ARG $CASE $DISEASE"
+run_cmd "$CMD"
 

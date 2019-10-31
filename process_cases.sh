@@ -4,34 +4,62 @@
 # https://dinglab.wustl.edu/
 
 read -r -d '' USAGE <<'EOF'
-Perform SR discovery for all cases
+Obtain AR file with GDC sequence and methylation data for all cases
 
 Usage:
-  process_cases.sh [options] 
+  process_cases.sh [options] DISCOVER_CASES
 
 Options:
 -h: Print this help message
 -d: Dry run.  Print commands but do not execute queries
+-v: Verbose.  May be repeated to get verbose output from called scripts
 -J N: Evaluate N cases in parallel.  If 0, disable parallel mode. Default 0
+-o OUTFN: write result AR file instead of stdout
+-1: stop after processing one case
+-s SUFFIX_LIST: data file for appending suffix to sample names
+
+DISCOVER_CASES is a TSV file with case name and disease in first and second columns
 
 This calls process_case.sh once for each case, possibly using GNU parallel to process multiple cases at once
+Require GDC_TOKEN environment variable to be defined with path to gdc-user-token.*.txt file
+
+SUFFIX_LIST is a TSV file listing a UUID or Aliquot ID in first column,
+second column is suffix to be added to sample_name.  This allows specific samples to have modified names
 EOF
 
 NJOBS=0
+# Where scripts live
+BIND="CPTAC3.case.discover"
 
 # Using rungo as a template for parallel: https://github.com/ding-lab/TinDaisy/blob/master/src/rungo
 # http://wiki.bash-hackers.org/howto/getopts_tutorial
-while getopts ":hdJ:" opt; do
+while getopts ":hdvJ:1o:s:" opt; do
   case $opt in
     h)
       echo "$USAGE"
       exit 0
       ;;
     d)  # example of binary argument
-      DRYRUN=1
+      DRYRUN="d"
+      ;;
+    v)  
+      VERBOSE="${VERBOSE}v"
       ;;
     J) # example of value argument
       NJOBS=$OPTARG
+      ;;
+    1)  
+      JUSTONE=1
+      ;;
+    o)  
+      OUTFN="$OPTARG"
+      if [ -f $OUTFN ]; then
+          >&2 echo WARNING: $OUTFN exists.  Deleting
+          rm -f $OUTFN
+      fi
+      ;;
+    s)
+      SUFFIX_ARG="-s $OPTARG"
       ;;
     \?)
       >&2 echo "Invalid option: -$OPTARG"
@@ -47,7 +75,10 @@ while getopts ":hdJ:" opt; do
 done
 shift $((OPTIND-1))
 
-source discover.paths.sh
+if [ -z $GDC_TOKEN ]; then
+    >&2 echo GDC_TOKEN environment variable not defined.  Quitting.
+    exit 1
+fi
 
 function test_exit_status {
     # Evaluate return value for chain of pipes; see https://stackoverflow.com/questions/90418/exit-shell-script-based-on-process-exit-code
@@ -83,19 +114,24 @@ function run_cmd {
     fi
 }
 
->&2 echo Iterating over $DISCOVER_CASES
-if [ -z $OLDRUN ]; then
-    >&2 echo No prior runs
-elif [ ! -d $OLDRUN ]; then
-    >&2 echo Old Run $OLDRUN does not exist
+if [ "$#" -ne 1 ]; then
+    >&2 echo Error: Wrong number of arguments
+    echo "$USAGE"
     exit 1
-else
-    >&2 echo Comparing with past run $OLDRUN
-    OR_ARG="-R $OLDRUN"
 fi
 
+DISCOVER_CASES=$1
+if [ ! -s $DISCOVER_CASES ]; then
+    >&2 echo ERROR: $DISCOVER_CASES does not exist or is empty
+    exit 1
+fi
+>&2 echo Iterating over $DISCOVER_CASES
 
-# Note that this should be run in a tmux environment, it can take several days to run
+# If verbose flag repeated multiple times (e.g., VERBOSE="vvv"), pass the value of VERBOSE with one flag popped off (i.e., VERBOSE_ARG="vv")
+if [ $VERBOSE ]; then
+    VERBOSE_ARG=${VERBOSE%?}
+    VERBOSE_ARG="-$VERBOSE_ARG"
+fi
 
 # Used for `parallel` job groups 
 NOW=$(date)
@@ -107,7 +143,8 @@ else
     >&2 echo Job submission with $NJOBS cases in parallel
 fi
 
-LOGBASE="./logs"
+# logs will go in same directory as output
+LOGBASE="./dat"
 
 # Case file has two tab separated columns, case name and disease
 while read L; do
@@ -119,10 +156,11 @@ while read L; do
 
     LOGD="$LOGBASE/cases/$CASE"
     mkdir -p $LOGD
-    STDOUT_FN="$LOGD/${CASE}.out"
-    STDERR_FN="$LOGD/${CASE}.err"
+    STDOUT_FN="$LOGD/log.${CASE}.out"
+    STDERR_FN="$LOGD/log.${CASE}.err"
+    AR="$LOGD/AR.dat"
 
-    CMD="bash CPTAC3.case.discover/process_case.sh $OR_ARG $CASE $DIS > $STDOUT_FN 2> $STDERR_FN"
+    CMD="bash $BIND/process_case.sh -O $LOGD -o $AR $SUFFIX_ARG $VERBOSE_ARG $CASE $DIS > $STDOUT_FN 2> $STDERR_FN"
 
     if [ $NJOBS != 0 ]; then
         JOBLOG="$LOGD/$CASE.log"
@@ -145,3 +183,46 @@ if [ $NJOBS != 0 ]; then
     run_cmd "$CMD" $DRYRUN
 fi
 
+if [ $DRYRUN ]; then
+    >&2 echo Dryrun: done
+    exit 0
+fi
+
+# Now collect all AR files and write out to stdout or OUTFN
+while read L; do
+    [[ $L = \#* ]] && continue  # Skip commented out entries
+
+    CASE=$(echo "$L" | cut -f 1 )
+    AR="$LOGBASE/cases/$CASE/AR.dat"
+
+    if [ ! -f $AR ]; then
+        >&2 echo WARNING: AR file $AR for case $CASE does not exist
+        continue
+    fi
+
+    # header goes only in first loop
+    if [ -z $REPEAT_LOOP ]; then
+        HEADER=$(grep "^#" $AR | head -n1)
+        if [ ! -z $OUTFN ]; then
+            echo "$HEADER" >> $OUTFN
+        else
+            echo "$HEADER"
+        fi
+        REPEAT_LOOP=1
+    fi
+        
+    if [ ! -z $OUTFN ]; then
+        sort $AR | grep -v "^#" >> $OUTFN
+    else
+        sort $AR | grep -v "^#"
+    fi
+
+    if [ $JUSTONE ]; then
+        break
+    fi
+
+done < $DISCOVER_CASES
+
+if [ ! -z $OUTFN ]; then
+    >&2 echo Written to $OUTFN
+fi

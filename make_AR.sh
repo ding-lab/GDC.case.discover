@@ -78,6 +78,10 @@ while getopts ":hvQ:R:H:M:o:Ns:" opt; do
       ;;
     s)  
       SUFFIX_LIST="$OPTARG"
+      if [ ! -s $SUFFIX_LIST ]; then
+        >&2 echo ERROR: SUFFIX_LIST $SUFFIX_LIST does not exist or is empty
+        exit 1
+      fi
       ;;
     \?)
       >&2 echo "Invalid option: -$OPTARG"
@@ -191,11 +195,11 @@ function get_SN_suffix {
     ALIQUOT_NAME=$3
 
     confirm $SUFFIX_FN
-    UM=$(awk -v id=$UUID '{if ($1 == id) print $2' | head -n 1)
+    UM=$(awk -v id=$UUID '{if ($1 == id) print $2}' $SUFFIX_FN | head -n 1)
     if [ -z $UM ]; then
-        UM=$(awk -v id=$ALIQUOT_NAME '{if ($1 == id) print $2' | head -n 1)
+        UM=$(awk -v id=$ALIQUOT_NAME '{if ($1 == id) print $2}' $SUFFIX_FN | head -n 1)
     fi
-    echo $UM      
+    echo $UM
 }
 
 # Utility function to generate unique, human-readable sample name for downstream processing convenience.
@@ -293,16 +297,16 @@ function process_reads {
 #    * md5sum
 
     # Loop over all lines in input file RFN and write AR entry for each
-    while read L; do
-        CASE=$(echo "$L" | cut -f 1 )
-        ALIQUOT_NAME=$(echo "$L" | cut -f 2)
-        REF=$(echo "$L" | cut -f 3)
-        ES=$(echo "$L" | cut -f 4)
-        DF=$(echo "$L" | cut -f 5)
-        FN=$(echo "$L" | cut -f 6)
-        FS=$(echo "$L" | cut -f 7)
-        ID=$(echo "$L" | cut -f 8)
-        MD5=$(echo "$L" | cut -f 9)
+    while read LLL; do
+        CASE=$(echo "$LLL" | cut -f 1 )
+        ALIQUOT_NAME=$(echo "$LLL" | cut -f 2)
+        REF=$(echo "$LLL" | cut -f 3)
+        ES=$(echo "$LLL" | cut -f 4)
+        DF=$(echo "$LLL" | cut -f 5)
+        FN=$(echo "$LLL" | cut -f 6)
+        FS=$(echo "$LLL" | cut -f 7)
+        ID=$(echo "$LLL" | cut -f 8)
+        MD5=$(echo "$LLL" | cut -f 9)
     
         if [ $CASE != $PASSED_CASE ]; then
             >&2 echo ERROR: CASE mismatch: passed $PASSED_CASE , $RFN = $CASE
@@ -317,7 +321,7 @@ function process_reads {
 
         # ad hoc suffix is added based on UUID or aliquot name if SUFFIX_LIST is defined
         if [ ! -z $SUFFIX_LIST ]; then
-            SUFFIX=$(get_SN_suffix $ID $ALIQUOT_NAME)
+            SUFFIX=$(get_SN_suffix $SUFFIX_LIST $ID $ALIQUOT_NAME)
             test_exit_status
             SN="${SN}$SUFFIX"
         fi
@@ -380,7 +384,7 @@ function process_methylation_array {
 
         # ad hoc suffix is added based on UUID or aliquot name if SUFFIX_LIST is defined
         if [ ! -z $SUFFIX_LIST ]; then
-            SUFFIX=$(get_SN_suffix $ID $ALIQUOT_NAME)
+            SUFFIX=$(get_SN_suffix $SUFFIX_LIST $ID $ALIQUOT_NAME)
             test_exit_status
             SN="${SN}$SUFFIX"
         fi
