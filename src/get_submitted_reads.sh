@@ -31,7 +31,7 @@ Require GDC_TOKEN environment variable to be defined with path to gdc-user-token
 Note that a temporary file is written to /tmp/get_submitted_reads.XXXXXX then deleted
 EOF
 
-QUERYGDC="CPTAC3.case.discover/queryGDC"
+QUERYGDC="src/queryGDC.sh"
 TMPL="/tmp/get_submitted_reads.XXXXXX"
 # http://wiki.bash-hackers.org/howto/getopts_tutorial
 while getopts ":hvo:T:t1" opt; do

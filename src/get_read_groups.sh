@@ -20,13 +20,13 @@ Writes the following columns for each read group
 
 Options:
 -h: Print this help message
--v: Verbose.  May be repeated to get verbose output from queryGDC
+-v: Verbose.  May be repeated to get verbose output from queryGDC.sh
 -o OUTFN: write results to output file instead of STDOUT.  Will be overwritten if exists
 
 Require GDC_TOKEN environment variable to be defined with path to gdc-user-token.*.txt file
 EOF
 
-QUERYGDC="CPTAC3.case.discover/queryGDC"
+QUERYGDC="src/queryGDC.sh"
 # http://wiki.bash-hackers.org/howto/getopts_tutorial
 while getopts ":hdvo:" opt; do
   case $opt in
@@ -103,14 +103,6 @@ function read_group_from_aliquot_query {
     }
 EOF
 }
-
-QUERYGDC="CPTAC3.case.discover/queryGDC"
-
-#DAT="dat/cases/$CASE/sample_from_case.$CASE.dat"
-#OUTD="dat/cases/$CASE"
-#mkdir -p $OUTD
-#OUT="$OUTD/read_group_from_case.$CASE.dat"
-#rm -f $OUT
 
 if [ $VERBOSE ]; then
     >&2 echo Processing $DAT

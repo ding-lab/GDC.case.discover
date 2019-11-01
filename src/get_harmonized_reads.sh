@@ -21,7 +21,7 @@ Writes the following columns for each harmonized aligned reads entry:
 
 Options:
 -h: Print this help message
--v: Verbose.  May be repeated to get verbose output from queryGDC
+-v: Verbose.  May be repeated to get verbose output from queryGDC.sh
 -o OUTFN: write results to output file instead of STDOUT.  Will be overwritten if exists
 -1: stop after processing one line from read_groups.dat
 
@@ -29,7 +29,7 @@ Require GDC_TOKEN environment variable to be defined with path to gdc-user-token
 Note that a temporary file is written to /tmp/get_submitted_reads.XXXXXX then deleted
 EOF
 
-QUERYGDC="CPTAC3.case.discover/queryGDC"
+QUERYGDC="src/queryGDC.sh"
 TMPL="/tmp/get_submitted_reads.XXXXXX"
 # http://wiki.bash-hackers.org/howto/getopts_tutorial
 while getopts ":hvo:1" opt; do

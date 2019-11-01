@@ -7,7 +7,7 @@ read -r -d '' USAGE <<'EOF'
 Obtain AR file with GDC sequence and methylation data for all cases
 
 Usage:
-  process_cases.sh [options] DISCOVER_CASES
+  process_multi_cases.sh [options] DISCOVER_CASES
 
 Options:
 -h: Print this help message
@@ -212,9 +212,9 @@ while read L; do
     fi
         
     if [ ! -z $OUTFN ]; then
-        sort $AR | grep -v "^#" >> $OUTFN
+        sort -u $AR | grep -v "^#" >> $OUTFN
     else
-        sort $AR | grep -v "^#"
+        sort -u $AR | grep -v "^#"
     fi
 
     if [ $JUSTONE ]; then

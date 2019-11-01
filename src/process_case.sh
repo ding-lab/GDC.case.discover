@@ -35,7 +35,7 @@ EOF
 # so is no longer implemented
 
 # Where scripts live
-BIND="CPTAC3.case.discover"
+BIND="src"
 OUTD="./dat"
 # http://wiki.bash-hackers.org/howto/getopts_tutorial
 while getopts ":hdf:O:o:s:v" opt; do

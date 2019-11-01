@@ -11,7 +11,7 @@ Usage:
 
 Options:
 -h: Print this help message
--v: Verbose.  May be repeated to get verbose output from queryGDC
+-v: Verbose.  May be repeated to get verbose output from queryGDC.sh
 -o OUTFN: write results to output file instead of STDOUT.  Will be overwritten if exists
 
 Writes the following columns for each aliquot:
@@ -26,7 +26,7 @@ Writes the following columns for each aliquot:
 Require GDC_TOKEN environment variable to be defined with path to gdc-user-token.*.txt file
 EOF
 
-QUERYGDC="CPTAC3.case.discover/queryGDC"
+QUERYGDC="src/queryGDC.sh"
 # http://wiki.bash-hackers.org/howto/getopts_tutorial
 while getopts ":hdvo:" opt; do
   case $opt in

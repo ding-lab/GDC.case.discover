@@ -25,7 +25,7 @@ Writes the following columns for each methylation array
 
 Options:
 -h: Print this help message
--v: Verbose.  May be repeated to get verbose output from queryGDC
+-v: Verbose.  May be repeated to get verbose output from queryGDC.sh
 -o OUTFN: write results to output file instead of STDOUT.  Will be overwritten if exists
 
 Require GDC_TOKEN environment variable to be defined with path to gdc-user-token.*.txt file
@@ -34,7 +34,7 @@ EOF
 # Assumed reference
 REF="NA"
 
-QUERYGDC="CPTAC3.case.discover/queryGDC"
+QUERYGDC="src/queryGDC.sh"
 # http://wiki.bash-hackers.org/howto/getopts_tutorial
 while getopts ":hdvo:" opt; do
   case $opt in

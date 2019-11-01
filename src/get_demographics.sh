@@ -28,11 +28,7 @@ cat <<EOF
 EOF
 }
 
-if [ -z $QUERYGDC_HOME ]; then
-    QUERYGDC_HOME="./queryGDC"
-    >&2 echo QUERYGDC_HOME not set, using default ./queryGDC
-fi
-QUERYGDC="$QUERYGDC_HOME/queryGDC"
+QUERYGDC="src/queryGDC.sh"
 
 # print header
 printf "# case\tdisease\tethnicity\tgender\trace\tdays_to_birth\n"

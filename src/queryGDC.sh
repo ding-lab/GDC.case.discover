@@ -1,7 +1,7 @@
 #!/bin/bash -l
 
 # Execute given GraphQL file as a query to GDC
-# Usage: queryGDC [options] query.dat
+# Usage: queryGDC.sh [options] query.dat
 #
 # -t token.txt: define token file; may also be defined by `export GDC_TOKEN=file`.  Default ./gdc-user-token.txt
 # -v: print diagnostic information to stderr
