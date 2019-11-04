@@ -135,11 +135,13 @@ function confirm {
 
 # sample code, short name: sample type name
 # N, blood_normal:   Blood Derived Normal
-# B, buccal_normal:   Buccal Cell Normal
+# Nbc, buccal_normal:   Buccal Cell Normal
+# T, tumor:   Primary Tumor or Tumor
 # Tbm, tumor_bone_marrow: Primary Blood Derived Cancer - Bone Marrow
 # Tpb, tumor_peripheral_blood: Primary Blood Derived Cancer - Peripheral Blood
-# T, tumor:   Primary Tumor or Tumor
 # A, tissue_normal:   Solid Tissue Normal
+
+# Note: Buccal Cell Normal appears only in AML in conjuction with Tbm, Tbp.  Assume this is a "type" of normal
 
 # Returns short code as above for given sample type name
 function get_sample_code {
@@ -152,7 +154,7 @@ function get_sample_code {
     elif [ "$STL" == "Primary Tumor" ] || [ "$STL" == "Tumor" ]; then
         ST="T"
     elif [ "$STL" == "Buccal Cell Normal" ]; then
-        ST="B"
+        ST="Nbc"
     elif [ "$STL" == "Primary Blood Derived Cancer - Bone Marrow" ]; then
         ST="Tbm"
     elif [ "$STL" == "Primary Blood Derived Cancer - Peripheral Blood" ]; then
@@ -284,7 +286,7 @@ function process_reads {
     ALIQUOTS_FN=$2
     PASSED_CASE=$3      # Sanity check - make sure looking at right dataset
     DISEASE=$4
-  
+
 # columns of RFN
 #    * case
 #    * aliquot submitter id
@@ -297,17 +299,17 @@ function process_reads {
 #    * md5sum
 
     # Loop over all lines in input file RFN and write AR entry for each
-    while read LLL; do
-        CASE=$(echo "$LLL" | cut -f 1 )
-        ALIQUOT_NAME=$(echo "$LLL" | cut -f 2)
-        REF=$(echo "$LLL" | cut -f 3)
-        ES=$(echo "$LLL" | cut -f 4)
-        DF=$(echo "$LLL" | cut -f 5)
-        FN=$(echo "$LLL" | cut -f 6)
-        FS=$(echo "$LLL" | cut -f 7)
-        ID=$(echo "$LLL" | cut -f 8)
-        MD5=$(echo "$LLL" | cut -f 9)
-    
+    while read L; do
+        CASE=$(echo "$L" | cut -f 1 )
+        ALIQUOT_NAME=$(echo "$L" | cut -f 2)
+        REF=$(echo "$L" | cut -f 3)
+        ES=$(echo "$L" | cut -f 4)
+        DF=$(echo "$L" | cut -f 5)
+        FN=$(echo "$L" | cut -f 6)
+        FS=$(echo "$L" | cut -f 7)
+        ID=$(echo "$L" | cut -f 8)
+        MD5=$(echo "$L" | cut -f 9)
+
         if [ $CASE != $PASSED_CASE ]; then
             >&2 echo ERROR: CASE mismatch: passed $PASSED_CASE , $RFN = $CASE
             exit 1

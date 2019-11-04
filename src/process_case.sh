@@ -23,6 +23,7 @@ Options:
 -O OUTD: intermediate file output directory.  Default: ./dat
 -o OUTFN: write final results to output file instead of STDOUT.  Will be overwritten if exists
 -s SUFFIX_LIST: data file for appending suffix to sample names
+-D DEM_OUT: write demograhics data to given file
 
 Require GDC_TOKEN environment variable to be defined with path to gdc-user-token.*.txt file
 
@@ -38,7 +39,7 @@ EOF
 BIND="src"
 OUTD="./dat"
 # http://wiki.bash-hackers.org/howto/getopts_tutorial
-while getopts ":hdf:O:o:s:v" opt; do
+while getopts ":hdf:O:o:s:vD:" opt; do
   case $opt in
     h)
       echo "$USAGE"
@@ -62,6 +63,9 @@ while getopts ":hdf:O:o:s:v" opt; do
       ;;
     s)
       SUFFIX_ARG="-s $OPTARG"
+      ;;
+    D)
+      DEM_OUT="$OPTARG"
       ;;
     \?)
       >&2 echo "Invalid option: -$OPTARG"
@@ -134,29 +138,35 @@ CMD="bash $BIND/get_aliquots.sh -o $A_OUT $VERBOSE_ARG $CASE "
 run_cmd "$CMD"
 
 if [ ! -s $A_OUT ]; then
-    >&2 echo $A_OUT is empty.  Skipping case
-    return
+    >&2 echo NOTE: $A_OUT is empty.  Skipping case
+    if [ ! -z $OUTFN ]; then
+        touch $OUTFN
+    fi
+else
+    RG_OUT="$OUTD/read_groups.dat"
+    CMD="bash $BIND/get_read_groups.sh -o $RG_OUT $VERBOSE_ARG $A_OUT"
+    run_cmd "$CMD"
+
+    SR_OUT="$OUTD/submitted_reads.dat"
+    CMD="bash $BIND/get_submitted_reads.sh -o $SR_OUT $VERBOSE_ARG $RG_OUT"
+    run_cmd "$CMD"
+
+    HR_OUT="$OUTD/harmonized_reads.dat"
+    CMD="bash $BIND/get_harmonized_reads.sh -o $HR_OUT $VERBOSE_ARG $SR_OUT"
+    run_cmd "$CMD"
+
+    MA_OUT="$OUTD/methylation_array.dat"
+    CMD="bash $BIND/get_methylation_array.sh -o $MA_OUT $VERBOSE_ARG $A_OUT"
+    run_cmd "$CMD"
+
+    if [ ! -z $OUTFN ]; then
+        AR_OUT="-o $OUTFN"
+    fi
+    CMD="bash $BIND/make_AR.sh -Q $A_OUT -R $SR_OUT -H $HR_OUT -M $MA_OUT $SUFFIX_ARG $AR_OUT $VERBOSE_ARG $CASE $DISEASE"
+    run_cmd "$CMD"
 fi
 
-RG_OUT="$OUTD/read_groups.dat"
-CMD="bash $BIND/get_read_groups.sh -o $RG_OUT $VERBOSE_ARG $A_OUT"
-run_cmd "$CMD"
-
-SR_OUT="$OUTD/submitted_reads.sh"
-CMD="bash $BIND/get_submitted_reads.sh -o $SR_OUT $VERBOSE_ARG $RG_OUT"
-run_cmd "$CMD"
-
-HR_OUT="$OUTD/harmonized_reads.sh"
-CMD="bash $BIND/get_harmonized_reads.sh -o $HR_OUT $VERBOSE_ARG $SR_OUT"
-run_cmd "$CMD"
-
-MA_OUT="$OUTD/methylation_array.dat"
-CMD="bash $BIND/get_methylation_array.sh -o $MA_OUT $VERBOSE_ARG $A_OUT"
-run_cmd "$CMD"
-
-if [ ! -z $OUTFN ]; then
-    AR_OUT="-o $OUTFN"
+if [ ! -z $DEM_OUT ]; then
+    CMD="bash $BIND/get_demographics.sh -o $DEM_OUT $VERBOSE_ARG $CASE $DISEASE"
+    run_cmd "$CMD"
 fi
-CMD="bash $BIND/make_AR.sh -Q $A_OUT -R $SR_OUT -H $HR_OUT -M $MA_OUT $SUFFIX_ARG $AR_OUT $VERBOSE_ARG $CASE $DISEASE"
-run_cmd "$CMD"
-

@@ -9,14 +9,16 @@
 * C3L-00640
 * others...
 
-## Integrate demographics into main script, summary report as separate script is OK
-
 ## Look at dat/cases/C3L-01069/log.C3L-01069.err
-* this ends with the error:
-    ERROR: dat/cases/C3L-01069/aliquots.dat does not exist or is empty
-* This is apparently caused because there are no aliquots for this case:
-    dat/cases/C3L-01069/aliquots.dat is empty. Skipping case
-    CPTAC3.case.discover/process_case.sh: line 138: return: can only `return' from a function or sourced script
-* Be sure to make sure empty cases run cleanly
+* Be sure empty cases like C3L-01069 run cleanly
 
 ## Update documentation
+
+## Test summarize_cases.sh
+ - methylation
+ - look at buccal, peripheral blood, etc.  Add these cases as T, A, etc. 
+
+# Debug 
+* dat/cases/11LU013/submitted_reads.dat has blank line as first line
+  this causes error in make_AR.sh
+  For debugging, deleting the blank line.  Investigate why it occurs

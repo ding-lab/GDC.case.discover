@@ -28,15 +28,11 @@ EOF
 
 QUERYGDC="src/queryGDC.sh"
 # http://wiki.bash-hackers.org/howto/getopts_tutorial
-while getopts ":hdvo:" opt; do
+while getopts ":hvo:" opt; do
   case $opt in
     h)
       echo "$USAGE"
       exit 0
-      ;;
-    d)  # example of binary argument
-      >&2 echo "Dry run"
-      CMD="echo"
       ;;
     v)  
       VERBOSE="${VERBOSE}v"

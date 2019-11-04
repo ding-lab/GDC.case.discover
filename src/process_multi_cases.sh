@@ -7,7 +7,7 @@ read -r -d '' USAGE <<'EOF'
 Obtain AR file with GDC sequence and methylation data for all cases
 
 Usage:
-  process_multi_cases.sh [options] DISCOVER_CASES
+  process_multi_cases.sh [options] CASES
 
 Options:
 -h: Print this help message
@@ -17,8 +17,9 @@ Options:
 -o OUTFN: write result AR file instead of stdout
 -1: stop after processing one case
 -s SUFFIX_LIST: data file for appending suffix to sample names
+-D DEMS_OUT: write demographics information from all cases to given file
 
-DISCOVER_CASES is a TSV file with case name and disease in first and second columns
+CASES is a TSV file with case name and disease in first and second columns
 
 This calls process_case.sh once for each case, possibly using GNU parallel to process multiple cases at once
 Require GDC_TOKEN environment variable to be defined with path to gdc-user-token.*.txt file
@@ -29,11 +30,11 @@ EOF
 
 NJOBS=0
 # Where scripts live
-BIND="CPTAC3.case.discover"
+BIND="src"
 
 # Using rungo as a template for parallel: https://github.com/ding-lab/TinDaisy/blob/master/src/rungo
 # http://wiki.bash-hackers.org/howto/getopts_tutorial
-while getopts ":hdvJ:1o:s:" opt; do
+while getopts ":hdvJ:1o:s:D:" opt; do
   case $opt in
     h)
       echo "$USAGE"
@@ -59,7 +60,15 @@ while getopts ":hdvJ:1o:s:" opt; do
       fi
       ;;
     s)
+      >&2 echo TESTING $OPTARG
       SUFFIX_ARG="-s $OPTARG"
+      if [ ! -f $OPTARG ]; then
+          >&2 echo ERROR: SUFFIX_LIST file $OUTFN does not exist
+          exit 1
+      fi
+      ;;
+    D)
+      DEMS_OUT="$OPTARG"
       ;;
     \?)
       >&2 echo "Invalid option: -$OPTARG"
@@ -120,12 +129,12 @@ if [ "$#" -ne 1 ]; then
     exit 1
 fi
 
-DISCOVER_CASES=$1
-if [ ! -s $DISCOVER_CASES ]; then
-    >&2 echo ERROR: $DISCOVER_CASES does not exist or is empty
+CASES=$1
+if [ ! -s $CASES ]; then
+    >&2 echo ERROR: $CASES does not exist or is empty
     exit 1
 fi
->&2 echo Iterating over $DISCOVER_CASES
+>&2 echo Iterating over $CASES
 
 # If verbose flag repeated multiple times (e.g., VERBOSE="vvv"), pass the value of VERBOSE with one flag popped off (i.e., VERBOSE_ARG="vv")
 if [ $VERBOSE ]; then
@@ -159,8 +168,11 @@ while read L; do
     STDOUT_FN="$LOGD/log.${CASE}.out"
     STDERR_FN="$LOGD/log.${CASE}.err"
     AR="$LOGD/AR.dat"
+    if [ ! -z $DEMS_OUT ]; then  # get demographics only if requested
+        DEM="-D $LOGD/demographics.dat"
+    fi
 
-    CMD="bash $BIND/process_case.sh -O $LOGD -o $AR $SUFFIX_ARG $VERBOSE_ARG $CASE $DIS > $STDOUT_FN 2> $STDERR_FN"
+    CMD="bash $BIND/process_case.sh -O $LOGD -o $AR $DEM $SUFFIX_ARG $VERBOSE_ARG $CASE $DIS > $STDOUT_FN 2> $STDERR_FN"
 
     if [ $NJOBS != 0 ]; then
         JOBLOG="$LOGD/$CASE.log"
@@ -175,7 +187,7 @@ while read L; do
         break
     fi
 
-done < $DISCOVER_CASES
+done < $CASES
 
 if [ $NJOBS != 0 ]; then
     # this will wait until all jobs completed
@@ -188,12 +200,14 @@ if [ $DRYRUN ]; then
     exit 0
 fi
 
-# Now collect all AR files and write out to stdout or OUTFN
+# Now collect all AR and demographics files and write out to stdout or OUTFN
 while read L; do
     [[ $L = \#* ]] && continue  # Skip commented out entries
 
     CASE=$(echo "$L" | cut -f 1 )
     AR="$LOGBASE/cases/$CASE/AR.dat"
+    # Demographics info, if evaluated, is always written to file DEMS_OUT
+    DEM="$LOGBASE/cases/$CASE/demographics.dat"
 
     if [ ! -f $AR ]; then
         >&2 echo WARNING: AR file $AR for case $CASE does not exist
@@ -204,9 +218,13 @@ while read L; do
     if [ -z $REPEAT_LOOP ]; then
         HEADER=$(grep "^#" $AR | head -n1)
         if [ ! -z $OUTFN ]; then
-            echo "$HEADER" >> $OUTFN
+            echo "$HEADER" > $OUTFN
         else
             echo "$HEADER"
+        fi
+        if [ ! -z $DEMS_OUT ]; then
+            DEM_HEADER=$(grep "^#" $DEM | head -n1)
+            echo "$DEM_HEADER" > $DEMS_OUT
         fi
         REPEAT_LOOP=1
     fi
@@ -217,12 +235,20 @@ while read L; do
         sort -u $AR | grep -v "^#"
     fi
 
+    if [ ! -z $DEMS_OUT ]; then
+        grep -v "^#" $DEM > $DEMS_OUT
+    fi
+
     if [ $JUSTONE ]; then
         break
     fi
 
-done < $DISCOVER_CASES
+done < $CASES
 
 if [ ! -z $OUTFN ]; then
     >&2 echo Written to $OUTFN
+fi
+
+if [ ! -z $DEMS_OUT ]; then
+    >&2 echo Written demographics to $DEMS_OUT
 fi
