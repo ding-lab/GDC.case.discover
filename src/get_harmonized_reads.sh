@@ -148,7 +148,7 @@ while read L; do
     SRID=$(echo "$L" | cut -f 8)
 
     # Process results for submitted reads and make query for corresponding harmonized reads
-    if [ $ES == "WGS" ] || [ $ES == "WXS" ]; then
+    if [ "$ES" == "WGS" ] || [ "$ES" == "WXS" ] || [ "$ES" == "Targeted Sequencing" ]; then
         Q=$(HAR_from_SAR $SRID)
     else
         Q=$(HAR_from_SUR $SRID)

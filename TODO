@@ -9,16 +9,49 @@
 * C3L-00640
 * others...
 
+## minor issues
+
+queryGDC seems to get an error if -vv passed
+
 ## Look at dat/cases/C3L-01069/log.C3L-01069.err
 * Be sure empty cases like C3L-01069 run cleanly
+
 
 ## Update documentation
 
 ## Test summarize_cases.sh
- - methylation
  - look at buccal, peripheral blood, etc.  Add these cases as T, A, etc. 
 
-# Debug 
-* dat/cases/11LU013/submitted_reads.dat has blank line as first line
-  this causes error in make_AR.sh
-  For debugging, deleting the blank line.  Investigate why it occurs
+# overnight run 11/4/19
+* Many errors like this:
+WARNING: AR file ./dat/cases/C3L-00819/AR.dat for case C3L-00819 does not exist
+
+grep: ./dat/cases/C3N-03187/demographics.dat: No such file or directory
+...
+The following 146 files had errors or warnings (top 10 shown):
+dat/cases/C3L-00017/log.C3L-00017.err
+
+# Investigating C3L-00017
+
+## log.C3L-00017.err
+src/get_submitted_reads.sh: line 166: [: too many arguments
+ERROR: Unknown Experimental Strategy Targeted Sequencing
+
+## Diving in
+cases moved to cases.20191104 for safe keeping, analyzing only C3L-00017
+
+The following error occurs:
+```
+bash src/get_submitted_reads.sh -o dat/cases/C3L-00017/submitted_reads.dat -v dat/cases/C3L-00017/read_groups.dat
+
+...
+RESULT: { "data": { "submitted_aligned_reads": [ { "data_format": "BAM", "experimental_strategy": "WXS", "file_name": "CPT0000250005_1.WholeExome.RP-1303.bam", "file_size": 52414701226, "id": "6004cd9d-9c4e-4259-b57c-1ab203015d2a", "md5sum": "d9c4ba97a0e9b59eefec9558051348c4" } ] } }
+ERROR: Unknown Experimental Strategy Targeted Sequencing
+CASE = C3L-00017 Aliquot = CPT0000250005_1 Read Group =
+```
+This is based on the following line in read_groups.dat:
+```
+C3L-00017   CPT0000250005_1 HWWYNCCXY190708.1.RP-1303.PDO-18786.CPT0000250005_1.bam Targeted Sequencing CPT0000250005_1.CustomSelection.RP-1303.PDO-18786.bam   null
+```
+
+-> We are getting the value "Targeted Sequencing" for a read_group library_strategy, which is legal but unexpected

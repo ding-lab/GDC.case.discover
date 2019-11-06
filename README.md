@@ -1,5 +1,7 @@
 # Background
 
+Documentation is outdated
+
 Simple command line tool to perform graphGL queries for NCI Genomics Data
 Commons.  Given a "bare GraphQL" query ([as described
 here](https://docs.gdc.cancer.gov/API/Users_Guide/Submission/#querying-submitted-data-using-graphql)),

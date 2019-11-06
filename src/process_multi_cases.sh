@@ -222,7 +222,7 @@ while read L; do
         else
             echo "$HEADER"
         fi
-        if [ ! -z $DEMS_OUT ]; then
+        if [ ! -z $DEMS_OUT ]; then # this will fail if $DEM in first loop does not exist
             DEM_HEADER=$(grep "^#" $DEM | head -n1)
             echo "$DEM_HEADER" > $DEMS_OUT
         fi
@@ -235,7 +235,7 @@ while read L; do
         sort -u $AR | grep -v "^#"
     fi
 
-    if [ ! -z $DEMS_OUT ]; then
+    if [ ! -z $DEMS_OUT ] && [ -f $DEM ]; then
         grep -v "^#" $DEM > $DEMS_OUT
     fi
 

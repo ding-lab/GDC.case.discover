@@ -1,14 +1,14 @@
 # Perform discovery for all cases in CASES file
 
 # This needs to be exported, to be visible to GDC Query scripts
-export GDC_TOKEN="/Users/mwyczalk/Projects/CPTAC3/Discovery/token/gdc-user-token.2019-11-04T03_11_17.182Z.txt"
+export GDC_TOKEN="/home/mwyczalk_test/Projects/CPTAC3/discovery/token/gdc-user-token.2019-11-04T03_11_17.182Z.txt"
 
-PROJECT="discover.20191103"
+PROJECT="discover.20191104"
 #CASES="/home/mwyczalk_test/Projects/CPTAC3/CPTAC3.catalog/CPTAC3.cases.dat"
 CASES="dat/cases-test.dat"
 
 # add suffix to sample names based on aliquot
-SUFFIX_LIST="/Users/mwyczalk/Projects/CPTAC3/CPTAC3.catalog/SampleRename.dat"
+SUFFIX_LIST="/home/mwyczalk_test/Projects/CPTAC3/CPTAC3.catalog/SampleRename.dat"
 
 # With vvv each step outputs query details, fewer limits output
 VERBOSE="-vvv"

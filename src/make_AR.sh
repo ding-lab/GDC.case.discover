@@ -9,8 +9,6 @@
 read -r -d '' USAGE <<'EOF'
 Write a comprehensive summary of aligned reads and methylation array from GDC
 
-# TODO: add optional suffix file which will add suffixes to sample name based on aliquot name
-
 Usage:
   make_AR.sh [options] CASE DISEASE
 
@@ -29,8 +27,8 @@ Writes AR file with the following columns:
     * sample_name - ad hoc name for this file, generated for convenience and consistency
     * case
     * disease
-    * experimental_strategy - WGS, WXS, RNA-Seq, miRNA-Seq, MethArray
-    * sample_type - blood_normal, tissue_normal, tumor, buccal_normal, tumor_bone_marrow, tumor_peripheral_blood
+    * experimental_strategy - WGS, WXS, RNA-Seq, miRNA-Seq, MethArray, Targeted Sequencing
+    * short_sample_type - short name for sample_type: blood_normal, tissue_normal, tumor, buccal_normal, tumor_bone_marrow, tumor_peripheral_blood
     * aliquot - name of aliquot used
     * filename
     * filesize
@@ -38,6 +36,7 @@ Writes AR file with the following columns:
     * UUID
     * MD5
     * reference - assumed reference used, hg19 for submitted aligned reads, NA for submitted unaligned reads, and hg38 for harmonized reads
+    * sample_type - sample type as reported from GDC, e.g., Blood Derived Normal, Solid Tissue Normal, Primary Tumor, and others
 
 SUFFIX_LIST is a TSV file listing a UUID or Aliquot ID in first column, 
 second column is suffix to be added to sample_name.  This allows specific samples to have modified names
@@ -218,7 +217,7 @@ function get_SN_suffix {
 
 # Create sample name from case, experimental_strategy, and sample_type abbreviation
 # In the case of RNA-Seq, we extract the read number (R1 or R2) from the file name - this is empirical, and may change with different data types
-# 
+# For the purpose of the name, experimental strategy "Targeted Sequencing" is renamed as "Targeted"
 function get_SN {
     CASE=$1
     STL=$2
@@ -230,6 +229,12 @@ function get_SN {
 
     ST=$(get_sample_code "$STL")
     test_exit_status
+
+    if [ "$ES" == "Targeted Sequencing" ]; then
+        LES="Targeted"
+    else
+        LES=$ES
+    fi
 
     if [ $DF == "FASTQ" ]; then
     # Identify R1, R2 by matching for _R1_ or _R2_ in filename.  This only works for FASTQs.
@@ -243,12 +248,12 @@ function get_SN {
             >&2 echo "Unknown filename format (cannot find _R1_ or _R2_): $FN"
             exit 1
         fi
-        ES="$ES.$RN"
+        LES="$LES.$RN"
     elif [ $DF == "IDAT" ]; then
-        ES="$ES.$CHANNEL"
+        LES="$LES.$CHANNEL"
     fi
 
-    SN="$CASE.$ES.$ST"
+    SN="$CASE.$LES.$ST"
     if [ $REF == "hg38" ]; then
         SN="${SN}.hg38"
     fi
@@ -300,6 +305,10 @@ function process_reads {
 
     # Loop over all lines in input file RFN and write AR entry for each
     while read L; do
+
+        if [ "$L" == "" ]; then
+            continue
+        fi
         CASE=$(echo "$L" | cut -f 1 )
         ALIQUOT_NAME=$(echo "$L" | cut -f 2)
         REF=$(echo "$L" | cut -f 3)
@@ -321,7 +330,7 @@ function process_reads {
         SN=$(get_SN $CASE "$SAMPLE_TYPE" $ES $FN $DF $REF "NA")
         test_exit_status
 
-        # ad hoc suffix is added based on UUID or aliquot name if SUFFIX_LIST is defined
+        # if SUFFIX_LIST is defined, ad hoc suffix is added to sample name based on match to UUID or aliquot name 
         if [ ! -z $SUFFIX_LIST ]; then
             SUFFIX=$(get_SN_suffix $SUFFIX_LIST $ID $ALIQUOT_NAME)
             test_exit_status
@@ -331,7 +340,7 @@ function process_reads {
         STS=$(get_sample_short_name "$SAMPLE_TYPE")
         test_exit_status
 
-        printf "$SN\t$CASE\t$DISEASE\t$ES\t$STS\t$ALIQUOT_NAME\t$FN\t$FS\t$DF\t$ID\t$MD5\t$REF\n"
+        printf "$SN\t$CASE\t$DISEASE\t$ES\t$STS\t$ALIQUOT_NAME\t$FN\t$FS\t$DF\t$ID\t$MD5\t$REF\t$SAMPLE_TYPE\n"
     done < $RFN
 }
 
@@ -393,14 +402,14 @@ function process_methylation_array {
 
         STS=$(get_sample_short_name "$SAMPLE_TYPE")
 
-        printf "$SN\t$CASE\t$DISEASE\t$MYES\t$STS\t$ALIQUOT_NAME\t$FN\t$FS\t$DF\t$ID\t$MD5\t$REF\n"
+        printf "$SN\t$CASE\t$DISEASE\t$MYES\t$STS\t$ALIQUOT_NAME\t$FN\t$FS\t$DF\t$ID\t$MD5\t$REF\t$SAMPLE_TYPE\n"
     done < $MAFN
 }
 
 confirm $ALIQUOTS_FN
 
 if [ -z $NO_HEADER ]; then
-    OUTLINE=$(printf "# sample_name\tcase\tdisease\texperimental_strategy\tsample_type\taliquot\tfilename\tfilesize\tdata_format\tUUID\tMD5\treference\n" )
+    OUTLINE=$(printf "# sample_name\tcase\tdisease\texperimental_strategy\tshort_sample_type\taliquot\tfilename\tfilesize\tdata_format\tUUID\tMD5\treference\tsample_type\n" )
     if [ ! -z $OUTFN ]; then
         echo "$OUTLINE" >> $OUTFN
     else
