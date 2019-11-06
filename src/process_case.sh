@@ -109,7 +109,9 @@ function run_cmd {
 # If verbose flag repeated multiple times (e.g., VERBOSE="vvv"), pass the value of VERBOSE with one flag popped off (i.e., VERBOSE_ARG="vv")
 if [ $VERBOSE ]; then
     VERBOSE_ARG=${VERBOSE%?}
-    VERBOSE_ARG="-$VERBOSE_ARG"
+    if [ "$VERBOSE_ARG" != "" ]; then
+        VERBOSE_ARG="-$VERBOSE_ARG"
+    fi
 fi
 
 # Called after running scripts to catch fatal (exit 1) errors

@@ -2,6 +2,17 @@
 
 Documentation is outdated
 
+# New in v 2.0
+
+* Added Targeted sequencing
+* Added methylation
+* Added full sample type column
+
+# TODO documentation
+## Discuss sample naming
+## Discuss usage - how to run this
+
+
 Simple command line tool to perform graphGL queries for NCI Genomics Data
 Commons.  Given a "bare GraphQL" query ([as described
 here](https://docs.gdc.cancer.gov/API/Users_Guide/Submission/#querying-submitted-data-using-graphql)),
