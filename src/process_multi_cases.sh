@@ -155,100 +155,142 @@ fi
 # logs will go in same directory as output
 LOGBASE="./dat"
 
-# Case file has two tab separated columns, case name and disease
-while read L; do
+function process_cases {
+    # Case file has two tab separated columns, case name and disease
+    while read L; do
 
-    [[ $L = \#* ]] && continue  # Skip commented out entries
+        [[ $L = \#* ]] && continue  # Skip commented out entries
 
-    CASE=$(echo "$L" | cut -f 1 )
-    DIS=$(echo "$L" | cut -f 2 )
+        CASE=$(echo "$L" | cut -f 1 )
+        DIS=$(echo "$L" | cut -f 2 )
 
-    LOGD="$LOGBASE/cases/$CASE"
-    mkdir -p $LOGD
-    STDOUT_FN="$LOGD/log.${CASE}.out"
-    STDERR_FN="$LOGD/log.${CASE}.err"
-    AR="$LOGD/AR.dat"
-    if [ ! -z $DEMS_OUT ]; then  # get demographics only if requested
-        DEM="-D $LOGD/demographics.dat"
-    fi
+        LOGD="$LOGBASE/cases/$CASE"
+        mkdir -p $LOGD
+        STDOUT_FN="$LOGD/log.${CASE}.out"
+        STDERR_FN="$LOGD/log.${CASE}.err"
+        AR="$LOGD/AR.dat"
+        if [ ! -z $DEMS_OUT ]; then  # get demographics only if requested
+            DEM="-D $LOGD/demographics.dat"
+        fi
 
-    CMD="bash $BIND/process_case.sh -O $LOGD -o $AR $DEM $SUFFIX_ARG $VERBOSE_ARG $CASE $DIS > $STDOUT_FN 2> $STDERR_FN"
+        CMD="bash $BIND/process_case.sh -O $LOGD -o $AR $DEM $SUFFIX_ARG $VERBOSE_ARG $CASE $DIS > $STDOUT_FN 2> $STDERR_FN"
+
+        if [ $NJOBS != 0 ]; then
+            JOBLOG="$LOGD/$CASE.log"
+            CMD=$(echo "$CMD" | sed 's/"/\\"/g' )   # This will escape the quotes in $CMD 
+            CMD="parallel --semaphore -j$NJOBS --id $MYID --joblog $JOBLOG --tmpdir $LOGD \"$CMD\" "
+        fi
+
+        run_cmd "$CMD" $DRYRUN
+        >&2 echo Written to $STDOUT_FN
+
+        if [ $JUSTONE ]; then
+            break
+        fi
+
+    done < $CASES
 
     if [ $NJOBS != 0 ]; then
-        JOBLOG="$LOGD/$CASE.log"
-        CMD=$(echo "$CMD" | sed 's/"/\\"/g' )   # This will escape the quotes in $CMD 
-        CMD="parallel --semaphore -j$NJOBS --id $MYID --joblog $JOBLOG --tmpdir $LOGD \"$CMD\" "
+        # this will wait until all jobs completed
+        CMD="parallel --semaphore --wait --id $MYID"
+        run_cmd "$CMD" $DRYRUN
     fi
+}
 
-    run_cmd "$CMD" $DRYRUN
-    >&2 echo Written to $STDOUT_FN
+function collect_AR {
+    WRITE_HEADER=1
 
-    if [ $JUSTONE ]; then
-        break
-    fi
+    # Now collect all AR and demographics files and write out to stdout or OUTFN
+    while read L; do
+        [[ $L = \#* ]] && continue  # Skip commented out entries
 
-done < $CASES
+        CASE=$(echo "$L" | cut -f 1 )
+        AR="$LOGBASE/cases/$CASE/AR.dat"
 
-if [ $NJOBS != 0 ]; then
-    # this will wait until all jobs completed
-    CMD="parallel --semaphore --wait --id $MYID"
-    run_cmd "$CMD" $DRYRUN
-fi
+        if [ ! -f $AR ]; then
+            >&2 echo WARNING: AR file $AR for case $CASE does not exist
+            continue
+        fi
 
-if [ $DRYRUN ]; then
-    >&2 echo Dryrun: done
-    exit 0
-fi
-
-# Now collect all AR and demographics files and write out to stdout or OUTFN
-while read L; do
-    [[ $L = \#* ]] && continue  # Skip commented out entries
-
-    CASE=$(echo "$L" | cut -f 1 )
-    AR="$LOGBASE/cases/$CASE/AR.dat"
-    # Demographics info, if evaluated, is always written to file DEMS_OUT
-    DEM="$LOGBASE/cases/$CASE/demographics.dat"
-
-    if [ ! -f $AR ]; then
-        >&2 echo WARNING: AR file $AR for case $CASE does not exist
-        continue
-    fi
-
-    # header goes only in first loop
-    if [ -z $REPEAT_LOOP ]; then
-        HEADER=$(grep "^#" $AR | head -n1)
+        # header goes only in first loop
+        if [ $WRITE_HEADER == 1 ]; then
+            HEADER=$(grep "^#" $AR | head -n1)
+            if [ ! -z $OUTFN ]; then
+                echo "$HEADER" > $OUTFN
+            else
+                echo "$HEADER"
+            fi
+            WRITE_HEADER=0
+        fi
+            
         if [ ! -z $OUTFN ]; then
-            echo "$HEADER" > $OUTFN
+            sort -u $AR | grep -v "^#" >> $OUTFN
         else
-            echo "$HEADER"
+            sort -u $AR | grep -v "^#"
         fi
-        if [ ! -z $DEMS_OUT ]; then # this will fail if $DEM in first loop does not exist
+
+        if [ $JUSTONE ]; then
+            break
+        fi
+
+    done < $CASES
+}
+function collect_demographics {
+    WRITE_HEADER=1
+
+    # Now collect all AR and demographics files and write out to stdout or OUTFN
+    while read L; do
+        [[ $L = \#* ]] && continue  # Skip commented out entries
+
+        CASE=$(echo "$L" | cut -f 1 )
+        # Demographics info, if evaluated, is always written to file DEMS_OUT
+        DEM="$LOGBASE/cases/$CASE/demographics.dat"
+
+        if [ ! -f $DEM ]; then
+            >&2 echo WARNING: Demographics file $DEM for case $CASE does not exist
+            continue
+        fi
+
+        # header goes only in first loop
+        if [ $WRITE_HEADER == 1 ]; then
             DEM_HEADER=$(grep "^#" $DEM | head -n1)
-            echo "$DEM_HEADER" > $DEMS_OUT
+            if [ ! -z $DEMS_OUT ]; then 
+                echo "$DEM_HEADER" > $DEMS_OUT
+            else
+                echo "$DEM_HEADER" 
+            fi
+            WRITE_HEADER=0
         fi
-        REPEAT_LOOP=1
-    fi
-        
-    if [ ! -z $OUTFN ]; then
-        sort -u $AR | grep -v "^#" >> $OUTFN
-    else
-        sort -u $AR | grep -v "^#"
-    fi
+            
+        if [ ! -z $DEMS_OUT ] && [ -f $DEM ]; then
+            grep -v "^#" $DEM >> $DEMS_OUT
+        fi
 
-    if [ ! -z $DEMS_OUT ] && [ -f $DEM ]; then
-        grep -v "^#" $DEM > $DEMS_OUT
-    fi
+        if [ $JUSTONE ]; then
+            break
+        fi
 
-    if [ $JUSTONE ]; then
-        break
-    fi
+    done < $CASES
+}
 
-done < $CASES
+
+# main loop
+ process_cases
 
 if [ ! -z $OUTFN ]; then
-    >&2 echo Written to $OUTFN
+    >&2 echo Collecting all AR, writing to $OUTFN
+else
+    >&2 echo Collecting all AR, writing to STDOUT
 fi
+collect_AR
+
+exit 1
 
 if [ ! -z $DEMS_OUT ]; then
-    >&2 echo Written demographics to $DEMS_OUT
+    >&2 echo Collecting all demograhics, writing to $DEMS_OUT
+else
+    >&2 echo Collecting all demograhics, writing to STDOUT
 fi
+collect_demographics
+
+
