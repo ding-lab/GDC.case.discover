@@ -202,6 +202,7 @@ while read L; do
 
 done < $DAT
 
+touch $OUTFN
 # Skip sorting in the event $DAT is empty
 if [ -e $TMPFILE ]; then
     if [ ! -z $OUTFN ]; then
@@ -212,7 +213,6 @@ if [ -e $TMPFILE ]; then
 else
     if [ ! -z $OUTFN ]; then
         >&2 echo No data.  Creating empty file $OUTFN
-        touch $OUTFN
     fi
 fi
 

@@ -33,7 +33,5 @@ if grep -q -i error dat/cases/*/*log* ; then
     grep -il error dat/cases/*/*log* | head
 fi
 
->&2 echo Timing summary:
->&2 echo Start: $START
->&2 echo End: $End
+>&2 echo Timing summary: Start: $START    End: $END
 
