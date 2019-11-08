@@ -208,7 +208,9 @@ function collect_AR {
         AR="$LOGBASE/cases/$CASE/AR.dat"
 
         if [ ! -f $AR ]; then
-            >&2 echo WARNING: AR file $AR for case $CASE does not exist
+            if [ $DRYRUN != "d" ]; then
+                >&2 echo WARNING: AR file $AR for case $CASE does not exist
+            fi
             continue
         fi
 
@@ -235,6 +237,7 @@ function collect_AR {
 
     done < $CASES
 }
+
 function collect_demographics {
     WRITE_HEADER=1
 
@@ -247,23 +250,21 @@ function collect_demographics {
         DEM="$LOGBASE/cases/$CASE/demographics.dat"
 
         if [ ! -f $DEM ]; then
-            >&2 echo WARNING: Demographics file $DEM for case $CASE does not exist
+            if [ $DRYRUN != "d" ]; then
+                >&2 echo WARNING: Demographics file $DEM for case $CASE does not exist
+            fi
             continue
         fi
 
         # header goes only in first loop
         if [ $WRITE_HEADER == 1 ]; then
             DEM_HEADER=$(grep "^#" $DEM | head -n1)
-            if [ ! -z $DEMS_OUT ]; then 
-                echo "$DEM_HEADER" > $DEMS_OUT
-            else
-                echo "$DEM_HEADER" 
-            fi
+            echo "$DEM_HEADER" > $DEMS_OUT
             WRITE_HEADER=0
         fi
             
         if [ ! -z $DEMS_OUT ] && [ -f $DEM ]; then
-            grep -v "^#" $DEM >> $DEMS_OUT
+            grep -v "^#" $DEM | sed '/^[[:space:]]*$/d' >> $DEMS_OUT
         fi
 
         if [ $JUSTONE ]; then
@@ -275,7 +276,7 @@ function collect_demographics {
 
 
 # main loop
- process_cases
+process_cases
 
 if [ ! -z $OUTFN ]; then
     >&2 echo Collecting all AR, writing to $OUTFN
@@ -284,13 +285,9 @@ else
 fi
 collect_AR
 
-exit 1
-
 if [ ! -z $DEMS_OUT ]; then
     >&2 echo Collecting all demograhics, writing to $DEMS_OUT
-else
-    >&2 echo Collecting all demograhics, writing to STDOUT
+    collect_demographics
 fi
-collect_demographics
 
 

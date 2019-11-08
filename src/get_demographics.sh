@@ -102,7 +102,12 @@ EOF
 }
 
 # print header
-printf "# case\tdisease\tethnicity\tgender\trace\tdays_to_birth\n"
+OUTLINE=$(printf "# case\tdisease\tethnicity\tgender\trace\tdays_to_birth\n")
+if [ ! -z $OUTFN ]; then
+    echo "$OUTLINE" >> $OUTFN
+else
+    echo "$OUTLINE"
+fi
 
 Q=$(demo_from_case_query $CASE)
 if [ $VERBOSE ]; then
