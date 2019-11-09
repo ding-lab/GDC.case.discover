@@ -250,7 +250,7 @@ function collect_demographics {
         DEM="$LOGBASE/cases/$CASE/demographics.dat"
 
         if [ ! -f $DEM ]; then
-            if [ $DRYRUN != "d" ]; then
+            if [ "$DRYRUN" != "d" ]; then
                 >&2 echo WARNING: Demographics file $DEM for case $CASE does not exist
             fi
             continue
