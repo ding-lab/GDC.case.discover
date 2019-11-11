@@ -421,7 +421,7 @@ fi
 # then, process submitted reads, harmonized reads, and/or methylation data
 # Note that arguments may be passed even if file is blank (because not in GDC)
 
-if [ ! -z $SUBMITTED_FN ] && [ -f $SUBMITTED_FN ]; then
+if [ ! -z $SUBMITTED_FN ] && [ -s $SUBMITTED_FN ]; then
     confirm $SUBMITTED_FN
     LINES=$(process_reads $SUBMITTED_FN $ALIQUOTS_FN $PASSED_CASE $DISEASE)
     test_exit_status
@@ -432,7 +432,7 @@ if [ ! -z $SUBMITTED_FN ] && [ -f $SUBMITTED_FN ]; then
     fi
 fi
 
-if [ ! -z $HARMONIZED_FN ] && [ -f $HARMONIZED_FN ]; then
+if [ ! -z $HARMONIZED_FN ] && [ -s $HARMONIZED_FN ]; then
     confirm $HARMONIZED_FN
     LINES=$(process_reads $HARMONIZED_FN $ALIQUOTS_FN $PASSED_CASE $DISEASE)
     test_exit_status
@@ -443,7 +443,7 @@ if [ ! -z $HARMONIZED_FN ] && [ -f $HARMONIZED_FN ]; then
     fi
 fi
 
-if [ ! -z $METHYL_FN ] && [ -f $METHYL_FN ]; then
+if [ ! -z $METHYL_FN ] && [ -s $METHYL_FN ]; then
     confirm $METHYL_FN
     LINES=$(process_methylation_array $METHYL_FN $ALIQUOTS_FN $PASSED_CASE $DISEASE)
     test_exit_status
