@@ -6,6 +6,10 @@ queryGDC seems to get an error if -vv passed
 ## Look at dat/cases/C3L-01069/log.C3L-01069.err
 * Be sure empty cases like C3L-01069 run cleanly
 
+* Feature requests:
+ * add a field ("result_type"?) which could distinguish between otherwise similar files in cases like RNA-Seq BAMs
+of 3 flavors (genomic/chimeric/transcriptome), and Red / Green IDAT files
+
 
 ## Update documentation
 

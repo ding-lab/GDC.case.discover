@@ -7,6 +7,9 @@ Documentation is outdated
 * Added Targeted sequencing
 * Added methylation
 * Added full sample type column
+* Added column 10, "result_type", and shifted remaining columns to right. result_type codes for two distinct things:
+    * For Methylation Array data, it is the channel
+    * For RNA-Seq harmonized BAMs, it is the result type, with values of genomic, chimeric, transcriptome
 
 # TODO documentation
 ## Discuss sample naming

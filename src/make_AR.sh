@@ -6,6 +6,11 @@
 # We are looping over two lists: aligned_reads and methyulation_array, and using aliquots.dat to provide additional information
 # also add ad hoc suffixes as necessary, defined by aliquot or UUID
 
+
+# * Feature requests:
+#  * add a field ("result_type"?) which could distinguish between otherwise similar files in cases like RNA-Seq BAMs
+#    of 3 flavors (genomic/chimeric/transcriptome), and Red / Green IDAT files
+
 read -r -d '' USAGE <<'EOF'
 Write a comprehensive summary of aligned reads and methylation array from GDC
 
@@ -27,12 +32,13 @@ Writes AR file with the following columns:
     * sample_name - ad hoc name for this file, generated for convenience and consistency
     * case
     * disease
-    * experimental_strategy - WGS, WXS, RNA-Seq, miRNA-Seq, MethArray, Targeted Sequencing
+    * experimental_strategy - WGS, WXS, RNA-Seq, miRNA-Seq, Methylation Array, Targeted Sequencing
     * short_sample_type - short name for sample_type: blood_normal, tissue_normal, tumor, buccal_normal, tumor_bone_marrow, tumor_peripheral_blood
     * aliquot - name of aliquot used
     * filename
     * filesize
     * data_format - BAM, FASTQ, IDAT
+    * result_type - "chimeric", "genomic", "transcriptome" in case of RNA-Seq BAMs, "Red" or "Green" for Methylation Array, NA otherwise
     * UUID
     * MD5
     * reference - assumed reference used, hg19 for submitted aligned reads, NA for submitted unaligned reads, and hg38 for harmonized reads
@@ -212,12 +218,18 @@ function get_SN_suffix {
 # * C3N-00858.RNA-Seq.R2.T
 # * C3N-00858.MethArray.Red.N
 # * C3N-00858.MethArray.Green.N
+# * C3N-00858.RNA-Seq.chimeric.T.hg38
+# * C3N-00858.RNA-Seq.transcriptome.T.hg38
+# * C3N-00858.RNA-Seq.genomic.T.hg38
 
 # hg38 suffix added if reference code is hg38
 
 # Create sample name from case, experimental_strategy, and sample_type abbreviation
 # In the case of RNA-Seq, we extract the read number (R1 or R2) from the file name - this is empirical, and may change with different data types
-# For the purpose of the name, experimental strategy "Targeted Sequencing" is renamed as "Targeted"
+# For the purpose of the name, experimental strategy "Targeted Sequencing" is renamed as "Targeted" and "Methylation Array" as "MethArray"
+# RESULT_TYPE codes for two distinct things:
+#   * For Methylation Array data, it is the channel
+#   * For RNA-Seq harmonized BAMs, it is the result type, with values of genomic, chimeric, transcriptome
 function get_SN {
     CASE=$1
     STL=$2
@@ -225,13 +237,15 @@ function get_SN {
     FN=$4
     DF=$5
     REF=$6
-    CHANNEL=$7
+    RESULT_TYPE=$7
 
     ST=$(get_sample_code "$STL")
     test_exit_status
 
     if [ "$ES" == "Targeted Sequencing" ]; then
         LES="Targeted"
+    elif [ "$ES" == "Methylation Array" ]; then
+        LES="MethArray"
     else
         LES=$ES
     fi
@@ -250,7 +264,9 @@ function get_SN {
         fi
         LES="$LES.$RN"
     elif [ $DF == "IDAT" ]; then
-        LES="$LES.$CHANNEL"
+        LES="$LES.$RESULT_TYPE"
+    elif [ $DF == "BAM" ] && [ $ES == "RNA-Seq" ]; then
+        LES="$LES.$RESULT_TYPE"
     fi
 
     SN="$CASE.$LES.$ST"
@@ -324,10 +340,26 @@ function process_reads {
             exit 1
         fi
 
+        # Get result type for harmonized RNA-Seq BAMs: genomic, chimeric, transcriptome
+        #   example: 73746f82-9ea4-45ac-87d8-bf0e3dc0c2fe.rna_seq.transcriptome.gdc_realn.bam
+        RESULT_TYPE="NA"
+        if [ $ES == "RNA-Seq" ] && [ $DF == "BAM" ]; then
+            if [[ $FN == *"transcriptome"* ]]; then
+                RESULT_TYPE="transcriptome"; 
+            elif [[ $FN == *"genomic"* ]]; then
+                RESULT_TYPE="genomic"; 
+            elif [[ $FN == *"chimeric"* ]]; then
+                RESULT_TYPE="chimeric"; 
+            else
+                >&2 echo ERROR: Unknown result type in RNA-Seq BAM $FN
+                exit 1
+            fi
+        fi
+
         SAMPLE_TYPE=$(get_sample_type $ALIQUOT_NAME $ALIQUOTS_FN)
         test_exit_status
 
-        SN=$(get_SN $CASE "$SAMPLE_TYPE" $ES $FN $DF $REF "NA")
+        SN=$(get_SN $CASE "$SAMPLE_TYPE" $ES $FN $DF $REF $RESULT_TYPE)
         test_exit_status
 
         # if SUFFIX_LIST is defined, ad hoc suffix is added to sample name based on match to UUID or aliquot name 
@@ -340,7 +372,8 @@ function process_reads {
         STS=$(get_sample_short_name "$SAMPLE_TYPE")
         test_exit_status
 
-        printf "$SN\t$CASE\t$DISEASE\t$ES\t$STS\t$ALIQUOT_NAME\t$FN\t$FS\t$DF\t$ID\t$MD5\t$REF\t$SAMPLE_TYPE\n"
+        # printf "$SN\t$CASE\t$DISEASE\t$ES\t$STS\t$ALIQUOT_NAME\t$FN\t$FS\t$DF\t$ID\t$MD5\t$REF\t$SAMPLE_TYPE\n"
+        printf "$SN\t$CASE\t$DISEASE\t$ES\t$STS\t$ALIQUOT_NAME\t$FN\t$FS\t$DF\t$RESULT_TYPE\t$ID\t$MD5\t$REF\t$SAMPLE_TYPE\n"
     done < $RFN
 }
 
@@ -375,9 +408,7 @@ function process_methylation_array {
         ES=$(echo "$L" | cut -f 10)
         MD5=$(echo "$L" | cut -f 11)
 
-        if [ "$ES" == "Methylation Array" ]; then
-            MYES="MethArray"
-        else
+        if [ ! "$ES" == "Methylation Array" ]; then
             >&2 echo ERROR: Unexpected experimental strategy: $ES
             exit 1
         fi
@@ -390,7 +421,7 @@ function process_methylation_array {
         SAMPLE_TYPE=$(get_sample_type $ALIQUOT_NAME $ALIQUOTS_FN)
         test_exit_status
 
-        SN=$(get_SN $CASE "$SAMPLE_TYPE" $MYES $FN $DF $REF $CHANNEL)
+        SN=$(get_SN $CASE "$SAMPLE_TYPE" "$ES" $FN $DF $REF $CHANNEL)
         test_exit_status
 
         # ad hoc suffix is added based on UUID or aliquot name if SUFFIX_LIST is defined
@@ -402,14 +433,14 @@ function process_methylation_array {
 
         STS=$(get_sample_short_name "$SAMPLE_TYPE")
 
-        printf "$SN\t$CASE\t$DISEASE\t$MYES\t$STS\t$ALIQUOT_NAME\t$FN\t$FS\t$DF\t$ID\t$MD5\t$REF\t$SAMPLE_TYPE\n"
+        printf "$SN\t$CASE\t$DISEASE\t$ES\t$STS\t$ALIQUOT_NAME\t$FN\t$FS\t$DF\t$CHANNEL\t$ID\t$MD5\t$REF\t$SAMPLE_TYPE\n"
     done < $MAFN
 }
 
 confirm $ALIQUOTS_FN
 
 if [ -z $NO_HEADER ]; then
-    OUTLINE=$(printf "# sample_name\tcase\tdisease\texperimental_strategy\tshort_sample_type\taliquot\tfilename\tfilesize\tdata_format\tUUID\tMD5\treference\tsample_type\n" )
+    OUTLINE=$(printf "# sample_name\tcase\tdisease\texperimental_strategy\tshort_sample_type\taliquot\tfilename\tfilesize\tdata_format\tresult_type\tUUID\tMD5\treference\tsample_type\n" )
     if [ ! -z $OUTFN ]; then
         echo "$OUTLINE" >> $OUTFN
     else
