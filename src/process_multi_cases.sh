@@ -60,7 +60,6 @@ while getopts ":hdvJ:1o:s:D:" opt; do
       fi
       ;;
     s)
-      >&2 echo TESTING $OPTARG
       SUFFIX_ARG="-s $OPTARG"
       if [ ! -f $OPTARG ]; then
           >&2 echo ERROR: SUFFIX_LIST file $OUTFN does not exist
