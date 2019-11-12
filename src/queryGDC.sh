@@ -73,15 +73,25 @@ function run_query_retry {
     QUERY_JSON=$1
     t=$2
 
+    # GDC sometimes returns transient errors.  These are tricky to reproduce.
     R=$(run_query "$QUERY_JSON" "$t")  
-    # This is a transiet error and code below not fully tested.
-    if [[ $R = *"You are posting too quickly."* ]]; then
-        ERR="You are posting too quickly."
-    else
-        # Here assume valid JSON.  TODO: test whether JSON is in fact valid
+
+    # We validate JSON as recommended here: https://github.com/stedolan/jq/issues/1637
+    if jq -e . >/dev/null 2>&1 <<<"$R"; then
         ERR=$(echo $R | jq -r '.errors[]? ')
         test_exit_status
+    else
+        ERR="ERROR parsing result : $R"
     fi
+
+#    # This is a transiet error and code below not fully tested.
+#    if [[ $R = *"You are posting too quickly."* ]]; then
+#        ERR="You are posting too quickly."
+#    else
+#        # Here assume valid JSON.  TODO: test whether JSON is in fact valid
+#        ERR=$(echo $R | jq -r '.errors[]? ')
+#        test_exit_status
+#    fi
 
     if [ -z "$ERR" ]; then
         if [ $VERBOSE ]; then

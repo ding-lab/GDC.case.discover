@@ -81,36 +81,34 @@ ALSO TODO:
 dat/cases/C3N-01343/log.C3N-01343.err
 -> seems to be same error
 
-# run 11/9/19
+# run 11/11/19
 
-Collecting all AR, writing to dat/discover.20191107.AR.dat
-Collecting all demograhics, writing to dat/discover.20191107.Demographics.dat
-WARNING: Demographics file ./dat/cases/C3L-01839/demographics.dat for case C3L-01839 does not exist
-WARNING: Demographics file ./dat/cases/C3N-01343/demographics.dat for case C3N-01343 does not exist
-WARNING: Demographics file ./dat/cases/C3N-01370/demographics.dat for case C3N-01370 does not exist
-WARNING: Demographics file ./dat/cases/C3N-01817/demographics.dat for case C3N-01817 does not exist
-WARNING: Demographics file ./dat/cases/C3N-03187/demographics.dat for case C3N-03187 does not exist
-[ Sat Nov 9 18:40:41 CST 2019 ] Discovery complete
-The following 5 files had errors or warnings (top 10 shown):
-dat/cases/C3L-01839/log.C3L-01839.err
-dat/cases/C3N-01343/log.C3N-01343.err
-dat/cases/C3N-01370/log.C3N-01370.err
-dat/cases/C3N-01817/log.C3N-01817.err
-dat/cases/C3N-03187/log.C3N-03187.err
-Timing summary: Start: [ Sat Nov 9 09:30:29 CST 2019 ] End: [ Sat Nov 9 18:40:41 CST 2019 ]
+WARNING: Demographics file ./dat/cases/C3L-00966/demographics.dat for case C3L-00966 does not exist
+WARNING: Demographics file ./dat/cases/C3L-00968/demographics.dat for case C3L-00968 does not exist
+[ Mon Nov 11 22:20:34 CST 2019 ] Discovery complete
+The following 132 files had errors or warnings (top 10 shown):
+dat/cases/11LU022/log.11LU022.err
+dat/cases/C3L-00004/log.C3L-00004.err
+dat/cases/C3L-00006/log.C3L-00006.err
+dat/cases/C3L-00010/log.C3L-00010.err
+dat/cases/C3L-00017/log.C3L-00017.err
+dat/cases/C3L-00094/log.C3L-00094.err
+dat/cases/C3L-00096/log.C3L-00096.err
+dat/cases/C3L-00102/log.C3L-00102.err
+dat/cases/C3L-00103/log.C3L-00103.err
+dat/cases/C3L-00104/log.C3L-00104.err
+Timing summary: Start: [ Mon Nov 11 13:59:32 CST 2019 ] End: [ Mon Nov 11 22:20:34 CST 2019 ]
+(base) [mwyczalk_test@mammoth discover.20191107]$ vi dat/cases/C3L-00004/log.C3L-00004.err
 
-# dat/cases/C3L-01839/log.C3L-01839.err
-[ Sat Nov 9 11:52:12 CST 2019 ] Running: bash src/make_AR.sh -Q dat/cases/C3L-01839/aliquots.dat -R dat/cases/C3L-01839/submitted_reads.dat -H dat/cases/C3L-01839/harmonized_reads.dat -M dat/cases/C3L-01839/methylation_array.dat -s /home/mwyczalk_test/Projects/CPTAC3/CPTAC3.catalog/SampleRename.dat -o ./dat/cases/C3L-01839/AR.dat -v C3L-01839 GBM
-ERROR: dat/cases/C3L-01839/submitted_reads.dat does not exist or is empty
+(base) [mwyczalk_test@mammoth discover.20191107]$ grep -i error dat/cases/C3L-00004/log.C3L-00004.err
+parse error: Invalid numeric literal at line 1, column 9
+Fatal error. Exiting
+Fatal error. Exiting
+Fatal error. Exiting
 
-$ ls -l dat/cases/C3L-01839
-total 24
--rw-r--r--. 1 mwyczalk_test users  394 Nov  9 11:52 aliquots.dat
--rw-r--r--. 1 mwyczalk_test users  136 Nov  9 11:52 AR.dat
--rw-r--r--. 1 mwyczalk_test users  403 Nov  9 11:52 C3L-01839.log
--rw-r--r--. 1 mwyczalk_test users 4547 Nov  9 11:52 log.C3L-01839.err
--rw-r--r--. 1 mwyczalk_test users    0 Nov  9 11:52 log.C3L-01839.out
--rw-r--r--. 1 mwyczalk_test users  412 Nov  9 11:52 methylation_array.dat
--rw-r--r--. 1 mwyczalk_test users    0 Nov  9 11:52 submitted_reads.dat
+The error was during running 
+[ Mon Nov 11 14:03:42 CST 2019 ] Running: bash src/get_harmonized_reads.sh -o dat/cases/C3L-00004/harmonized_reads.dat -v dat/cases/C3L-00004/submitted_reads.dat
+  Processing dat/cases/C3L-00004/submitted_reads.dat
 
 
+This seems to be a transiet error.  To try to solve this, we validate JSON in queryGDC:run_query_retry 
