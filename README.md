@@ -14,7 +14,7 @@ Query GDC to discover sequence and methylation data and write it to a catalog fi
 
 ### Version 2.0 
 
-Catalog file has the followinng differences:
+Catalog file has the following differences:
 * Added Targeted sequencing
 * Added methylation
 * Added full sample type column
@@ -142,6 +142,7 @@ The `sample_type` column lists GDC sample types.  We abbreviate these names in t
 ## Demographics
 
 The following clinical information is recorded in the file `dat/PROJECT.Demographics.dat` for each case:
+
     * case
     * disease
     * ethnicity
