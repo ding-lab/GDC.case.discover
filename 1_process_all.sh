@@ -3,7 +3,7 @@
 # This needs to be exported, to be visible to GDC Query scripts
 export GDC_TOKEN="/home/mwyczalk_test/Projects/CPTAC3/discovery/token/gdc-user-token.2019-11-04T03_11_17.182Z.txt"
 
-PROJECT="discover.20191107"
+PROJECT="discover.20191111"
 CASES="/home/mwyczalk_test/Projects/CPTAC3/CPTAC3.catalog/CPTAC3.cases.dat"
 #CASES="dat/cases-test.dat"
 
