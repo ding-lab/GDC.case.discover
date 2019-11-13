@@ -53,20 +53,6 @@ result="<html><head><title>Hold up there!</title></head><body><center><h1>Hold u
 
 A test for this response was implemented in queryGDC, and results in waiting 5 seconds before trying again
 
-
-# Case Discover
-
-`case.discover` project contains several scripts for discovering and summarizing all SR (`submitted_aligned_reads` and `submitted_unaligned_reads`)
-associated with a given case.  Developed for CPTAC3 Genomic project.
-
-See [CPTAC3.case.discover](https://github.com/ding-lab/CPTAC3.case.discover) on github.
-
-
-# Installation
-
-* `queryGDC` requires `python` and the `json` library; these typically come installed in a developer environment.
-* `case.discover` scripts rely on `jq` for parsing; [see here for installation instructions](https://stedolan.github.io/jq/download/).
-
 # Useful links:
 
 * [Definition of GraphQL language](http://facebook.github.io/graphql/October2016/#sec-Overview)
