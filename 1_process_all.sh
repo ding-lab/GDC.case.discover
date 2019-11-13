@@ -3,7 +3,7 @@
 # This needs to be exported, to be visible to GDC Query scripts
 export GDC_TOKEN="/home/mwyczalk_test/Projects/CPTAC3/discovery/token/gdc-user-token.2019-11-04T03_11_17.182Z.txt"
 
-PROJECT="discover.20191111"
+PROJECT="discover.20191112"
 CASES="/home/mwyczalk_test/Projects/CPTAC3/CPTAC3.catalog/CPTAC3.cases.dat"
 #CASES="dat/cases-test.dat"
 
@@ -17,15 +17,25 @@ VERBOSE="-vvv"
 N="-J 10"
 
 ##############################
+CATALOG="dat/${PROJECT}.Catalog.dat"
+DEMOGRAPHICS="dat/${PROJECT}.Demographics.dat"
 
 mkdir -p dat
 
 START=$(date)
 >&2 echo [ $START ] Starting discovery
-bash src/process_multi_cases.sh -s $SUFFIX_LIST $N -o dat/${PROJECT}.Catalog.dat -D dat/${PROJECT}.Demographics.dat $VERBOSE $@ $CASES
+bash src/process_multi_cases.sh -s $SUFFIX_LIST $N -o $CATALOG -D $DEMOGRAPHICS $VERBOSE $@ $CASES
 
 END=$(date)
->&2 echo [ $END ] Discovery complete
+>&2 echo [ $END ] Discovery complete, starting summary
+
+SUMMARY_OUT="dat/${PROJECT}.Catalog.Summary.txt"
+rm -f $SUMMARY_OUT
+bash src/summarize_cases.sh $@ -o $SUMMARY_OUT $CATALOG $CASES
+
+END2=$(date)
+>&2 echo [ $END2 ] Summary complete
+
 
 NERR=$(grep -il error dat/cases/*/*log* | wc -l)
 if grep -q -i error dat/cases/*/*log* ; then
@@ -33,5 +43,7 @@ if grep -q -i error dat/cases/*/*log* ; then
     grep -il error dat/cases/*/*log* | head
 fi
 
->&2 echo Timing summary: Start: [ $START ]  End: [ $END ]
+>&2 echo Timing summary: 
+>&2 echo Discovery start: [ $START ]  End: [ $END ]
+>&2 echo Summary start: [ $END ]  End: [ $END2 ]
 

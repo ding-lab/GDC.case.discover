@@ -10,9 +10,6 @@ Query GDC to discover sequence and methylation data and write it to a catalog fi
 * edit `1_process_all.sh`
 * run `bash 1_process_all.sh`
 
-## TODO
-* Recover / test results summary file generation
-
 ## Updates
 
 ### Version 2.0 
@@ -152,9 +149,20 @@ The following clinical information is recorded in the file `dat/PROJECT.Demograp
     * race
     * days to birth
 
-## Summary Files
+## Catalog Summary Files
 
-**TODO**
+Catalog summary files provide a one-line representation of data available for a given case on GDC.  Following case and disease, each column represents 
+a particular data type, and one-letter codes T, N, A indicate availability of tumor, blood normal, and tissue adjacent normal samples, respectively.
+Repeated codes indicate repeated data files.
+
+### Example
+```
+C3L-00001   LUAD        WGS.hg19 T N A      WXS.hg19 T N A      RNA.fq TT  AA       miRNA.fq T  A       WGS.hg38 T N A      WXS.hg38 T N A      RNA.hg38 TTT  AAA       miRNA.hg38 T  A     MethArray TT  AA
+```
+This line indicates that LUAD case C3L-00001 has tumor, blood normal, and adjacent normal samples for WGS and WXS data as submitted (hg19);
+tumor and adjacent normal RNA-Seq data (TT, AA because FASTQ data comes in pairs); and tumor and adjacent miRNA data in FASTQ format.  All
+these are available as harmonized hg38 WGS and WXS, and harmonized hg38 RNA-Seq chimeric, genomic, and transcriptome BAMs are available
+for tumor and adjacent normal.  Methylation array data for tumor and tissue adjacent also available (Green and Red channel for each).
 
 ## Exon target capture info
 

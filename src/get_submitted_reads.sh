@@ -138,6 +138,7 @@ EOF
 }
 
 # tempfile creation: https://unix.stackexchange.com/questions/181937/how-create-a-temporary-file-in-shell-script
+# this also suggests ways to have temp file be deleted automatically even if script crashes, not doing that now
 TMPFILE=$(mktemp $TMPL)
 
 if [ $VERBOSE ]; then
