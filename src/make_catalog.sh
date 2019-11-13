@@ -15,7 +15,7 @@ read -r -d '' USAGE <<'EOF'
 Write a comprehensive summary of aligned reads and methylation array from GDC
 
 Usage:
-  make_AR.sh [options] CASE DISEASE
+  make_catalog.sh [options] CASE DISEASE
 
 Options:
 -h: Print this help message
@@ -28,7 +28,7 @@ Options:
 -N: do not write header
 -s SUFFIX_LIST: data file for appending suffix to sample names
 
-Writes AR file with the following columns:
+Writes Catalog file with the following columns:
     * sample_name - ad hoc name for this file, generated for convenience and consistency
     * case
     * disease
@@ -319,7 +319,7 @@ function process_reads {
 #    * id
 #    * md5sum
 
-    # Loop over all lines in input file RFN and write AR entry for each
+    # Loop over all lines in input file RFN and write catalog entry for each
     while read L; do
 
         if [ "$L" == "" ]; then
@@ -395,7 +395,7 @@ function process_methylation_array {
 #   10 experimental strategy
 #   11 md5sum
 
-    # Loop over all lines in input file MAFN and write AR entry for each
+    # Loop over all lines in input file MAFN and write catalog entry for each
     while read L; do
         CASE=$(echo "$L" | cut -f 1 )
         ALIQUOT_NAME=$(echo "$L" | cut -f 2)

@@ -5,7 +5,7 @@
 
 read -r -d '' USAGE <<'EOF'
 Query GDC with series of GraphQL calls to obtain information about submitted reads and methylation data for a given case
-Writes out file dat/cases/CASE/AR.dat with summary of such data
+Writes out file dat/cases/CASE/Catalog.dat with summary of such data
 
 Usage:
   process_case.sh [options] CASE DISEASE
@@ -162,9 +162,9 @@ else
     run_cmd "$CMD"
 
     if [ ! -z $OUTFN ]; then
-        AR_OUT="-o $OUTFN"
+        CATALOG_OUT="-o $OUTFN"
     fi
-    CMD="bash $BIND/make_AR.sh -Q $A_OUT -R $SR_OUT -H $HR_OUT -M $MA_OUT $SUFFIX_ARG $AR_OUT $VERBOSE_ARG $CASE $DISEASE"
+    CMD="bash $BIND/make_catalog.sh -Q $A_OUT -R $SR_OUT -H $HR_OUT -M $MA_OUT $SUFFIX_ARG $CATALOG_OUT $VERBOSE_ARG $CASE $DISEASE"
     run_cmd "$CMD"
 fi
 

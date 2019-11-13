@@ -4,7 +4,7 @@
 # https://dinglab.wustl.edu/
 
 read -r -d '' USAGE <<'EOF'
-Obtain AR file with GDC sequence and methylation data for all cases
+Obtain Catalog file with GDC sequence and methylation data for all cases
 
 Usage:
   process_multi_cases.sh [options] CASES
@@ -14,7 +14,7 @@ Options:
 -d: Dry run.  Print commands but do not execute queries
 -v: Verbose.  May be repeated to get verbose output from called scripts
 -J N: Evaluate N cases in parallel.  If 0, disable parallel mode. Default 0
--o OUTFN: write result AR file instead of stdout
+-o OUTFN: write result Catalog file instead of stdout
 -1: stop after processing one case
 -s SUFFIX_LIST: data file for appending suffix to sample names
 -D DEMS_OUT: write demographics information from all cases to given file
@@ -167,12 +167,12 @@ function process_cases {
         mkdir -p $LOGD
         STDOUT_FN="$LOGD/log.${CASE}.out"
         STDERR_FN="$LOGD/log.${CASE}.err"
-        AR="$LOGD/AR.dat"
+        CATALOG="$LOGD/Catalog.dat"
         if [ ! -z $DEMS_OUT ]; then  # get demographics only if requested
-            DEM="-D $LOGD/demographics.dat"
+            DEM="-D $LOGD/Demographics.dat"
         fi
 
-        CMD="bash $BIND/process_case.sh -O $LOGD -o $AR $DEM $SUFFIX_ARG $VERBOSE_ARG $CASE $DIS > $STDOUT_FN 2> $STDERR_FN"
+        CMD="bash $BIND/process_case.sh -O $LOGD -o $CATALOG $DEM $SUFFIX_ARG $VERBOSE_ARG $CASE $DIS > $STDOUT_FN 2> $STDERR_FN"
 
         if [ $NJOBS != 0 ]; then
             JOBLOG="$LOGD/$CASE.log"
@@ -196,26 +196,26 @@ function process_cases {
     fi
 }
 
-function collect_AR {
+function collect_catalog {
     WRITE_HEADER=1
 
-    # Now collect all AR and demographics files and write out to stdout or OUTFN
+    # Now collect all Catalog and demographics files and write out to stdout or OUTFN
     while read L; do
         [[ $L = \#* ]] && continue  # Skip commented out entries
 
         CASE=$(echo "$L" | cut -f 1 )
-        AR="$LOGBASE/cases/$CASE/AR.dat"
+        CATALOG="$LOGBASE/cases/$CASE/Catalog.dat"
 
-        if [ ! -f $AR ]; then
+        if [ ! -f $CATALOG ]; then
             if [ $DRYRUN != "d" ]; then
-                >&2 echo WARNING: AR file $AR for case $CASE does not exist
+                >&2 echo WARNING: Catalog file $CATALOG for case $CASE does not exist
             fi
             continue
         fi
 
         # header goes only in first loop
         if [ $WRITE_HEADER == 1 ]; then
-            HEADER=$(grep "^#" $AR | head -n1)
+            HEADER=$(grep "^#" $CATALOG | head -n1)
             if [ ! -z $OUTFN ]; then
                 echo "$HEADER" > $OUTFN
             else
@@ -225,9 +225,9 @@ function collect_AR {
         fi
             
         if [ ! -z $OUTFN ]; then
-            sort -u $AR | grep -v "^#" >> $OUTFN
+            sort -u $CATALOG | grep -v "^#" >> $OUTFN
         else
-            sort -u $AR | grep -v "^#"
+            sort -u $CATALOG | grep -v "^#"
         fi
 
         if [ $JUSTONE ]; then
@@ -240,13 +240,13 @@ function collect_AR {
 function collect_demographics {
     WRITE_HEADER=1
 
-    # Now collect all AR and demographics files and write out to stdout or OUTFN
+    # Now collect all Catalog and demographics files and write out to stdout or OUTFN
     while read L; do
         [[ $L = \#* ]] && continue  # Skip commented out entries
 
         CASE=$(echo "$L" | cut -f 1 )
         # Demographics info, if evaluated, is always written to file DEMS_OUT
-        DEM="$LOGBASE/cases/$CASE/demographics.dat"
+        DEM="$LOGBASE/cases/$CASE/Demographics.dat"
 
         if [ ! -f $DEM ]; then
             if [ "$DRYRUN" != "d" ]; then
@@ -278,11 +278,11 @@ function collect_demographics {
 process_cases
 
 if [ ! -z $OUTFN ]; then
-    >&2 echo Collecting all AR, writing to $OUTFN
+    >&2 echo Collecting all Catalog files, writing to $OUTFN
 else
-    >&2 echo Collecting all AR, writing to STDOUT
+    >&2 echo Collecting all Catalog files, writing to STDOUT
 fi
-collect_AR
+collect_catalog
 
 if [ ! -z $DEMS_OUT ]; then
     >&2 echo Collecting all demograhics, writing to $DEMS_OUT

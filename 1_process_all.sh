@@ -22,7 +22,7 @@ mkdir -p dat
 
 START=$(date)
 >&2 echo [ $START ] Starting discovery
-bash src/process_multi_cases.sh -s $SUFFIX_LIST $N -o dat/${PROJECT}.AR.dat -D dat/${PROJECT}.Demographics.dat $VERBOSE $@ $CASES
+bash src/process_multi_cases.sh -s $SUFFIX_LIST $N -o dat/${PROJECT}.Catalog.dat -D dat/${PROJECT}.Demographics.dat $VERBOSE $@ $CASES
 
 END=$(date)
 >&2 echo [ $END ] Discovery complete
