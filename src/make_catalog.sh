@@ -44,8 +44,13 @@ Writes Catalog file with the following columns:
     * reference - assumed reference used, hg19 for submitted aligned reads, NA for submitted unaligned reads, and hg38 for harmonized reads
     * sample_type - sample type as reported from GDC, e.g., Blood Derived Normal, Solid Tissue Normal, Primary Tumor, and others
 
-SUFFIX_LIST is a TSV file listing a UUID or Aliquot ID in first column, 
-second column is suffix to be added to sample_name.  This allows specific samples to have modified names
+SUFFIX_LIST is a TSV file used to add suffixes based on matches to UUID,
+aliquot, and experimental strategy.  Input TSV file format is one of the
+following:
+  a) uuid, suffix
+  b) aliquot, experimental_strategy, suffix
+     * The wildcard * will be used to indicate all experimental strategies
+multiple matches will give multiple sequential suffixes
 
 EOF
 
@@ -192,20 +197,37 @@ function get_sample_short_name {
     echo $STS
 }
 
+# sample names can get suffixes to be specified based on
+# * UUID
+# * Aliquot + Experimental Strategy
+#   * The wildcard * will be used to indicate all experimental strategies
+# Input TSV file format:
+#   a) uuid, suffix
+#   b) aliquot, experimental_strategy, suffix
+# multiple matches will give multiple sequential suffixes, with uuid matches first
+
 function get_SN_suffix {
-# Example line in suffix list
-# CPT0170510019	-core
+# Example lines in suffix list
+# CPT0170510019	WGS .high_cov
+# CPT0170510019	* .core
+# ea59f382-26e3-4548-9e50-757fdfaf8ecd .random
+# 
 # Idea is we try to match UUID then aliquot name to an entry in suffix list, and if there is a match,
 # return the suffix, which is then appended to sample name
     SUFFIX_FN=$1
     UUID=$2
     ALIQUOT_NAME=$3
+    ES=$4
+
+    if [ -z $ES ]; then
+        >&2 echo ERROR: provide experimental strategy
+        exit 1
+    fi
 
     confirm $SUFFIX_FN
-    UM=$(awk -v id=$UUID '{if ($1 == id) print $2}' $SUFFIX_FN | head -n 1)
-    if [ -z $UM ]; then
-        UM=$(awk -v id=$ALIQUOT_NAME '{if ($1 == id) print $2}' $SUFFIX_FN | head -n 1)
-    fi
+    UM1=$(awk -v id=$UUID '{if ($1 == id) print $2}' $SUFFIX_FN )
+    UM2=$(awk -v id=$ALIQUOT_NAME -v es=$ES '{if (($1 == id) && (( $2 == es ) || ( $2 == "*"))) print $3}' $SUFFIX_FN | tr -d '\n')
+    UM=$(echo ${UM1}${UM2} | tr -d '\n')
     echo $UM
 }
 
@@ -364,7 +386,7 @@ function process_reads {
 
         # if SUFFIX_LIST is defined, ad hoc suffix is added to sample name based on match to UUID or aliquot name 
         if [ ! -z $SUFFIX_LIST ]; then
-            SUFFIX=$(get_SN_suffix $SUFFIX_LIST $ID $ALIQUOT_NAME)
+            SUFFIX=$(get_SN_suffix $SUFFIX_LIST $ID $ALIQUOT_NAME $ES)
             test_exit_status
             SN="${SN}$SUFFIX"
         fi
@@ -426,7 +448,7 @@ function process_methylation_array {
 
         # ad hoc suffix is added based on UUID or aliquot name if SUFFIX_LIST is defined
         if [ ! -z $SUFFIX_LIST ]; then
-            SUFFIX=$(get_SN_suffix $SUFFIX_LIST $ID $ALIQUOT_NAME)
+            SUFFIX=$(get_SN_suffix $SUFFIX_LIST $ID $ALIQUOT_NAME $ES)
             test_exit_status
             SN="${SN}$SUFFIX"
         fi
