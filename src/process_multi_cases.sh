@@ -207,7 +207,7 @@ function collect_catalog {
         CATALOG="$LOGBASE/cases/$CASE/Catalog.dat"
 
         if [ ! -f $CATALOG ]; then
-            if [ $DRYRUN != "d" ]; then
+            if [ "$DRYRUN" != "d" ]; then
                 >&2 echo WARNING: Catalog file $CATALOG for case $CASE does not exist
             fi
             continue
