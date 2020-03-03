@@ -23,6 +23,10 @@ Catalog file has the following differences:
     * For RNA-Seq harmonized BAMs, it is the result type, with values of genomic, chimeric, transcriptome
 * AR file renamed Catalog file
 
+### TODO
+
+Incorporate additional information from DCC: https://clinicalapi-cptac.esacinc.com/api/tcia/
+
 # User's Manual
 
 ## Installation
