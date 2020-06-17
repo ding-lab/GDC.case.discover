@@ -12,6 +12,10 @@ Query GDC to discover sequence and methylation data and write it to a catalog fi
 
 ## Updates
 
+### Version 2.1
+
+* Adding support for scRNA-Seq
+
 ### Version 2.0 
 
 Catalog file has the following differences:

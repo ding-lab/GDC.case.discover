@@ -169,6 +169,9 @@ while read L; do
     elif [ "$ES" == "Targeted Sequencing" ]; then
         # this is a guess
         Q=$(SAR_from_read_group $RGSID)
+    elif [ "$ES" == "scRNA-Seq" ]; then
+        # this is a guess
+        Q=$(SUR_from_read_group $RGSID)
     else 
         >&2 echo ERROR: Unknown Experimental Strategy $ES
         >&2 echo CASE = $CASE   Aliquot = $ASID    Read Group = $RGID
