@@ -12,6 +12,14 @@ Query GDC to discover sequence and methylation data and write it to a catalog fi
 
 ## Updates
 
+### Version 2.2
+
+Adding the following columns to catalog file:
+    * sample_id - GDC sample name  
+    * sample_metadata - Ad hoc metadata associated with this sample.  May be comma-separated list
+    * aliquot_annotation - Annotation note associated with aliquot, from GDC 
+
+
 ### Version 2.1
 
 * Adding support for scRNA-Seq
@@ -70,25 +78,28 @@ here](https://docs.gdc.cancer.gov/Data_Submission_Portal/Users_Guide/Authenticat
 
 Catalog file columns:
 
-* `sample_name` - ad hoc name for this file, generated for convenience and consistency
-* `case`
-* `disease`
-* `experimental_strategy` - WGS, WXS, RNA-Seq, miRNA-Seq, Methylation Array, Targeted Sequencing
-* `short_sample_type` - short name for `sample_type`: `blood_normal`, `tissue_normal`, `tumor`, `buccal_normal`, `tumor_bone_marrow`, `tumor_peripheral_blood`:w
-* `aliquot` - name of aliquot used
-* `filename`
-* `filesize`
-* `data_format` - BAM, FASTQ, IDAT
-* `result_type` - ad hoc value specific to sample type
+1. `sample_name` - ad hoc name for this file, generated for convenience and consistency
+2. `case`
+3. `disease`
+4. `experimental_strategy` - WGS, WXS, RNA-Seq, miRNA-Seq, Methylation Array, Targeted Sequencing
+5. `short_sample_type` - short name for `sample_type`: `blood_normal`, `tissue_normal`, `tumor`, `buccal_normal`, `tumor_bone_marrow`, `tumor_peripheral_blood`:w
+6. `aliquot` - name of aliquot used
+7. `filename`
+8. `filesize`
+9. `data_format` - BAM, FASTQ, IDAT
+10. `result_type` - ad hoc value specific to sample type
     * "chimeric", "genomic", "transcriptome" for RNA-Seq BAMs, 
     * "Red" or "Green" for Methylation Array
     * "NA" otherwise
-* `UUID`
-* `MD5`
-* `reference` - assumed reference used, hg19 for submitted aligned reads, NA for submitted unaligned reads, and hg38 for harmonized reads
-* `sample_type` - sample type as reported from GDC, e.g., Blood Derived Normal, Solid Tissue Normal, Primary Tumor, and others
+11. `UUID`
+12. `MD5`
+13. `reference` - assumed reference used, hg19 for submitted aligned reads, NA for submitted unaligned reads, and hg38 for harmonized reads
+14. `sample_type` - sample type as reported from GDC, e.g., Blood Derived Normal, Solid Tissue Normal, Primary Tumor, and others
+15. `sample_id` - GDC sample name  
+16. `sample_metadata` - Ad hoc metadata associated with this sample.  May be comma-separated list
+17. `aliquot_annotation` - Annotation note associated with aliquot, from GDC 
 
-Example catalog file:
+Example catalog file (TODO update me):
 ```
 # sample_name	case	disease	experimental_strategy	short_sample_type	aliquot	filename	filesize	data_format	result_type	UUID	MD5	reference	sample_type
 C3L-00001.MethArray.Green.A	C3L-00001	LUAD	Methylation Array	tissue_normal	CPT0001590008	203027390118_R03C01_Grn.idat	13676226	IDAT	Green	df1ce98e-8ee2-4c56-beb4-0129824b2033	0641f2a152b850b53b2c7cc5dcf34425	NA	Solid Tissue Normal

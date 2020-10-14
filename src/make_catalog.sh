@@ -6,13 +6,8 @@
 # We are looping over two lists: aligned_reads and methyulation_array, and using aliquots.dat to provide additional information
 # also add ad hoc suffixes as necessary, defined by aliquot or UUID
 
-
-# * Feature requests:
-#  * add a field ("result_type"?) which could distinguish between otherwise similar files in cases like RNA-Seq BAMs
-#    of 3 flavors (genomic/chimeric/transcriptome), and Red / Green IDAT files
-
 read -r -d '' USAGE <<'EOF'
-Write a comprehensive summary of aligned reads and methylation array from GDC
+Write a comprehensive summary of aligned reads and methylation array from GDC.  v2.2
 
 Usage:
   make_catalog.sh [options] CASE DISEASE
@@ -43,6 +38,9 @@ Writes Catalog file with the following columns:
     * MD5
     * reference - assumed reference used, hg19 for submitted aligned reads, NA for submitted unaligned reads, and hg38 for harmonized reads
     * sample_type - sample type as reported from GDC, e.g., Blood Derived Normal, Solid Tissue Normal, Primary Tumor, and others
+    * sample_id - GDC sample name  (NEW v2.2)
+    * sample_metadata - Ad hoc metadata associated with this sample (NEW v2.2).  May be comma-separated list
+    * aliquot_annotation - Annotation note associated with aliquot, from GDC (NEW v2.2)
 
 SUFFIX_LIST is a TSV file used to add suffixes based on matches to UUID,
 aliquot, and experimental strategy.  Input TSV file format is one of the
@@ -308,6 +306,7 @@ function get_SN {
 #    * aliquot submitter id
 #    * aliquot id
 #    * analyte_type
+#    * aliquot_annotation 
 function get_sample_type {
     ALIQUOT_NAME=$1
     ALIQUOTS_FN=$2
@@ -324,8 +323,39 @@ function get_sample_type {
     echo "$SAMPLE_TYPE"
 }
 
+# get sample ID associated with aliquot from ALIQUOTS_FN.  If there are multiple, return "," separated list
+function get_sample_IDs {
+    ALIQUOT_NAME=$1
+    ALIQUOTS_FN=$2
+
+    SAMPLE_ID=$(grep $ALIQUOT_NAME $ALIQUOTS_FN | cut -f 2 | sort -u)
+    MATCH_COUNT=$(echo -n "$SAMPLE_TYPE" | grep -c '^')
+    if [ $MATCH_COUNT == 0 ]; then
+        >&2 echo ERROR: Sample ID for aliquot $ALIQUOT_NAME not found in $ALIQUOTS_FN
+        exit 1
+    fi
+    SAMPLE_ID=$(echo -n "$SAMPLE_ID" | tr '\n' ',')
+    echo "$SAMPLE_ID"
+}
+
+# get aliquot annotation associated with aliquot from ALIQUOTS_FN.  Error if multiple different annotations
+function get_aliquot_annotation {
+    ALIQUOT_NAME=$1
+    ALIQUOTS_FN=$2
+
+    ANNOS=$(grep $ALIQUOT_NAME $ALIQUOTS_FN | cut -f 8 | sort -u)
+    MATCH_COUNT=$(echo -n "$ANNOS" | grep -c '^')
+
+    if [ $MATCH_COUNT -gt 1 ]; then
+        >&2 echo ERROR: Aliquot $ALIQUOT_NAME in $ALIQUOTS_FN has multiple distinct notes:
+        >&2 echo $ANNOS
+        exit 1
+    fi
+    echo "$ANNOS"
+}
+
 function process_reads {
-    RFN=$1
+    RFN=$1              # Reads filename, i.e., submitted or harmonized reads file
     ALIQUOTS_FN=$2
     PASSED_CASE=$3      # Sanity check - make sure looking at right dataset
     DISEASE=$4
@@ -381,6 +411,14 @@ function process_reads {
         SAMPLE_TYPE=$(get_sample_type $ALIQUOT_NAME $ALIQUOTS_FN)
         test_exit_status
 
+        SAMPLE_ID=$(get_sample_IDs $ALIQUOT_NAME $ALIQUOTS_FN)
+        test_exit_status
+
+        SAMPLE_METADATA=""      # TODO
+
+        ALIQUOT_ANNOTATION=$(get_aliquot_annotation $ALIQUOT_NAME $ALIQUOTS_FN)
+        test_exit_status
+
         SN=$(get_SN $CASE "$SAMPLE_TYPE" $ES $FN $DF $REF $RESULT_TYPE)
         test_exit_status
 
@@ -394,8 +432,8 @@ function process_reads {
         STS=$(get_sample_short_name "$SAMPLE_TYPE")
         test_exit_status
 
-        # printf "$SN\t$CASE\t$DISEASE\t$ES\t$STS\t$ALIQUOT_NAME\t$FN\t$FS\t$DF\t$ID\t$MD5\t$REF\t$SAMPLE_TYPE\n"
-        printf "$SN\t$CASE\t$DISEASE\t$ES\t$STS\t$ALIQUOT_NAME\t$FN\t$FS\t$DF\t$RESULT_TYPE\t$ID\t$MD5\t$REF\t$SAMPLE_TYPE\n"
+        #printf "$SN\t$CASE\t$DISEASE\t$ES\t$STS\t$ALIQUOT_NAME\t$FN\t$FS\t$DF\t$RESULT_TYPE\t$ID\t$MD5\t$REF\t$SAMPLE_TYPE\n"
+        printf "$SN\t$CASE\t$DISEASE\t$ES\t$STS\t$ALIQUOT_NAME\t$FN\t$FS\t$DF\t$CHANNEL\t$ID\t$MD5\t$REF\t$SAMPLE_TYPE\t$SAMPLE_ID\t$SAMPLE_METADATA\t$ALIQUOT_ANNOTATION\n"
     done < $RFN
 }
 
@@ -443,6 +481,14 @@ function process_methylation_array {
         SAMPLE_TYPE=$(get_sample_type $ALIQUOT_NAME $ALIQUOTS_FN)
         test_exit_status
 
+        SAMPLE_ID=$(get_sample_IDs $ALIQUOT_NAME $ALIQUOTS_FN)
+        test_exit_status
+
+        SAMPLE_METADATA="NONE YET"
+
+        ALIQUOT_ANNOTATION=$(get_aliquot_annotation $ALIQUOT_NAME $ALIQUOTS_FN)
+        test_exit_status
+
         SN=$(get_SN $CASE "$SAMPLE_TYPE" "$ES" $FN $DF $REF $CHANNEL)
         test_exit_status
 
@@ -455,14 +501,14 @@ function process_methylation_array {
 
         STS=$(get_sample_short_name "$SAMPLE_TYPE")
 
-        printf "$SN\t$CASE\t$DISEASE\t$ES\t$STS\t$ALIQUOT_NAME\t$FN\t$FS\t$DF\t$CHANNEL\t$ID\t$MD5\t$REF\t$SAMPLE_TYPE\n"
+        printf "$SN\t$CASE\t$DISEASE\t$ES\t$STS\t$ALIQUOT_NAME\t$FN\t$FS\t$DF\t$CHANNEL\t$ID\t$MD5\t$REF\t$SAMPLE_TYPE\t$SAMPLE_ID\t$SAMPLE_METADATA\t$ALIQUOT_ANNOTATION\n"
     done < $MAFN
 }
 
 confirm $ALIQUOTS_FN
 
 if [ -z $NO_HEADER ]; then
-    OUTLINE=$(printf "# sample_name\tcase\tdisease\texperimental_strategy\tshort_sample_type\taliquot\tfilename\tfilesize\tdata_format\tresult_type\tUUID\tMD5\treference\tsample_type\n" )
+    OUTLINE=$(printf "# sample_name\tcase\tdisease\texperimental_strategy\tshort_sample_type\taliquot\tfilename\tfilesize\tdata_format\tresult_type\tUUID\tMD5\treference\tsample_type\tsample_id\tsample_metadata\taliquot_annotation\n")
     if [ ! -z $OUTFN ]; then
         echo "$OUTLINE" >> $OUTFN
     else

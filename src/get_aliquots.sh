@@ -22,6 +22,7 @@ Writes the following columns for each aliquot:
     * aliquot submitter id
     * aliquot id
     * analyte_type
+    * aliquot_annotation - from annotation.note associated with aliquot
 
 Require GDC_TOKEN environment variable to be defined with path to gdc-user-token.*.txt file
 EOF
@@ -98,6 +99,9 @@ function aliquot_from_case {
             submitter_id
             id
             analyte_type
+            annotations {
+                notes
+            }
           }
         }
     }
@@ -127,7 +131,7 @@ fi
 #OUTLINE=$(echo $R | jq -r '.data.aliquot[] | "\(.submitter_id)\t\(.id)\t\(.analyte_type)"' | sed "s/^/$CASE\t/")
 
 # this is a bit messy because I don't know how to get rid of the ["x","y"] for aliquot info
-OUTLINE=$(echo $R | jq -r '.data.sample[] | "\(.submitter_id)\t\(.id)\t\(.sample_type)\t\(.aliquots[] | [.submitter_id, .id, .analyte_type]  )"' | tr -d '\"' | tr ',' '\t' | tr -d '[]' | sed "s/^/$CASE\t/")
+OUTLINE=$(echo $R | jq -r '.data.sample[] | "\(.submitter_id)\t\(.id)\t\(.sample_type)\t\(.aliquots[] | [.submitter_id, .id, .analyte_type, .annotations[].notes]  )"' | tr -d '\"' | tr ',' '\t' | tr -d '[]' | sed "s/^/$CASE\t/")
 test_exit_status
 
 if [ "$OUTLINE" ]; then
@@ -138,5 +142,6 @@ if [ "$OUTLINE" ]; then
         echo "$OUTLINE"
     fi
 fi
+
 
 
