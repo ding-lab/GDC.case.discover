@@ -484,7 +484,7 @@ function process_methylation_array {
         SAMPLE_ID=$(get_sample_IDs $ALIQUOT_NAME $ALIQUOTS_FN)
         test_exit_status
 
-        SAMPLE_METADATA="NONE YET"
+        SAMPLE_METADATA=""      # TODO
 
         ALIQUOT_ANNOTATION=$(get_aliquot_annotation $ALIQUOT_NAME $ALIQUOTS_FN)
         test_exit_status
