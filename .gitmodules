@@ -1,0 +1,3 @@
+[submodule "src/bashids"]
+	path = src/bashids
+	url = https://github.com/benwilber/bashids.git
