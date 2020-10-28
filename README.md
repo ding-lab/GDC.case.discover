@@ -13,12 +13,16 @@ Query GDC to discover sequence and methylation data and write it to a catalog fi
 ## Updates
 
 ### Version 2.2
+Flags datasets associated with heterogeneity studies based on GDC aliquot annotation note.
+
+#### Fields added
 
 Adding the following columns to catalog file:
-    * sample_id - GDC sample name  
-    * sample_metadata - Ad hoc metadata associated with this sample.  May be comma-separated list
-    * aliquot_annotation - Annotation note associated with aliquot, from GDC 
+    * `sample_id` - GDC sample name  
+    * `sample_metadata` - Ad hoc metadata associated with this sample.  May be comma-separated list
+    * `aliquot_annotation` - Annotation note associated with aliquot, from GDC 
 
+See Heterogeneity Studies below for details
 
 ### Version 2.1
 
@@ -97,6 +101,7 @@ Catalog file columns:
 14. `sample_type` - sample type as reported from GDC, e.g., Blood Derived Normal, Solid Tissue Normal, Primary Tumor, and others
 15. `sample_id` - GDC sample name  
 16. `sample_metadata` - Ad hoc metadata associated with this sample.  May be comma-separated list
+     - see updates below
 17. `aliquot_annotation` - Annotation note associated with aliquot, from GDC 
 
 Example catalog file (TODO update me):
@@ -148,6 +153,10 @@ Sample names are ad hoc names we generate for convenience.  Examples include,
 * C3N-00858.RNA-Seq.transcriptome.T.hg38
 * C3N-00858.RNA-Seq.genomic.T.hg38
 
+See Heterogeneity Studies below.
+
+TODO: add examples about heterogeneity
+
 ### Sample types
 
 The `sample_type` column lists GDC sample types.  We abbreviate these names in the sample name and `short_sample_type` column respectively as,
@@ -157,6 +166,19 @@ The `sample_type` column lists GDC sample types.  We abbreviate these names in t
 * Primary Blood Derived Cancer - Bone Marrow: Tbm, tumor_bone_marrow
 * Primary Blood Derived Cancer - Peripheral Blood: Tpb, tumor_peripheral_blood
 * Solid Tissue Normal: A, tissue_normal
+
+
+## Heterogeneity Studies
+
+If aliquot_annotation is as follows:
+```
+    Duplicate item: CCRCC Tumor heterogeneity study aliquot
+```
+Then sample_metadata has appended to it "heterogeneity het-XXX" 
+  * XXX is a hash ID generated with [bashids](https://github.com/benwilber/bashids)
+    Input string is the aliquot name with "CPT" and any leading 0's removed
+  * sample_name has "het-XXX" added as a suffix
+
 
 ## Demographics
 

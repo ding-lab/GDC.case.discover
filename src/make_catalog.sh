@@ -6,6 +6,8 @@
 # We are looping over two lists: aligned_reads and methyulation_array, and using aliquots.dat to provide additional information
 # also add ad hoc suffixes as necessary, defined by aliquot or UUID
 
+GET_CPT_HASH="bash src/get_CPT_hash.sh"
+
 read -r -d '' USAGE <<'EOF'
 Write a comprehensive summary of aligned reads and methylation array from GDC.  v2.2
 
@@ -50,6 +52,15 @@ following:
      * The wildcard * will be used to indicate all experimental strategies
 multiple matches will give multiple sequential suffixes
 
+## Heterogeneity studies - new in V2.2
+
+Flags datasets associated with heterogeneity studies based on GDC aliquot annotation note.
+If aliquot_annotation is as follows:
+    Duplicate item: CCRCC Tumor heterogeneity study aliquot
+Then sample_metadata is updated with "heterogeneity het-XXX" 
+  * XXX is a hash ID generated with [bashids](https://github.com/benwilber/bashids)
+    Input string is the aliquot name with "CPT" and any leading 0's removed
+  * sample_name has "het-XXX" added as a suffix
 EOF
 
 # http://wiki.bash-hackers.org/howto/getopts_tutorial
@@ -244,12 +255,16 @@ function get_SN_suffix {
 
 # hg38 suffix added if reference code is hg38
 
+# For heterogeneity studies, "het-xxx" is added after sample type code , with xxx
+# a hash generated from aliquot name ("CPT" and leading 0's stripped)
+
 # Create sample name from case, experimental_strategy, and sample_type abbreviation
 # In the case of RNA-Seq, we extract the read number (R1 or R2) from the file name - this is empirical, and may change with different data types
 # For the purpose of the name, experimental strategy "Targeted Sequencing" is renamed as "Targeted" and "Methylation Array" as "MethArray"
 # RESULT_TYPE codes for two distinct things:
 #   * For Methylation Array data, it is the channel
 #   * For RNA-Seq harmonized BAMs, it is the result type, with values of genomic, chimeric, transcriptome
+
 function get_SN {
     CASE=$1
     STL=$2
@@ -258,6 +273,7 @@ function get_SN {
     DF=$5
     REF=$6
     RESULT_TYPE=$7
+    ANN_SUFFIX=$8
 
     ST=$(get_sample_code "$STL")
     test_exit_status
@@ -290,6 +306,10 @@ function get_SN {
     fi
 
     SN="$CASE.$LES.$ST"
+    if [ "$ANN_SUFFIX" != "" ]; then
+        SN="${SN}.${ANN_SUFFIX}"
+    fi
+
     if [ $REF == "hg38" ]; then
         SN="${SN}.hg38"
     fi
@@ -354,6 +374,9 @@ function get_aliquot_annotation {
     echo "$ANNOS"
 }
 
+# functionality of get_annotation_suffix moved to get_CPT_hash.sh 
+
+
 function process_reads {
     RFN=$1              # Reads filename, i.e., submitted or harmonized reads file
     ALIQUOTS_FN=$2
@@ -414,12 +437,26 @@ function process_reads {
         SAMPLE_ID=$(get_sample_IDs $ALIQUOT_NAME $ALIQUOTS_FN)
         test_exit_status
 
-        SAMPLE_METADATA=""      # TODO
-
         ALIQUOT_ANNOTATION=$(get_aliquot_annotation $ALIQUOT_NAME $ALIQUOTS_FN)
         test_exit_status
 
-        SN=$(get_SN $CASE "$SAMPLE_TYPE" $ES $FN $DF $REF $RESULT_TYPE)
+        if [ "$ALIQUOT_ANNOTATION" != "" ]; then
+            if [ "$ALIQUOT_ANNOTATION" = "Duplicate item: CCRCC Tumor heterogeneity study aliquot" ]; then
+                ANN_META="heterogeneity"
+                # functionality of get_annotation_suffix moved to get_CPT_hash.sh 
+                ANN_CODE=$( $GET_CPT_HASH $ALIQUOT_NAME )
+                ANN_SUFFIX="HET_$ANN_CODE"
+            else 
+                >&2 echo WARNING: Unknown Aliquot Annotation: "$ALIQUOT_ANNOTATION"
+                ANN_META="unknown_anotation"
+                ANN_SUFFIX=""
+            fi
+        else
+            ANN_META=""
+            ANN_SUFFIX=""
+        fi
+
+        SN=$(get_SN $CASE "$SAMPLE_TYPE" $ES $FN $DF $REF $RESULT_TYPE $ANN_SUFFIX )
         test_exit_status
 
         # if SUFFIX_LIST is defined, ad hoc suffix is added to sample name based on match to UUID or aliquot name 
@@ -427,10 +464,24 @@ function process_reads {
             SUFFIX=$(get_SN_suffix $SUFFIX_LIST $ID $ALIQUOT_NAME $ES)
             test_exit_status
             SN="${SN}$SUFFIX"
+        else
+            SUFFIX=""
         fi
+        >&2 echo DEBUG $ALIQUOT_NAME $SUFFIX
 
         STS=$(get_sample_short_name "$SAMPLE_TYPE")
         test_exit_status
+
+        # Sample metadata has entries based on
+        # * Suffix from SUFFIX_LIST
+        # * Aliquot annotation
+        #   * Right now, we know only this aliquot annotation:
+        #     "Duplicate item: CCRCC Tumor heterogeneity study aliquot"
+        #     * this annotation corresponds to metadata value "heterogeneity"
+        SAMPLE_METADATA="$SUFFIX $ANN_META $ANN_SUFFIX"
+
+        >&2 echo DEBUG SAMPLE_METADATA $SAMPLE_METADATA
+
 
         #printf "$SN\t$CASE\t$DISEASE\t$ES\t$STS\t$ALIQUOT_NAME\t$FN\t$FS\t$DF\t$RESULT_TYPE\t$ID\t$MD5\t$REF\t$SAMPLE_TYPE\n"
         printf "$SN\t$CASE\t$DISEASE\t$ES\t$STS\t$ALIQUOT_NAME\t$FN\t$FS\t$DF\t$CHANNEL\t$ID\t$MD5\t$REF\t$SAMPLE_TYPE\t$SAMPLE_ID\t$SAMPLE_METADATA\t$ALIQUOT_ANNOTATION\n"
@@ -484,22 +535,49 @@ function process_methylation_array {
         SAMPLE_ID=$(get_sample_IDs $ALIQUOT_NAME $ALIQUOTS_FN)
         test_exit_status
 
-        SAMPLE_METADATA=""      # TODO
-
         ALIQUOT_ANNOTATION=$(get_aliquot_annotation $ALIQUOT_NAME $ALIQUOTS_FN)
         test_exit_status
 
-        SN=$(get_SN $CASE "$SAMPLE_TYPE" "$ES" $FN $DF $REF $CHANNEL)
+
+#######  from process_reads
+        if [ "$ALIQUOT_ANNOTATION" != "" ]; then
+            if [ "$ALIQUOT_ANNOTATION" = "Duplicate item: CCRCC Tumor heterogeneity study aliquot" ]; then
+                ANN_META="heterogeneity"
+                # functionality of get_annotation_suffix moved to get_CPT_hash.sh 
+                ANN_CODE=$( $GET_CPT_HASH $ALIQUOT_NAME )
+                ANN_SUFFIX="HET_$ANN_CODE"
+            else 
+                >&2 echo WARNING: Unknown Aliquot Annotation: "$ALIQUOT_ANNOTATION"
+                ANN_META="unknown_anotation"
+                ANN_SUFFIX=""
+            fi
+        else
+            ANN_META=""
+            ANN_SUFFIX=""
+        fi
+
+        SN=$(get_SN $CASE "$SAMPLE_TYPE" $ES $FN $DF $REF $RESULT_TYPE $ANN_SUFFIX )
         test_exit_status
 
-        # ad hoc suffix is added based on UUID or aliquot name if SUFFIX_LIST is defined
+        # if SUFFIX_LIST is defined, ad hoc suffix is added to sample name based on match to UUID or aliquot name 
         if [ ! -z $SUFFIX_LIST ]; then
             SUFFIX=$(get_SN_suffix $SUFFIX_LIST $ID $ALIQUOT_NAME $ES)
             test_exit_status
             SN="${SN}$SUFFIX"
+        else
+            SUFFIX=""
         fi
 
         STS=$(get_sample_short_name "$SAMPLE_TYPE")
+        test_exit_status
+
+        # Sample metadata has entries based on
+        # * Suffix from SUFFIX_LIST
+        # * Aliquot annotation
+        #   * Right now, we know only this aliquot annotation:
+        #     "Duplicate item: CCRCC Tumor heterogeneity study aliquot"
+        #     * this annotation corresponds to metadata value "heterogeneity"
+        SAMPLE_METADATA="$SUFFIX $ANN_META $ANN_SUFFIX"
 
         printf "$SN\t$CASE\t$DISEASE\t$ES\t$STS\t$ALIQUOT_NAME\t$FN\t$FS\t$DF\t$CHANNEL\t$ID\t$MD5\t$REF\t$SAMPLE_TYPE\t$SAMPLE_ID\t$SAMPLE_METADATA\t$ALIQUOT_ANNOTATION\n"
     done < $MAFN
