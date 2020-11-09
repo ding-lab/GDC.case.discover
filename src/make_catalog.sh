@@ -456,7 +456,7 @@ function process_reads {
             ANN_SUFFIX=""
         fi
 
-        SN=$(get_SN $CASE "$SAMPLE_TYPE" $ES $FN $DF $REF $RESULT_TYPE $ANN_SUFFIX )
+        SN=$(get_SN $CASE "$SAMPLE_TYPE" "$ES" $FN $DF $REF $RESULT_TYPE $ANN_SUFFIX )
         test_exit_status
 
         # if SUFFIX_LIST is defined, ad hoc suffix is added to sample name based on match to UUID or aliquot name 
@@ -467,7 +467,6 @@ function process_reads {
         else
             SUFFIX=""
         fi
-        >&2 echo DEBUG $ALIQUOT_NAME $SUFFIX
 
         STS=$(get_sample_short_name "$SAMPLE_TYPE")
         test_exit_status
@@ -480,11 +479,8 @@ function process_reads {
         #     * this annotation corresponds to metadata value "heterogeneity"
         SAMPLE_METADATA="$SUFFIX $ANN_META $ANN_SUFFIX"
 
-        >&2 echo DEBUG SAMPLE_METADATA $SAMPLE_METADATA
-
-
-        #printf "$SN\t$CASE\t$DISEASE\t$ES\t$STS\t$ALIQUOT_NAME\t$FN\t$FS\t$DF\t$RESULT_TYPE\t$ID\t$MD5\t$REF\t$SAMPLE_TYPE\n"
-        printf "$SN\t$CASE\t$DISEASE\t$ES\t$STS\t$ALIQUOT_NAME\t$FN\t$FS\t$DF\t$CHANNEL\t$ID\t$MD5\t$REF\t$SAMPLE_TYPE\t$SAMPLE_ID\t$SAMPLE_METADATA\t$ALIQUOT_ANNOTATION\n"
+        # RESULT_TYPE and CHANNEL swapped in methylation
+        printf "$SN\t$CASE\t$DISEASE\t$ES\t$STS\t$ALIQUOT_NAME\t$FN\t$FS\t$DF\t$RESULT_TYPE\t$ID\t$MD5\t$REF\t$SAMPLE_TYPE\t$SAMPLE_ID\t$SAMPLE_METADATA\t$ALIQUOT_ANNOTATION\n"
     done < $RFN
 }
 
@@ -538,7 +534,6 @@ function process_methylation_array {
         ALIQUOT_ANNOTATION=$(get_aliquot_annotation $ALIQUOT_NAME $ALIQUOTS_FN)
         test_exit_status
 
-
 #######  from process_reads
         if [ "$ALIQUOT_ANNOTATION" != "" ]; then
             if [ "$ALIQUOT_ANNOTATION" = "Duplicate item: CCRCC Tumor heterogeneity study aliquot" ]; then
@@ -556,7 +551,7 @@ function process_methylation_array {
             ANN_SUFFIX=""
         fi
 
-        SN=$(get_SN $CASE "$SAMPLE_TYPE" $ES $FN $DF $REF $RESULT_TYPE $ANN_SUFFIX )
+        SN=$(get_SN $CASE "$SAMPLE_TYPE" "$ES" $FN $DF $REF $CHANNEL $ANN_SUFFIX )
         test_exit_status
 
         # if SUFFIX_LIST is defined, ad hoc suffix is added to sample name based on match to UUID or aliquot name 
@@ -579,6 +574,7 @@ function process_methylation_array {
         #     * this annotation corresponds to metadata value "heterogeneity"
         SAMPLE_METADATA="$SUFFIX $ANN_META $ANN_SUFFIX"
 
+        # RESULT_TYPE and CHANNEL swapped in methylation
         printf "$SN\t$CASE\t$DISEASE\t$ES\t$STS\t$ALIQUOT_NAME\t$FN\t$FS\t$DF\t$CHANNEL\t$ID\t$MD5\t$REF\t$SAMPLE_TYPE\t$SAMPLE_ID\t$SAMPLE_METADATA\t$ALIQUOT_ANNOTATION\n"
     done < $MAFN
 }

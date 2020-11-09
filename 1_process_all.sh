@@ -1,11 +1,11 @@
 # Perform discovery for all cases in CASES file
 
 # This needs to be exported, to be visible to GDC Query scripts
-export GDC_TOKEN="/home/mwyczalk_test/Projects/CPTAC3/discovery/token/gdc-user-token.2020-09-29T19_19_27.586Z.txt"
+export GDC_TOKEN="/home/mwyczalk_test/Projects/CPTAC3/discovery/token/gdc-user-token.2020-10-28T21_38_46.321Z.txt"
 
-PROJECT="annotate.dev"
-#CASES="/home/mwyczalk_test/Projects/CPTAC3/CPTAC3.catalog/CPTAC3.cases.dat"
-CASES="dat/cases-test.dat"
+PROJECT="discover.20201028.annotate-test"
+CASES="/home/mwyczalk_test/Projects/CPTAC3/CPTAC3.catalog/CPTAC3.cases.dat"
+#CASES="dat/cases-test.dat"
 
 # add suffix to sample names based on aliquot
 SUFFIX_LIST="/home/mwyczalk_test/Projects/CPTAC3/CPTAC3.catalog/SampleRename.dat"
@@ -14,7 +14,7 @@ SUFFIX_LIST="/home/mwyczalk_test/Projects/CPTAC3/CPTAC3.catalog/SampleRename.dat
 VERBOSE="-vvv"
 
 # N determines how many discovery processes run at once
-N="-J 20"
+N="-J 30"
 
 ##############################
 CATALOG="dat/${PROJECT}.Catalog.dat"
