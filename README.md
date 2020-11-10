@@ -22,7 +22,12 @@ Adding the following columns to catalog file:
     * `sample_metadata` - Ad hoc metadata associated with this sample.  May be comma-separated list
     * `aliquot_annotation` - Annotation note associated with aliquot, from GDC 
 
-See Heterogeneity Studies below for details
+If aliquot_annotation is as follows:
+    Duplicate item: CCRCC Tumor heterogeneity study aliquot
+Then sample_metadata has appended to it "heterogeneity HET-XXX" 
+  * XXX is a hash ID generated with [bashids](https://github.com/benwilber/bashids)
+    Input string is the aliquot name with "CPT" and any leading 0's removed
+  * sample_name has "HET-XXX" added as a suffix
 
 ### Version 2.1
 
