@@ -22,12 +22,7 @@ Adding the following columns to catalog file:
     * `sample_metadata` - Ad hoc metadata associated with this sample.  May be comma-separated list
     * `aliquot_annotation` - Annotation note associated with aliquot, from GDC 
 
-If aliquot_annotation is as follows:
-    Duplicate item: CCRCC Tumor heterogeneity study aliquot
-Then sample_metadata has appended to it "heterogeneity HET-XXX" 
-  * XXX is a hash ID generated with [bashids](https://github.com/benwilber/bashids)
-    Input string is the aliquot name with "CPT" and any leading 0's removed
-  * sample_name has "HET-XXX" added as a suffix
+Also, `sample_name` has additional element based on aliquot_annotation. Details below.
 
 ### Version 2.1
 
@@ -173,16 +168,28 @@ The `sample_type` column lists GDC sample types.  We abbreviate these names in t
 * Solid Tissue Normal: A, tissue_normal
 
 
-## Heterogeneity Studies
+## Heterogeneity Studies and duplicates
 
-If aliquot_annotation is as follows:
-```
-    Duplicate item: CCRCC Tumor heterogeneity study aliquot
-```
-Then sample_metadata has appended to it "heterogeneity het-XXX" 
-  * XXX is a hash ID generated with [bashids](https://github.com/benwilber/bashids)
-    Input string is the aliquot name with "CPT" and any leading 0's removed
-  * sample_name has "het-XXX" added as a suffix
+GDC provides annotations associated with aliquots which contain additional
+context regarding cases with multiple tumor samples.  This information is
+stored in aliquot_annotation, used to define sample metadata, and provides a
+label used for the sample metadata and sample name.
+
+TODO: Make this into a table
+"aliquot annotation", "metadata label", "label prefix"
+"Duplicate item: CCRCC Tumor heterogeneity study aliquot": "heterogeneity", HET"
+"Duplicate item: Additional DNA for PDA Deep Sequencing": "deep_sequencing", "DEEP"
+"Duplicate item: Additional DNA requested", "additional_DNA","ADD"
+"Duplicate item: PDA Pilot - bulk-derived DNA" : "bulk_DNA", "BULK"
+"Duplicate item: Replacement DNA Distribution - original aliquot failed" : "replacement", "REP"
+"Duplicate item: UCEC BioTEXT Pilot" : "BioTEXT", "BIOTEXT"
+"Duplicate item: UCEC LMD Heterogeneity Pilot" : "LMD heterogeneity", "LMD"
+Unknown: "unknown_annotation" "UNK"
+
+If aliquot_annotation is defined, the sample label consists of the label prefix followed
+by an ID code, e.g., "HET_qZq3G".  An ID code like "qZq3G" is a hash ID generated with [bashids](https://github.com/benwilber/bashids)
+Input numerical string is the aliquot name with "CPT" and any leading 0's removed
+The sample label also appended to the sample_name 
 
 
 ## Demographics

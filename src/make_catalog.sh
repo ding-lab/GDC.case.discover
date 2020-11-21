@@ -286,7 +286,7 @@ function get_SN {
         LES=$ES
     fi
 
-    if [ $DF == "FASTQ" ]; then
+    if [ "$DF" == "FASTQ" ]; then
     # Identify R1, R2 by matching for _R1_ or _R2_ in filename.  This only works for FASTQs.
     # RNA-Seq filename 170830_UNC31-K00269_0078_AHLCVMBBXX_AGTCAA_S18_L006_R1_001.fastq.gz
 
@@ -299,9 +299,9 @@ function get_SN {
             exit 1
         fi
         LES="$LES.$RN"
-    elif [ $DF == "IDAT" ]; then
+    elif [ "$DF" == "IDAT" ]; then
         LES="$LES.$RESULT_TYPE"
-    elif [ $DF == "BAM" ] && [ $ES == "RNA-Seq" ]; then
+    elif [ "$DF" == "BAM" ] && [ "$ES" == "RNA-Seq" ]; then
         LES="$LES.$RESULT_TYPE"
     fi
 
@@ -363,7 +363,7 @@ function get_aliquot_annotation {
     ALIQUOT_NAME=$1
     ALIQUOTS_FN=$2
 
-    ANNOS=$(grep $ALIQUOT_NAME $ALIQUOTS_FN | cut -f 8 | sort -u)
+    ANNOS=$(grep $ALIQUOT_NAME $ALIQUOTS_FN | cut -f 8 | sort -u | sed '/^[[:space:]]*$/d')
     MATCH_COUNT=$(echo -n "$ANNOS" | grep -c '^')
 
     if [ $MATCH_COUNT -gt 1 ]; then
@@ -374,8 +374,64 @@ function get_aliquot_annotation {
     echo "$ANNOS"
 }
 
-# functionality of get_annotation_suffix moved to get_CPT_hash.sh 
+function get_aliquot_annotation_codes {
 
+    ALIQUOT_ANNOTATION="$1"
+
+#* Duplicate item: CCRCC Tumor heterogeneity study aliquot
+#    * HET, heterogeneity
+#* Duplicate item: Additional DNA for PDA Deep Sequencing
+#    * DEEP, deep_sequencing
+#* Duplicate item: Additional DNA requested
+#    * ADD, additional_DNA
+#* Duplicate item: PDA Pilot - bulk-derived DNA
+#    * BULK, bulk DNA
+#* Duplicate item: Replacement DNA Distribution - original aliquot failed
+#    * REPL, replacement
+#* Duplicate item: UCEC BioTEXT Pilot
+#    * BIOTEXT, BioTEXT
+#* Duplicate item: UCEC LMD Heterogeneity Pilot
+#    * LMD, LMD_heterogeneity
+
+    if [ "$ALIQUOT_ANNOTATION" != "" ]; then
+        ANN_CODE=$( $GET_CPT_HASH $ALIQUOT_NAME )
+        if [ "$ALIQUOT_ANNOTATION" == "Duplicate item: CCRCC Tumor heterogeneity study aliquot" ]; then
+            ANN_META="heterogeneity"
+            ANN_PRE="HET"
+        elif [ "$ALIQUOT_ANNOTATION" == "Duplicate item: Additional DNA for PDA Deep Sequencing" ]; then
+            ANN_META="deep_sequencing"
+            ANN_PRE="DEEP"
+        elif [ "$ALIQUOT_ANNOTATION" == "Duplicate item: Additional DNA requested" ]; then
+            ANN_META="additional_DNA"
+            ANN_PRE="ADD"
+        elif [ "$ALIQUOT_ANNOTATION" == "Duplicate item: PDA Pilot - bulk-derived DNA" ]; then
+            ANN_META="bulk_DNA"
+            ANN_PRE="BULK"
+        elif [ "$ALIQUOT_ANNOTATION" == "Duplicate item: Replacement DNA Distribution - original aliquot failed" ]; then
+            ANN_META="replacement"
+            ANN_PRE="REP"
+        elif [ "$ALIQUOT_ANNOTATION" == "Duplicate item: UCEC BioTEXT Pilot" ]; then
+            ANN_META="BioTEXT"
+            ANN_PRE="BIOTEXT"
+        elif [ "$ALIQUOT_ANNOTATION" == "Duplicate item: UCEC LMD Heterogeneity Pilot" ]; then
+            ANN_META="LMD heterogeneity"
+            ANN_PRE="LMD"
+        else 
+            >&2 echo WARNING: Unknown Aliquot Annotation: "$ALIQUOT_ANNOTATION"
+            ANN_META="unknown_annotation"
+            ANN_PRE="UNK"
+        fi
+        ANN_SUFFIX="${ANN_PRE}_${ANN_CODE}"
+    else
+        ANN_META=""
+        ANN_SUFFIX=""
+    fi
+
+    # Neither return value may have spaces
+    # https://stackoverflow.com/questions/2488715/idioms-for-returning-multiple-values-in-shell-scripting
+    echo "$ANN_META" "$ANN_SUFFIX"
+    # read var1 var2 < <(get_vars)
+}
 
 function process_reads {
     RFN=$1              # Reads filename, i.e., submitted or harmonized reads file
@@ -418,7 +474,7 @@ function process_reads {
         # Get result type for harmonized RNA-Seq BAMs: genomic, chimeric, transcriptome
         #   example: 73746f82-9ea4-45ac-87d8-bf0e3dc0c2fe.rna_seq.transcriptome.gdc_realn.bam
         RESULT_TYPE="NA"
-        if [ $ES == "RNA-Seq" ] && [ $DF == "BAM" ]; then
+        if [ "$ES" == "RNA-Seq" ] && [ "$DF" == "BAM" ]; then
             if [[ $FN == *"transcriptome"* ]]; then
                 RESULT_TYPE="transcriptome"; 
             elif [[ $FN == *"genomic"* ]]; then
@@ -440,21 +496,9 @@ function process_reads {
         ALIQUOT_ANNOTATION=$(get_aliquot_annotation $ALIQUOT_NAME $ALIQUOTS_FN)
         test_exit_status
 
-        if [ "$ALIQUOT_ANNOTATION" != "" ]; then
-            if [ "$ALIQUOT_ANNOTATION" = "Duplicate item: CCRCC Tumor heterogeneity study aliquot" ]; then
-                ANN_META="heterogeneity"
-                # functionality of get_annotation_suffix moved to get_CPT_hash.sh 
-                ANN_CODE=$( $GET_CPT_HASH $ALIQUOT_NAME )
-                ANN_SUFFIX="HET_$ANN_CODE"
-            else 
-                >&2 echo WARNING: Unknown Aliquot Annotation: "$ALIQUOT_ANNOTATION"
-                ANN_META="unknown_anotation"
-                ANN_SUFFIX=""
-            fi
-        else
-            ANN_META=""
-            ANN_SUFFIX=""
-        fi
+        # https://stackoverflow.com/questions/2488715/idioms-for-returning-multiple-values-in-shell-scripting
+        read ANN_META ANN_SUFFIX < <( get_aliquot_annotation_codes "$ALIQUOT_ANNOTATION" )
+        test_exit_status
 
         SN=$(get_SN $CASE "$SAMPLE_TYPE" "$ES" $FN $DF $REF $RESULT_TYPE $ANN_SUFFIX )
         test_exit_status
@@ -534,22 +578,8 @@ function process_methylation_array {
         ALIQUOT_ANNOTATION=$(get_aliquot_annotation $ALIQUOT_NAME $ALIQUOTS_FN)
         test_exit_status
 
-#######  from process_reads
-        if [ "$ALIQUOT_ANNOTATION" != "" ]; then
-            if [ "$ALIQUOT_ANNOTATION" = "Duplicate item: CCRCC Tumor heterogeneity study aliquot" ]; then
-                ANN_META="heterogeneity"
-                # functionality of get_annotation_suffix moved to get_CPT_hash.sh 
-                ANN_CODE=$( $GET_CPT_HASH $ALIQUOT_NAME )
-                ANN_SUFFIX="HET_$ANN_CODE"
-            else 
-                >&2 echo WARNING: Unknown Aliquot Annotation: "$ALIQUOT_ANNOTATION"
-                ANN_META="unknown_anotation"
-                ANN_SUFFIX=""
-            fi
-        else
-            ANN_META=""
-            ANN_SUFFIX=""
-        fi
+        read ANN_META ANN_SUFFIX < <( get_aliquot_annotation_codes "$ALIQUOT_ANNOTATION" )
+        test_exit_status
 
         SN=$(get_SN $CASE "$SAMPLE_TYPE" "$ES" $FN $DF $REF $CHANNEL $ANN_SUFFIX )
         test_exit_status
