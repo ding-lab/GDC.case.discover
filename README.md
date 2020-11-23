@@ -175,13 +175,40 @@ context regarding cases with multiple tumor samples.  This information is
 stored in aliquot_annotation, used to define sample metadata, and provides a
 label used for the sample metadata and sample name.
 
+<!--- 
+#* Duplicate item: CCRCC Tumor heterogeneity study aliquot
+#    * HET, heterogeneity
+#* Duplicate item: Additional DNA for PDA Deep Sequencing
+#    * DEEP, deep_sequencing
+#* Duplicate item: Additional DNA requested
+#    * ADNA, additional_DNA
+#* Duplicate item: Additional RNA requested
+#    * ARNA, additional_RNA
+#* Duplicate item: PDA Pilot - bulk-derived DNA
+#    * BULK, bulk_DNA
+#* Duplicate item: PDA Pilot - core-derived DNA
+#    * CORE, core_DNA
+#* Duplicate item: Replacement DNA Distribution - original aliquot failed
+#    * RDNA, replacement_DNA
+#* Duplicate item: Replacement RNA Distribution - original aliquot failed
+#    * RRNA, replacement_RNA
+#* Duplicate item: UCEC BioTEXT Pilot
+#    * BIOTEXT, BioTEXT
+#* Duplicate item: UCEC LMD Heterogeneity Pilot
+#    * LMD, LMD_heterogeneity
+--->
+
+
 TODO: Make this into a table
 "aliquot annotation", "metadata label", "label prefix"
 "Duplicate item: CCRCC Tumor heterogeneity study aliquot": "heterogeneity", HET"
 "Duplicate item: Additional DNA for PDA Deep Sequencing": "deep_sequencing", "DEEP"
-"Duplicate item: Additional DNA requested", "additional_DNA","ADD"
+"Duplicate item: Additional DNA requested", "additional_DNA","ADNA"
+"Duplicate item: Additional RNA requested", "additional_RNA","ARNA"
 "Duplicate item: PDA Pilot - bulk-derived DNA" : "bulk_DNA", "BULK"
-"Duplicate item: Replacement DNA Distribution - original aliquot failed" : "replacement", "REP"
+"Duplicate item: PDA Pilot - core-derived DNA" : "core_DNA", "CORE"
+"Duplicate item: Replacement DNA Distribution - original aliquot failed" : "replacement_DNA", "RDNA"
+"Duplicate item: Replacement RNA Distribution - original aliquot failed" : "replacement_RNA", "RRNA"
 "Duplicate item: UCEC BioTEXT Pilot" : "BioTEXT", "BIOTEXT"
 "Duplicate item: UCEC LMD Heterogeneity Pilot" : "LMD heterogeneity", "LMD"
 Unknown: "unknown_annotation" "UNK"

@@ -3,9 +3,9 @@
 # This needs to be exported, to be visible to GDC Query scripts
 export GDC_TOKEN="/home/mwyczalk_test/Projects/CPTAC3/discovery/token/gdc-user-token.2020-10-28T21_38_46.321Z.txt"
 
-PROJECT="discover.20201109"
-CASES="/home/mwyczalk_test/Projects/CPTAC3/CPTAC3.catalog/CPTAC3.cases.dat"
-#CASES="dat/cases-test.dat"
+PROJECT="discover.20201119"
+#CASES="/home/mwyczalk_test/Projects/CPTAC3/CPTAC3.catalog/CPTAC3.cases.dat"
+CASES="dat/cases-test.dat"
 
 # add suffix to sample names based on aliquot
 SUFFIX_LIST="/home/mwyczalk_test/Projects/CPTAC3/CPTAC3.catalog/SampleRename.dat"
@@ -14,7 +14,7 @@ SUFFIX_LIST="/home/mwyczalk_test/Projects/CPTAC3/CPTAC3.catalog/SampleRename.dat
 VERBOSE="-vvv"
 
 # N determines how many discovery processes run at once
-N="-J 30"
+N="-J 40"
 
 # Make sure that src/bashids/bashids exists.  This should be tested for in the code but for now make it easy
 # May need to do `git submodule init; git submodule update`
@@ -46,8 +46,12 @@ END2=$(date)
 
 NERR=$(grep -il error dat/cases/*/*log* | wc -l)
 if grep -q -i error dat/cases/*/*log* ; then
-    >&2 echo The following $NERR files had errors or warnings \(top 10 shown\):
+    >&2 echo The following $NERR files had errors \(top 10 shown\):
     grep -il error dat/cases/*/*log* | head
+fi
+if grep -q -i warning dat/cases/*/*log* ; then
+    >&2 echo The following $NERR files had warnings \(top 10 shown\):
+    grep -il warning dat/cases/*/*log* | head
 fi
 
 >&2 echo Timing summary: 

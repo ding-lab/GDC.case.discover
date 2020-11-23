@@ -363,7 +363,7 @@ function get_aliquot_annotation {
     ALIQUOT_NAME=$1
     ALIQUOTS_FN=$2
 
-    ANNOS=$(grep $ALIQUOT_NAME $ALIQUOTS_FN | cut -f 8 | sort -u | sed '/^[[:space:]]*$/d')
+    ANNOS=$(grep $ALIQUOT_NAME $ALIQUOTS_FN | cut -f 8 | sort -u | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' )
     MATCH_COUNT=$(echo -n "$ANNOS" | grep -c '^')
 
     if [ $MATCH_COUNT -gt 1 ]; then
@@ -383,11 +383,17 @@ function get_aliquot_annotation_codes {
 #* Duplicate item: Additional DNA for PDA Deep Sequencing
 #    * DEEP, deep_sequencing
 #* Duplicate item: Additional DNA requested
-#    * ADD, additional_DNA
+#    * ADNA, additional_DNA
+#* Duplicate item: Additional RNA requested
+#    * ARNA, additional_RNA
 #* Duplicate item: PDA Pilot - bulk-derived DNA
-#    * BULK, bulk DNA
+#    * BULK, bulk_DNA
+#* Duplicate item: PDA Pilot - core-derived DNA
+#    * CORE, core_DNA
 #* Duplicate item: Replacement DNA Distribution - original aliquot failed
-#    * REPL, replacement
+#    * RDNA, replacement_DNA
+#* Duplicate item: Replacement RNA Distribution - original aliquot failed
+#    * RRNA, replacement_RNA
 #* Duplicate item: UCEC BioTEXT Pilot
 #    * BIOTEXT, BioTEXT
 #* Duplicate item: UCEC LMD Heterogeneity Pilot
@@ -403,13 +409,22 @@ function get_aliquot_annotation_codes {
             ANN_PRE="DEEP"
         elif [ "$ALIQUOT_ANNOTATION" == "Duplicate item: Additional DNA requested" ]; then
             ANN_META="additional_DNA"
-            ANN_PRE="ADD"
+            ANN_PRE="ADNA"
+        elif [ "$ALIQUOT_ANNOTATION" == "Duplicate item: Additional RNA requested" ]; then
+            ANN_META="additional_RNA"
+            ANN_PRE="ARNA"
         elif [ "$ALIQUOT_ANNOTATION" == "Duplicate item: PDA Pilot - bulk-derived DNA" ]; then
             ANN_META="bulk_DNA"
             ANN_PRE="BULK"
+        elif [ "$ALIQUOT_ANNOTATION" == "Duplicate item: PDA Pilot - core-derived DNA" ]; then
+            ANN_META="core_DNA"
+            ANN_PRE="CORE"
+        elif [ "$ALIQUOT_ANNOTATION" == "Duplicate item: Replacement RNA Distribution - original aliquot failed" ]; then
+            ANN_META="replacement_RNA"
+            ANN_PRE="RRNA"
         elif [ "$ALIQUOT_ANNOTATION" == "Duplicate item: Replacement DNA Distribution - original aliquot failed" ]; then
-            ANN_META="replacement"
-            ANN_PRE="REP"
+            ANN_META="replacement_DNA"
+            ANN_PRE="RDNA"
         elif [ "$ALIQUOT_ANNOTATION" == "Duplicate item: UCEC BioTEXT Pilot" ]; then
             ANN_META="BioTEXT"
             ANN_PRE="BIOTEXT"
