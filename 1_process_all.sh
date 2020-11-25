@@ -14,7 +14,7 @@ SUFFIX_LIST="/home/mwyczalk_test/Projects/CPTAC3/CPTAC3.catalog/SampleRename.dat
 VERBOSE="-vvv"
 
 # N determines how many discovery processes run at once
-N="-J 40"
+N="-J 30"
 
 # Make sure that src/bashids/bashids exists.  This should be tested for in the code but for now make it easy
 # May need to do `git submodule init; git submodule update`
@@ -49,8 +49,9 @@ if grep -q -i error dat/cases/*/*log* ; then
     >&2 echo The following $NERR files had errors \(top 10 shown\):
     grep -il error dat/cases/*/*log* | head
 fi
+NWRN=$(grep -il warning dat/cases/*/*log* | wc -l)
 if grep -q -i warning dat/cases/*/*log* ; then
-    >&2 echo The following $NERR files had warnings \(top 10 shown\):
+    >&2 echo The following $NWRN files had warnings \(top 10 shown\):
     grep -il warning dat/cases/*/*log* | head
 fi
 
