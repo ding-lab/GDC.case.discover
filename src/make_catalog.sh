@@ -363,7 +363,8 @@ function get_aliquot_annotation {
     ALIQUOT_NAME=$1
     ALIQUOTS_FN=$2
 
-    ANNOS=$(grep $ALIQUOT_NAME $ALIQUOTS_FN | cut -f 8 | sort -u | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' )
+    # remove all leading and trailing whitespace from annotation and remove blank lines
+    ANNOS=$(grep $ALIQUOT_NAME $ALIQUOTS_FN | cut -f 8 | sort -u | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | sed '/^$/d' )
     MATCH_COUNT=$(echo -n "$ANNOS" | grep -c '^')
 
     if [ $MATCH_COUNT -gt 1 ]; then
