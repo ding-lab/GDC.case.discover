@@ -244,6 +244,7 @@ the prefix used to generate the sample label.
 | Duplicate item: Replacement RNA Distribution - original aliquot failed | replacement_RNA | RRNA
 | Duplicate item: UCEC BioTEXT Pilot | BioTEXT | BIOTEXT
 | Duplicate item: UCEC LMD Heterogeneity Pilot | LMD heterogeneity | LMD
+| Additional DNA Distribution - Additional aliquot | additional_aliquot | ADD
 | unknown | unknown_annotation | UNK | 
 
 

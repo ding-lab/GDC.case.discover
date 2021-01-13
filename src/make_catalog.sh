@@ -432,6 +432,10 @@ function get_aliquot_annotation_codes {
         elif [ "$ALIQUOT_ANNOTATION" == "Duplicate item: UCEC LMD Heterogeneity Pilot" ]; then
             ANN_META="LMD heterogeneity"
             ANN_PRE="LMD"
+# | Additional DNA Distribution - Additional aliquot | additional_aliquot | ADD
+        elif [ "$ALIQUOT_ANNOTATION" == "Additional DNA Distribution - Additional aliquot" ]; then
+            ANN_META="additional_aliquot"
+            ANN_PRE="ADD"
         else 
             >&2 echo WARNING: Unknown Aliquot Annotation: "$ALIQUOT_ANNOTATION"
             ANN_META="unknown_annotation"
