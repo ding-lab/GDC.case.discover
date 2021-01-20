@@ -430,7 +430,7 @@ function get_aliquot_annotation_codes {
             ANN_META="BioTEXT"
             ANN_PRE="BIOTEXT"
         elif [ "$ALIQUOT_ANNOTATION" == "Duplicate item: UCEC LMD Heterogeneity Pilot" ]; then
-            ANN_META="LMD heterogeneity"
+            ANN_META="LMD_heterogeneity"
             ANN_PRE="LMD"
 # | Additional DNA Distribution - Additional aliquot | additional_aliquot | ADD
         elif [ "$ALIQUOT_ANNOTATION" == "Additional DNA Distribution - Additional aliquot" ]; then
