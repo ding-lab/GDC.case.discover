@@ -4,8 +4,8 @@
 export GDC_TOKEN="/home/mwyczalk_test/Projects/CPTAC3/discovery/token/gdc-user-token.2021-04-05T14_41_30.055Z.txt"
 
 PROJECT="discover.20210407"
-#CASES="/home/mwyczalk_test/Projects/CPTAC3/CPTAC3.catalog/CPTAC3.cases.dat"
-CASES="dat/cases-test.dat"
+CASES="/home/mwyczalk_test/Projects/CPTAC3/CPTAC3.catalog/CPTAC3.cases.dat"
+#CASES="dat/cases-test.dat"
 
 # add suffix to sample names based on aliquot
 SUFFIX_LIST="/home/mwyczalk_test/Projects/CPTAC3/CPTAC3.catalog/SampleRename.dat"
