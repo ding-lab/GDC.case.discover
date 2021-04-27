@@ -399,6 +399,9 @@ function get_aliquot_annotation_codes {
 #    * BIOTEXT, BioTEXT
 #* Duplicate item: UCEC LMD Heterogeneity Pilot
 #    * LMD, LMD_heterogeneity
+#* PDA BIOTEXT RNA
+#    * BIOTEXT, BioTEXT_RNA
+
 
     if [ "$ALIQUOT_ANNOTATION" != "" ]; then
         ANN_CODE=$( $GET_CPT_HASH $ALIQUOT_NAME )
@@ -436,6 +439,9 @@ function get_aliquot_annotation_codes {
         elif [ "$ALIQUOT_ANNOTATION" == "Additional DNA Distribution - Additional aliquot" ]; then
             ANN_META="additional_aliquot"
             ANN_PRE="ADD"
+        elif [ "$ALIQUOT_ANNOTATION" == "PDA BIOTEXT RNA" ]; then
+            ANN_META="BioTEXT_RNA"
+            ANN_PRE="BIOTEXT"
         else 
             >&2 echo WARNING: Unknown Aliquot Annotation: "$ALIQUOT_ANNOTATION"
             ANN_META="unknown_annotation"

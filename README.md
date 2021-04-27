@@ -221,6 +221,8 @@ label used in the sample metadata and sample name fields.
 #    * BIOTEXT, BioTEXT
 #* Duplicate item: UCEC LMD Heterogeneity Pilot
 #    * LMD, LMD_heterogeneity
+#* PDA BIOTEXT RNA
+#    * BIOTEXT, BioTEXT_RNA
 --->
 
 If `aliquot_annotation` is defined for a given data file, we generate sample label consisting of a label prefix followed
@@ -244,9 +246,9 @@ the prefix used to generate the sample label.
 | Duplicate item: Replacement RNA Distribution - original aliquot failed | replacement_RNA | RRNA
 | Duplicate item: UCEC BioTEXT Pilot | BioTEXT | BIOTEXT
 | Duplicate item: UCEC LMD Heterogeneity Pilot | LMD heterogeneity | LMD
+| BioTEXT_RNA | BioTEXT_RNA | BIOTEXT 
 | Additional DNA Distribution - Additional aliquot | additional_aliquot | ADD
 | unknown | unknown_annotation | UNK | 
-
 
 
 ## Demographics
