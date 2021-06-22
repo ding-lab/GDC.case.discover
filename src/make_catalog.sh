@@ -59,7 +59,7 @@ If aliquot_annotation is as follows:
     Duplicate item: CCRCC Tumor heterogeneity study aliquot
 Then sample_metadata is updated with "heterogeneity het-XXX" 
   * XXX is a hash ID generated with [bashids](https://github.com/benwilber/bashids)
-    Input string is the aliquot name with "CPT" and any leading 0's removed
+    Input string is the aliquot name with "CPT", "_", and any leading 0's removed
   * sample_name has "het-XXX" added as a suffix
 EOF
 
@@ -256,7 +256,7 @@ function get_SN_suffix {
 # hg38 suffix added if reference code is hg38
 
 # For heterogeneity studies, "het-xxx" is added after sample type code , with xxx
-# a hash generated from aliquot name ("CPT" and leading 0's stripped)
+# a hash generated from aliquot name ("CPT", "_", and leading 0's stripped)
 
 # Create sample name from case, experimental_strategy, and sample_type abbreviation
 # In the case of RNA-Seq, we extract the read number (R1 or R2) from the file name - this is empirical, and may change with different data types
@@ -364,7 +364,7 @@ function get_aliquot_annotation {
     ALIQUOTS_FN=$2
 
     # remove all leading and trailing whitespace from annotation and remove blank lines
-    ANNOS=$(grep $ALIQUOT_NAME $ALIQUOTS_FN | cut -f 8 | sort -u | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | sed '/^$/d' )
+    ANNOS=$(grep -w $ALIQUOT_NAME $ALIQUOTS_FN | cut -f 8 | sort -u | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | sed '/^$/d' )
     MATCH_COUNT=$(echo -n "$ANNOS" | grep -c '^')
 
     if [ $MATCH_COUNT -gt 1 ]; then
@@ -401,7 +401,10 @@ function get_aliquot_annotation_codes {
 #    * LMD, LMD_heterogeneity
 #* PDA BIOTEXT RNA
 #    * BIOTEXT, BioTEXT_RNA
-
+#* Replacement DNA Aliquot
+#    * RDNA, replacement_DNA
+#* Original DNA Aliquot
+#    * ODNA, original_DNA
 
     if [ "$ALIQUOT_ANNOTATION" != "" ]; then
         ANN_CODE=$( $GET_CPT_HASH $ALIQUOT_NAME )
@@ -435,13 +438,18 @@ function get_aliquot_annotation_codes {
         elif [ "$ALIQUOT_ANNOTATION" == "Duplicate item: UCEC LMD Heterogeneity Pilot" ]; then
             ANN_META="LMD_heterogeneity"
             ANN_PRE="LMD"
-# | Additional DNA Distribution - Additional aliquot | additional_aliquot | ADD
         elif [ "$ALIQUOT_ANNOTATION" == "Additional DNA Distribution - Additional aliquot" ]; then
             ANN_META="additional_aliquot"
             ANN_PRE="ADD"
         elif [ "$ALIQUOT_ANNOTATION" == "PDA BIOTEXT RNA" ]; then
             ANN_META="BioTEXT_RNA"
             ANN_PRE="BIOTEXT"
+        elif [ "$ALIQUOT_ANNOTATION" == "Replacement DNA Aliquot" ]; then
+            ANN_META="replacement_DNA"
+            ANN_PRE="RDNA"
+        elif [ "$ALIQUOT_ANNOTATION" == "Original DNA Aliquot" ]; then
+            ANN_META="original_DNA"
+            ANN_PRE="ODNA"
         else 
             >&2 echo WARNING: Unknown Aliquot Annotation: "$ALIQUOT_ANNOTATION"
             ANN_META="unknown_annotation"
