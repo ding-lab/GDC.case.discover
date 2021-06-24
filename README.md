@@ -254,6 +254,7 @@ the prefix used to generate the sample label.
 | Additional DNA Distribution - Additional aliquot | additional_aliquot | ADD
 | Replacement DNA Aliquot | replacement_DNA | RDNA
 | Original DNA Aliquot | original_DNA | ODNA
+| Duplicate item: PDA BIOTEXT DNA | BioTEXT_DNA | BIOTEXT
 | unknown | unknown_annotation | UNK | 
 
 ## Demographics

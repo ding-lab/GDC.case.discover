@@ -405,6 +405,8 @@ function get_aliquot_annotation_codes {
 #    * RDNA, replacement_DNA
 #* Original DNA Aliquot
 #    * ODNA, original_DNA
+#* Duplicate item: PDA BIOTEXT DNA
+#    * BIOTEXT, BioTEXT_DNA
 
     if [ "$ALIQUOT_ANNOTATION" != "" ]; then
         ANN_CODE=$( $GET_CPT_HASH $ALIQUOT_NAME )
@@ -450,6 +452,9 @@ function get_aliquot_annotation_codes {
         elif [ "$ALIQUOT_ANNOTATION" == "Original DNA Aliquot" ]; then
             ANN_META="original_DNA"
             ANN_PRE="ODNA"
+        elif [ "$ALIQUOT_ANNOTATION" == "Duplicate item: PDA BIOTEXT DNA" ]; then
+            ANN_META="BioTEXT_DNA"
+            ANN_PRE="BIOTEXT"
         else 
             >&2 echo WARNING: Unknown Aliquot Annotation: "$ALIQUOT_ANNOTATION"
             ANN_META="unknown_annotation"
