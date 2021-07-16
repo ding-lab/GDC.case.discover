@@ -379,6 +379,21 @@ function get_aliquot_annotation_codes {
 
     ALIQUOT_ANNOTATION="$1"
 
+# Descripton of codes, per Nicolette Maunganidze
+# * "Additional" is a synonym for "Supplementary".
+# * Supplementary material is derived from the same parent ID. e.g. CPT0384730009 and its supplementary aliquot CPT0384730009_2 are both derived from C3N-00958.
+# * "Replacement" material differs from the above.
+#
+# Also, per email 7/15/21,
+# We will follow this agreed format for duplicate annotations:
+# all notes to include case insensitive terms [(duplicate OR supplementary OR replacement) AND (DNA OR RNA)]
+# and continue to send FYI emails when we submit annotations.
+# or more specifically:
+# \b(?:^duplicate item(.*)(supplementary|replacement)(.*)(DNA|RNA)(.*))\b
+# \b(?:^duplicate(.*)|supplementary|replacement)(.*)(DNA|RNA)(.*)\b
+
+ 
+
 #* Duplicate item: CCRCC Tumor heterogeneity study aliquot
 #    * HET, heterogeneity
 #* Duplicate item: Additional DNA for PDA Deep Sequencing
@@ -407,6 +422,10 @@ function get_aliquot_annotation_codes {
 #    * ODNA, original_DNA
 #* Duplicate item: PDA BIOTEXT DNA
 #    * BIOTEXT, BioTEXT_DNA
+# * Duplicate item: Supplementary DNA Aliquot 
+#    * ADNA, additional_DNA 
+# * Duplicate item: Replacement DNA Aliquot 
+#    * RDNA, replacement_DNA 
 
     if [ "$ALIQUOT_ANNOTATION" != "" ]; then
         ANN_CODE=$( $GET_CPT_HASH $ALIQUOT_NAME )
@@ -455,6 +474,12 @@ function get_aliquot_annotation_codes {
         elif [ "$ALIQUOT_ANNOTATION" == "Duplicate item: PDA BIOTEXT DNA" ]; then
             ANN_META="BioTEXT_DNA"
             ANN_PRE="BIOTEXT"
+        elif [ "$ALIQUOT_ANNOTATION" == "Duplicate item: Supplementary DNA Aliquot" ]; then
+            ANN_META="additional_DNA"
+            ANN_PRE="ADNA"
+        elif [ "$ALIQUOT_ANNOTATION" == "Duplicate item: Replacement DNA Aliquot" ]; then
+            ANN_META="replacement_DNA"
+            ANN_PRE="RDNA"
         else 
             >&2 echo WARNING: Unknown Aliquot Annotation: "$ALIQUOT_ANNOTATION"
             ANN_META="unknown_annotation"
