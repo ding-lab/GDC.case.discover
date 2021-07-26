@@ -255,6 +255,7 @@ the prefix used to generate the sample label.
 | Replacement DNA Aliquot | replacement_DNA | RDNA
 | Original DNA Aliquot | original_DNA | ODNA
 | Duplicate item: PDA BIOTEXT DNA | BioTEXT_DNA | BIOTEXT
+| Duplicate item: No new shipment/material. DNA aliquot resubmission for Broad post-harmonization sequencing and sample type mismatch correction. | corrected_DNA | RDNA
 | unknown | unknown_annotation | UNK | 
 
 ## Demographics

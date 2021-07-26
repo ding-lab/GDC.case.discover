@@ -426,6 +426,8 @@ function get_aliquot_annotation_codes {
 #    * ADNA, additional_DNA 
 # * Duplicate item: Replacement DNA Aliquot 
 #    * RDNA, replacement_DNA 
+# * Duplicate item: No new shipment/material. DNA aliquot resubmission for Broad post-harmonization sequencing and sample type mismatch correction. 
+#    * RDNA, corrected_DNA 
 
     if [ "$ALIQUOT_ANNOTATION" != "" ]; then
         ANN_CODE=$( $GET_CPT_HASH $ALIQUOT_NAME )
@@ -479,6 +481,9 @@ function get_aliquot_annotation_codes {
             ANN_PRE="ADNA"
         elif [ "$ALIQUOT_ANNOTATION" == "Duplicate item: Replacement DNA Aliquot" ]; then
             ANN_META="replacement_DNA"
+            ANN_PRE="RDNA"
+        elif [ "$ALIQUOT_ANNOTATION" == "Duplicate item: No new shipment/material. DNA aliquot resubmission for Broad post-harmonization sequencing and sample type mismatch correction." ]; then
+            ANN_META="corrected_DNA"
             ANN_PRE="RDNA"
         else 
             >&2 echo WARNING: Unknown Aliquot Annotation: "$ALIQUOT_ANNOTATION"
