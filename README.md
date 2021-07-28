@@ -6,7 +6,7 @@ Query GDC to discover sequence and methylation data and write it to a catalog fi
 
 * Obtain token from GDC, save to file `gdc-user-token.txt`
     * make this available as global variable with, `export GDC_TOKEN=gdc-user-token.txt`
-* `git clone https://github.com/ding-lab/CPTAC3.case.discover PROJECT_NAME`
+* `git clone --recurse-submodules https://github.com/ding-lab/CPTAC3.case.discover PROJECT_NAME`
 * edit `1_process_all.sh`
 * run `bash 1_process_all.sh`
 
@@ -51,6 +51,8 @@ Other packages which need to be installed:
 * `python` and `json` library; these typically come installed in a developer environment.
     * TODO provide explicit instructions
 * `jq` : [see here for installation instructions](https://stedolan.github.io/jq/download/).
+
+Note that [`bashids`](https://github.com/benwilber/bashids) is also used, but this is installed during `git clone` as a submodule.
 
 ## Usage
 
