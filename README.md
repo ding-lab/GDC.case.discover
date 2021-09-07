@@ -194,6 +194,7 @@ The `sample_type` column lists GDC sample types.  We abbreviate these names in t
 * Primary Blood Derived Cancer - Bone Marrow: Tbm, tumor_bone_marrow
 * Primary Blood Derived Cancer - Peripheral Blood: Tpb, tumor_peripheral_blood
 * Solid Tissue Normal: A, tissue_normal
+* Recurrent Tumor: R, recurrent_tumor
 
 ## Heterogeneity Studies and duplicates
 

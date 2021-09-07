@@ -159,6 +159,7 @@ function confirm {
 # Tbm, tumor_bone_marrow: Primary Blood Derived Cancer - Bone Marrow
 # Tpb, tumor_peripheral_blood: Primary Blood Derived Cancer - Peripheral Blood
 # A, tissue_normal:   Solid Tissue Normal
+# r, recurrent_tumor:   Recurrent Tumor
 
 # Note: Buccal Cell Normal appears only in AML in conjuction with Tbm, Tbp.  Assume this is a "type" of normal
 
@@ -178,6 +179,8 @@ function get_sample_code {
         ST="Tbm"
     elif [ "$STL" == "Primary Blood Derived Cancer - Peripheral Blood" ]; then
         ST="Tpb"
+    elif [ "$STL" == "Recurrent Tumor" ]; then
+        ST="R"
     else
         >&2 echo Error: Unknown sample type: $STL
         exit 1
@@ -199,6 +202,8 @@ function get_sample_short_name {
         STS="tumor_bone_marrow"
     elif [ "$SAMPLE_TYPE" == "Primary Blood Derived Cancer - Peripheral Blood" ]; then
         STS="tumor_peripheral_blood"
+    elif [ "$SAMPLE_TYPE" == "Recurrent Tumor" ]; then
+        STS="recurrent_tumor"
     else
         >&2 echo Error: Unknown sample type: $SAMPLE_TYPE
         exit 1
