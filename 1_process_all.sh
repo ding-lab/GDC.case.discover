@@ -1,9 +1,9 @@
 # Perform discovery for all cases in CASES file
 
 # This needs to be exported, to be visible to GDC Query scripts
-export GDC_TOKEN="/home/mwyczalk_test/Projects/CPTAC3/discovery/token/gdc-user-token.2021-04-05T14_41_30.055Z.txt"
+export GDC_TOKEN="/diskmnt/Projects/cptac_scratch/CPTAC3.workflow/discover/token/gdc-user-token.2021-09-03T22_45_00.098Z.txt"
 
-PROJECT="discover.20210407"
+PROJECT="discover.20210917"
 CASES="/home/mwyczalk_test/Projects/CPTAC3/CPTAC3.catalog/CPTAC3.cases.dat"
 #CASES="dat/cases-test.dat"
 
