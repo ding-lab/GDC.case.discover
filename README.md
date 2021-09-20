@@ -230,6 +230,10 @@ label used in the sample metadata and sample name fields.
 #    * RDNA, replacement_DNA
 #* Original DNA Aliquot
 #    * ODNA, original_DNA
+
+        elif [ "$ALIQUOT_ANNOTATION" == "Duplicate item: Replacement RNA Aliquot" ]; then
+            ANN_META="replacement_RNA"
+            ANN_PRE="RRNA"
 --->
 
 If `aliquot_annotation` is defined for a given data file, we generate sample label consisting of a label prefix followed
@@ -251,6 +255,7 @@ the prefix used to generate the sample label.
 | Duplicate item: PDA Pilot - core-derived DNA | core_DNA | CORE
 | Duplicate item: Replacement DNA Distribution - original aliquot failed | replacement_DNA | RDNA
 | Duplicate item: Replacement RNA Distribution - original aliquot failed | replacement_RNA | RRNA
+| Duplicate item: Replacement RNA Aliquot | replacement_RNA | RRNA 
 | Duplicate item: UCEC BioTEXT Pilot | BioTEXT | BIOTEXT
 | Duplicate item: UCEC LMD Heterogeneity Pilot | LMD heterogeneity | LMD
 | BioTEXT_RNA | BioTEXT_RNA | BIOTEXT 
@@ -260,6 +265,7 @@ the prefix used to generate the sample label.
 | Duplicate item: PDA BIOTEXT DNA | BioTEXT_DNA | BIOTEXT
 | Duplicate item: No new shipment/material. DNA aliquot resubmission for Broad post-harmonization sequencing and sample type mismatch correction. | corrected_DNA | RDNA
 | unknown | unknown_annotation | UNK | 
+
 
 ## Demographics
 
