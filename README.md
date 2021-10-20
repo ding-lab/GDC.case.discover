@@ -12,6 +12,11 @@ Query GDC to discover sequence and methylation data and write it to a catalog fi
 
 ## Updates
 
+### Version 2.3
+
+Updates to `sample_metadata` field, which is now a space-separated list of KEY=VALUE pairs.
+Metadata may come from GDC annotation or ad hoc "suffix lists".
+
 ### Version 2.2
 Flags datasets associated with heterogeneity studies based on GDC aliquot annotation note.
 
@@ -203,68 +208,38 @@ context regarding cases with multiple tumor samples.  This information is
 stored in the field `aliquot_annotation` and is used to generate a convenient
 label used in the sample metadata and sample name fields.
 
-<!--- 
-#* Duplicate item: CCRCC Tumor heterogeneity study aliquot
-#    * HET, heterogeneity
-#* Duplicate item: Additional DNA for PDA Deep Sequencing
-#    * DEEP, deep_sequencing
-#* Duplicate item: Additional DNA requested
-#    * ADNA, additional_DNA
-#* Duplicate item: Additional RNA requested
-#    * ARNA, additional_RNA
-#* Duplicate item: PDA Pilot - bulk-derived DNA
-#    * BULK, bulk_DNA
-#* Duplicate item: PDA Pilot - core-derived DNA
-#    * CORE, core_DNA
-#* Duplicate item: Replacement DNA Distribution - original aliquot failed
-#    * RDNA, replacement_DNA
-#* Duplicate item: Replacement RNA Distribution - original aliquot failed
-#    * RRNA, replacement_RNA
-#* Duplicate item: UCEC BioTEXT Pilot
-#    * BIOTEXT, BioTEXT
-#* Duplicate item: UCEC LMD Heterogeneity Pilot
-#    * LMD, LMD_heterogeneity
-#* PDA BIOTEXT RNA
-#    * BIOTEXT, BioTEXT_RNA
-#* Replacement DNA Aliquot
-#    * RDNA, replacement_DNA
-#* Original DNA Aliquot
-#    * ODNA, original_DNA
+If `aliquot_annotation` is defined for a given data file, we generate sample
+label consisting of a label prefix followed by an ID code.  For CPTAC3, an example sample
+label may be `HET_qZq3G`, where the prefix `HET` indicates heterogeneity and
+the ID code is `qZq3G`.  This code is hash ID generated with
+[bashids](https://github.com/benwilber/bashids), where the input numerical
+string is obtained from the aliquot name (`CPT0000650008`) with "CPT" and any
+leading 0's removed.  The sample label used for the `sample_name` and
+`sample_metadata` fields
 
-        elif [ "$ALIQUOT_ANNOTATION" == "Duplicate item: Replacement RNA Aliquot" ]; then
-            ANN_META="replacement_RNA"
-            ANN_PRE="RRNA"
---->
-
-If `aliquot_annotation` is defined for a given data file, we generate sample label consisting of a label prefix followed
-by an ID code.  An example sample label may be `HET_qZq3G`, where the prefix `HET` indicates heterogeneity and 
-the ID code is `qZq3G`.  This code is hash ID generated with [bashids](https://github.com/benwilber/bashids), where
-the input numerical string is obtained from the aliquot name (`CPT0000650008`) with "CPT" and any leading 0's removed.
-The sample label used for the `sample_name` and `sample_metadata` fields
-
-Table below lists all known GDC aliquot annotations, the corresponding value written to the `sample_metadata` field, and 
+Table below lists all known GDC aliquot annotations, and 
 the prefix used to generate the sample label.
 
-| Aliquot annotation | Metadata label | Label prefix |
-| ------------------ | -------------- | ------------ |
-| Duplicate item: CCRCC Tumor heterogeneity study aliquot | heterogeneity | HET | 
-| Duplicate item: Additional DNA for PDA Deep Sequencing | deep_sequencing | DEEP | 
-| Duplicate item: Additional DNA requested | additional_DNA | ADNA
-| Duplicate item: Additional RNA requested | additional_RNA | ARNA
-| Duplicate item: PDA Pilot - bulk-derived DNA | bulk_DNA | BULK
-| Duplicate item: PDA Pilot - core-derived DNA | core_DNA | CORE
-| Duplicate item: Replacement DNA Distribution - original aliquot failed | replacement_DNA | RDNA
-| Duplicate item: Replacement RNA Distribution - original aliquot failed | replacement_RNA | RRNA
-| Duplicate item: Replacement RNA Aliquot | replacement_RNA | RRNA 
-| Duplicate item: UCEC BioTEXT Pilot | BioTEXT | BIOTEXT
-| Duplicate item: UCEC LMD Heterogeneity Pilot | LMD heterogeneity | LMD
-| BioTEXT_RNA | BioTEXT_RNA | BIOTEXT 
-| Additional DNA Distribution - Additional aliquot | additional_aliquot | ADD
-| Replacement DNA Aliquot | replacement_DNA | RDNA
-| Original DNA Aliquot | original_DNA | ODNA
-| Duplicate item: PDA BIOTEXT DNA | BioTEXT_DNA | BIOTEXT
-| Duplicate item: No new shipment/material. DNA aliquot resubmission for Broad post-harmonization sequencing and sample type mismatch correction. | corrected_DNA | RDNA
-| unknown | unknown_annotation | UNK | 
+| Aliquot annotation | Label prefix |
+| ------------------ | ------------ |
+| Duplicate item: CCRCC Tumor heterogeneity study | HET | 
+| Duplicate item: Additional DNA for PDA Deep Sequencing | DEEP | 
+| Duplicate item: Additional DNA requested | ADNA
+| Duplicate item: Additional RNA requested | ARNA
+| Duplicate item: PDA Pilot - bulk-derived DNA | BULK
+| Duplicate item: PDA Pilot - core-derived DNA | CORE
+| Duplicate item: Replacement DNA Distribution - original aliquot failed | RDNA
+| Duplicate item: Replacement RNA Distribution - original aliquot failed | RRNA
+| Duplicate item: Replacement RNA Aliquot | RRNA 
+| Duplicate item: UCEC BioTEXT Pilot | BIOTEXT
+| Duplicate item: UCEC LMD Heterogeneity Pilot | LMD
+| BioTEXT_RNA | BIOTEXT 
+| Additional DNA Distribution - Additional aliquot | ADD
+| Replacement DNA Aliquot | RDNA
+| Original DNA Aliquot | ODNA
+| Duplicate item: PDA BIOTEXT DNA | BIOTEXT
+| Duplicate item: No new shipment/material. DNA aliquot resubmission for Broad post-harmonization sequencing and sample type mismatch correction. | RDNA
+| unknown | UNK | 
 
 
 ## Demographics

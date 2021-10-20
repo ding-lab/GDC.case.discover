@@ -60,7 +60,7 @@ If aliquot_annotation is as follows:
 Then sample_metadata is updated with "heterogeneity het-XXX" 
   * XXX is a hash ID generated with [bashids](https://github.com/benwilber/bashids)
     Input string is the aliquot name with "CPT", "_", and any leading 0's removed
-  * sample_name has "het-XXX" added as a suffix
+  * sample_name has "HET_XXX" added as a suffix
 EOF
 
 # http://wiki.bash-hackers.org/howto/getopts_tutorial
@@ -278,7 +278,7 @@ function get_SN {
     DF=$5
     REF=$6
     RESULT_TYPE=$7
-    ANN_SUFFIX=$8
+    SAMPLE_TAG=$8
 
     ST=$(get_sample_code "$STL")
     test_exit_status
@@ -311,8 +311,8 @@ function get_SN {
     fi
 
     SN="$CASE.$LES.$ST"
-    if [ "$ANN_SUFFIX" != "" ]; then
-        SN="${SN}.${ANN_SUFFIX}"
+    if [ "$SAMPLE_TAG" != "" ]; then
+        SN="${SN}.${SAMPLE_TAG}"
     fi
 
     if [ $REF == "hg38" ]; then
@@ -384,6 +384,9 @@ function get_aliquot_annotation_codes {
 
     ALIQUOT_ANNOTATION="$1"
 
+
+# ANN_CODE is based on a dictionary lookup of known GDC annotation codes.  This dictionary is updated as GDC creates additional annotations
+
 # Descripton of codes, per Nicolette Maunganidze
 # * "Additional" is a synonym for "Supplementary".
 # * Supplementary material is derived from the same parent ID. e.g. CPT0384730009 and its supplementary aliquot CPT0384730009_2 are both derived from C3N-00958.
@@ -397,119 +400,54 @@ function get_aliquot_annotation_codes {
 # \b(?:^duplicate item(.*)(supplementary|replacement)(.*)(DNA|RNA)(.*))\b
 # \b(?:^duplicate(.*)|supplementary|replacement)(.*)(DNA|RNA)(.*)\b
 
- 
+# Listing of aliquot annotations from GDC and their corresponding ANN_CODE. Note, be sure to update ../README.md when this is updated.
+# * Duplicate item: CCRCC Tumor heterogeneity study aliquot     : HET
+# * Duplicate item: Additional DNA for PDA Deep Sequencing      : DEEP
+# * Duplicate item: Additional DNA requested                    : ADNA
+# * Duplicate item: Additional RNA requested                    : ARNA
+# * Duplicate item: PDA Pilot - bulk-derived DNA                : BULK
+# * Duplicate item: PDA Pilot - core-derived DNA                : CORE
+# * Duplicate item: Replacement DNA Distribution - original aliquot failed      : RDNA
+# * Duplicate item: Replacement RNA Distribution - original aliquot failed      : RRNA
+# * Duplicate item: UCEC BioTEXT Pilot                          : BIOTEXT
+# * Duplicate item: UCEC LMD Heterogeneity Pilot                : LMD
+# * PDA BIOTEXT RNA                                             : BIOTEXT
+# * Replacement DNA Aliquot                                     : RDNA
+# * Original DNA Aliquot                                        : ODNA
+# * Duplicate item: PDA BIOTEXT DNA                             : BIOTEXT
+# * Duplicate item: Supplementary DNA Aliquot                   : ADNA
+# * Duplicate item: Replacement DNA Aliquot                     : RDNA
+# * Duplicate item: No new shipment/material. DNA aliquot resubmission for Broad post-harmonization sequencing and sample type mismatch correction.                     : RDNA
+# * Duplicate item: Replacement RNA Aliquot                     : RRNA
 
-#* Duplicate item: CCRCC Tumor heterogeneity study aliquot
-#    * HET, heterogeneity
-#* Duplicate item: Additional DNA for PDA Deep Sequencing
-#    * DEEP, deep_sequencing
-#* Duplicate item: Additional DNA requested
-#    * ADNA, additional_DNA
-#* Duplicate item: Additional RNA requested
-#    * ARNA, additional_RNA
-#* Duplicate item: PDA Pilot - bulk-derived DNA
-#    * BULK, bulk_DNA
-#* Duplicate item: PDA Pilot - core-derived DNA
-#    * CORE, core_DNA
-#* Duplicate item: Replacement DNA Distribution - original aliquot failed
-#    * RDNA, replacement_DNA
-#* Duplicate item: Replacement RNA Distribution - original aliquot failed
-#    * RRNA, replacement_RNA
-#* Duplicate item: UCEC BioTEXT Pilot
-#    * BIOTEXT, BioTEXT
-#* Duplicate item: UCEC LMD Heterogeneity Pilot
-#    * LMD, LMD_heterogeneity
-#* PDA BIOTEXT RNA
-#    * BIOTEXT, BioTEXT_RNA
-#* Replacement DNA Aliquot
-#    * RDNA, replacement_DNA
-#* Original DNA Aliquot
-#    * ODNA, original_DNA
-#* Duplicate item: PDA BIOTEXT DNA
-#    * BIOTEXT, BioTEXT_DNA
-# * Duplicate item: Supplementary DNA Aliquot 
-#    * ADNA, additional_DNA 
-# * Duplicate item: Replacement DNA Aliquot 
-#    * RDNA, replacement_DNA 
-# * Duplicate item: No new shipment/material. DNA aliquot resubmission for Broad post-harmonization sequencing and sample type mismatch correction. 
-#    * RDNA, corrected_DNA 
-# * Duplicate item: Replacement RNA Aliquot
-#    * RRNA, replacement_RNA
-
-    if [ "$ALIQUOT_ANNOTATION" != "" ]; then
-        ANN_CODE=$( $GET_CPT_HASH $ALIQUOT_NAME )
-        if [ "$ALIQUOT_ANNOTATION" == "Duplicate item: CCRCC Tumor heterogeneity study aliquot" ]; then
-            ANN_META="heterogeneity"
-            ANN_PRE="HET"
-        elif [ "$ALIQUOT_ANNOTATION" == "Duplicate item: Additional DNA for PDA Deep Sequencing" ]; then
-            ANN_META="deep_sequencing"
-            ANN_PRE="DEEP"
-        elif [ "$ALIQUOT_ANNOTATION" == "Duplicate item: Additional DNA requested" ]; then
-            ANN_META="additional_DNA"
-            ANN_PRE="ADNA"
-        elif [ "$ALIQUOT_ANNOTATION" == "Duplicate item: Additional RNA requested" ]; then
-            ANN_META="additional_RNA"
-            ANN_PRE="ARNA"
-        elif [ "$ALIQUOT_ANNOTATION" == "Duplicate item: PDA Pilot - bulk-derived DNA" ]; then
-            ANN_META="bulk_DNA"
-            ANN_PRE="BULK"
-        elif [ "$ALIQUOT_ANNOTATION" == "Duplicate item: PDA Pilot - core-derived DNA" ]; then
-            ANN_META="core_DNA"
-            ANN_PRE="CORE"
-        elif [ "$ALIQUOT_ANNOTATION" == "Duplicate item: Replacement RNA Distribution - original aliquot failed" ]; then
-            ANN_META="replacement_RNA"
-            ANN_PRE="RRNA"
-        elif [ "$ALIQUOT_ANNOTATION" == "Duplicate item: Replacement DNA Distribution - original aliquot failed" ]; then
-            ANN_META="replacement_DNA"
-            ANN_PRE="RDNA"
-        elif [ "$ALIQUOT_ANNOTATION" == "Duplicate item: UCEC BioTEXT Pilot" ]; then
-            ANN_META="BioTEXT"
-            ANN_PRE="BIOTEXT"
-        elif [ "$ALIQUOT_ANNOTATION" == "Duplicate item: UCEC LMD Heterogeneity Pilot" ]; then
-            ANN_META="LMD_heterogeneity"
-            ANN_PRE="LMD"
-        elif [ "$ALIQUOT_ANNOTATION" == "Additional DNA Distribution - Additional aliquot" ]; then
-            ANN_META="additional_aliquot"
-            ANN_PRE="ADD"
-        elif [ "$ALIQUOT_ANNOTATION" == "PDA BIOTEXT RNA" ]; then
-            ANN_META="BioTEXT_RNA"
-            ANN_PRE="BIOTEXT"
-        elif [ "$ALIQUOT_ANNOTATION" == "Replacement DNA Aliquot" ]; then
-            ANN_META="replacement_DNA"
-            ANN_PRE="RDNA"
-        elif [ "$ALIQUOT_ANNOTATION" == "Original DNA Aliquot" ]; then
-            ANN_META="original_DNA"
-            ANN_PRE="ODNA"
-        elif [ "$ALIQUOT_ANNOTATION" == "Duplicate item: PDA BIOTEXT DNA" ]; then
-            ANN_META="BioTEXT_DNA"
-            ANN_PRE="BIOTEXT"
-        elif [ "$ALIQUOT_ANNOTATION" == "Duplicate item: Supplementary DNA Aliquot" ]; then
-            ANN_META="additional_DNA"
-            ANN_PRE="ADNA"
-        elif [ "$ALIQUOT_ANNOTATION" == "Duplicate item: Replacement DNA Aliquot" ]; then
-            ANN_META="replacement_DNA"
-            ANN_PRE="RDNA"
-        elif [ "$ALIQUOT_ANNOTATION" == "Duplicate item: No new shipment/material. DNA aliquot resubmission for Broad post-harmonization sequencing and sample type mismatch correction." ]; then
-            ANN_META="corrected_DNA"
-            ANN_PRE="RDNA"
-        elif [ "$ALIQUOT_ANNOTATION" == "Duplicate item: Replacement RNA Aliquot" ]; then
-            ANN_META="replacement_RNA"
-            ANN_PRE="RRNA"
-        else 
-            >&2 echo WARNING: Unknown Aliquot Annotation: "$ALIQUOT_ANNOTATION"
-            ANN_META="unknown_annotation"
-            ANN_PRE="UNK"
-        fi
-        ANN_SUFFIX="${ANN_PRE}_${ANN_CODE}"
-    else
-        ANN_META=""
-        ANN_SUFFIX=""
+    if [ "$ALIQUOT_ANNOTATION" == "" ]; then
+        return
     fi
 
-    # Neither return value may have spaces
-    # https://stackoverflow.com/questions/2488715/idioms-for-returning-multiple-values-in-shell-scripting
-    echo "$ANN_META" "$ANN_SUFFIX"
-    # read var1 var2 < <(get_vars)
+    if [ "$ALIQUOT_ANNOTATION" == "Duplicate item: CCRCC Tumor heterogeneity study aliquot" ]; then ANN_CODE="HET"
+    elif [ "$ALIQUOT_ANNOTATION" == "Duplicate item: Additional DNA for PDA Deep Sequencing" ]; then ANN_CODE="DEEP"
+    elif [ "$ALIQUOT_ANNOTATION" == "Duplicate item: Additional DNA requested" ]; then ANN_CODE="ADNA"
+    elif [ "$ALIQUOT_ANNOTATION" == "Duplicate item: Additional RNA requested" ]; then ANN_CODE="ARNA"
+    elif [ "$ALIQUOT_ANNOTATION" == "Duplicate item: PDA Pilot - bulk-derived DNA" ]; then ANN_CODE="BULK"
+    elif [ "$ALIQUOT_ANNOTATION" == "Duplicate item: PDA Pilot - core-derived DNA" ]; then ANN_CODE="CORE"
+    elif [ "$ALIQUOT_ANNOTATION" == "Duplicate item: Replacement RNA Distribution - original aliquot failed" ]; then ANN_CODE="RRNA"
+    elif [ "$ALIQUOT_ANNOTATION" == "Duplicate item: Replacement DNA Distribution - original aliquot failed" ]; then ANN_CODE="RDNA"
+    elif [ "$ALIQUOT_ANNOTATION" == "Duplicate item: UCEC BioTEXT Pilot" ]; then ANN_CODE="BIOTEXT"
+    elif [ "$ALIQUOT_ANNOTATION" == "Duplicate item: UCEC LMD Heterogeneity Pilot" ]; then ANN_CODE="LMD"
+    elif [ "$ALIQUOT_ANNOTATION" == "Additional DNA Distribution - Additional aliquot" ]; then ANN_CODE="ADD"
+    elif [ "$ALIQUOT_ANNOTATION" == "PDA BIOTEXT RNA" ]; then ANN_CODE="BIOTEXT"
+    elif [ "$ALIQUOT_ANNOTATION" == "Replacement DNA Aliquot" ]; then ANN_CODE="RDNA"
+    elif [ "$ALIQUOT_ANNOTATION" == "Original DNA Aliquot" ]; then ANN_CODE="ODNA"
+    elif [ "$ALIQUOT_ANNOTATION" == "Duplicate item: PDA BIOTEXT DNA" ]; then ANN_CODE="BIOTEXT"
+    elif [ "$ALIQUOT_ANNOTATION" == "Duplicate item: Supplementary DNA Aliquot" ]; then ANN_CODE="ADNA"
+    elif [ "$ALIQUOT_ANNOTATION" == "Duplicate item: Replacement DNA Aliquot" ]; then ANN_CODE="RDNA"
+    elif [ "$ALIQUOT_ANNOTATION" == "Duplicate item: No new shipment/material. DNA aliquot resubmission for Broad post-harmonization sequencing and sample type mismatch correction." ]; then ANN_CODE="RDNA"
+    elif [ "$ALIQUOT_ANNOTATION" == "Duplicate item: Replacement RNA Aliquot" ]; then ANN_CODE="RRNA"
+    else 
+        >&2 echo WARNING: Unknown Aliquot Annotation: "$ALIQUOT_ANNOTATION"
+        ANN_CODE="UNK"
+    fi
+    echo "$ANN_CODE"
 }
 
 function process_reads {
@@ -575,32 +513,46 @@ function process_reads {
         ALIQUOT_ANNOTATION=$(get_aliquot_annotation $ALIQUOT_NAME $ALIQUOTS_FN)
         test_exit_status
 
-        # https://stackoverflow.com/questions/2488715/idioms-for-returning-multiple-values-in-shell-scripting
-        read ANN_META ANN_SUFFIX < <( get_aliquot_annotation_codes "$ALIQUOT_ANNOTATION" )
-        test_exit_status
+# A sample tag is generated for entries which have aliquot annotation.  An example is HET_qZq3G
+# SAMPLE_TAG - Concatenation of ANN_CODE and ALIQUOT_HASH.  Previously ANN_SUFFIX
+# ANN_CODE - short annotation code based on a lookup of full GDC aliquot annotation text.  Previously ANN_PRE
+# ALIQUOT_HASH is a string based on the aliquot name, used to create a unique name for an annotated sample.  Formerly ANN_CODE
+#    CPTAC3 - aliquot names use bashids to create (get_CPT_hash.sh)
+#    Other projects may use CRC checksums, though this is not currently implemented
+#    See https://stackoverflow.com/questions/44804668/how-to-calculate-crc32-checksum-from-a-string-on-linux-bash 
 
-        SN=$(get_SN $CASE "$SAMPLE_TYPE" "$ES" $FN $DF $REF $RESULT_TYPE $ANN_SUFFIX )
+        if [ "$ALIQUOT_ANNOTATION" != "" ]; then
+            ALIQUOT_HASH=$( $GET_CPT_HASH $ALIQUOT_NAME )
+            ANN_CODE=$( get_aliquot_annotation_codes "$ALIQUOT_ANNOTATION" )
+            test_exit_status
+            SAMPLE_TAG=${ANN_CODE}_${ALIQUOT_HASH}
+            ANN_KV="sample_tag=$SAMPLE_TAG"
+        else
+            SAMPLE_TAG=""
+            ANN_KV=""
+        fi
+
+        SN=$(get_SN $CASE "$SAMPLE_TYPE" "$ES" $FN $DF $REF $RESULT_TYPE $SAMPLE_TAG )
         test_exit_status
 
         # if SUFFIX_LIST is defined, ad hoc suffix is added to sample name based on match to UUID or aliquot name 
+        # This should be incorporated into get_SN 
+        # This is presented as "local_meta" in the metadata field
         if [ ! -z $SUFFIX_LIST ]; then
             SUFFIX=$(get_SN_suffix $SUFFIX_LIST $ID $ALIQUOT_NAME $ES)
             test_exit_status
             SN="${SN}$SUFFIX"
+            if [ "$SUFFIX" != "" ]; then
+                SUFFIX_KV="local_meta=$SUFFIX"
+            fi
         else
-            SUFFIX=""
+            SUFFIX_KV=""
         fi
 
         STS=$(get_sample_short_name "$SAMPLE_TYPE")
         test_exit_status
 
-        # Sample metadata has entries based on
-        # * Suffix from SUFFIX_LIST
-        # * Aliquot annotation
-        #   * Right now, we know only this aliquot annotation:
-        #     "Duplicate item: CCRCC Tumor heterogeneity study aliquot"
-        #     * this annotation corresponds to metadata value "heterogeneity"
-        SAMPLE_METADATA="$SUFFIX $ANN_META $ANN_SUFFIX"
+        SAMPLE_METADATA="$ANN_KV $SUFFIX_KV"
 
         # RESULT_TYPE and CHANNEL swapped in methylation
         printf "$SN\t$CASE\t$DISEASE\t$ES\t$STS\t$ALIQUOT_NAME\t$FN\t$FS\t$DF\t$RESULT_TYPE\t$ID\t$MD5\t$REF\t$SAMPLE_TYPE\t$SAMPLE_ID\t$SAMPLE_METADATA\t$ALIQUOT_ANNOTATION\n"
@@ -608,6 +560,10 @@ function process_reads {
 }
 
 function process_methylation_array {
+# This is very similar to process_reads, and the codebase of the two should be combined.
+# Perhaps keep looping and output in one common codebase, and delegate finding specific values
+# to functions which can distinguish the two types
+# for one, need to maintain both 
     MAFN=$1
     ALIQUOTS_FN=$2
     PASSED_CASE=$3
@@ -657,31 +613,45 @@ function process_methylation_array {
         ALIQUOT_ANNOTATION=$(get_aliquot_annotation $ALIQUOT_NAME $ALIQUOTS_FN)
         test_exit_status
 
-        read ANN_META ANN_SUFFIX < <( get_aliquot_annotation_codes "$ALIQUOT_ANNOTATION" )
-        test_exit_status
+# A sample tag is generated for entries which have aliquot annotation.  An example is HET_qZq3G
+# SAMPLE_TAG - Concatenation of ANN_CODE and ALIQUOT_HASH.  Previously ANN_SUFFIX
+# ANN_CODE - short annotation code based on a lookup of full GDC aliquot annotation text.  Previously ANN_PRE
+# ALIQUOT_HASH is a string based on the aliquot name, used to create a unique name for an annotated sample.  Formerly ANN_CODE
+#    CPTAC3 - aliquot names use bashids to create (get_CPT_hash.sh)
+#    Other projects may use CRC checksums, though this is not currently implemented
+#    See https://stackoverflow.com/questions/44804668/how-to-calculate-crc32-checksum-from-a-string-on-linux-bash 
 
-        SN=$(get_SN $CASE "$SAMPLE_TYPE" "$ES" $FN $DF $REF $CHANNEL $ANN_SUFFIX )
+        if [ "$ALIQUOT_ANNOTATION" != "" ]; then
+            ALIQUOT_HASH=$( $GET_CPT_HASH $ALIQUOT_NAME )
+            ANN_CODE=$( get_aliquot_annotation_codes "$ALIQUOT_ANNOTATION" )
+            test_exit_status
+            SAMPLE_TAG=${ANN_CODE}_${ALIQUOT_HASH}
+            ANN_KV="sample_tag=$SAMPLE_TAG"
+        else
+            SAMPLE_TAG=""
+            ANN_KV=""
+        fi
+
+        SN=$(get_SN $CASE "$SAMPLE_TYPE" "$ES" $FN $DF $REF $CHANNEL $SAMPLE_TAG )
         test_exit_status
 
         # if SUFFIX_LIST is defined, ad hoc suffix is added to sample name based on match to UUID or aliquot name 
+        # This should be incorporated into get_SN 
+        # This is presented as "local_meta" in the metadata field
+            SUFFIX_KV=""
         if [ ! -z $SUFFIX_LIST ]; then
             SUFFIX=$(get_SN_suffix $SUFFIX_LIST $ID $ALIQUOT_NAME $ES)
             test_exit_status
             SN="${SN}$SUFFIX"
-        else
-            SUFFIX=""
+            if [ "$SUFFIX" != "" ]; then
+                SUFFIX_KV="local_meta=$SUFFIX"
+            fi
         fi
 
         STS=$(get_sample_short_name "$SAMPLE_TYPE")
         test_exit_status
 
-        # Sample metadata has entries based on
-        # * Suffix from SUFFIX_LIST
-        # * Aliquot annotation
-        #   * Right now, we know only this aliquot annotation:
-        #     "Duplicate item: CCRCC Tumor heterogeneity study aliquot"
-        #     * this annotation corresponds to metadata value "heterogeneity"
-        SAMPLE_METADATA="$SUFFIX $ANN_META $ANN_SUFFIX"
+        SAMPLE_METADATA="$ANN_KV $SUFFIX_KV"
 
         # RESULT_TYPE and CHANNEL swapped in methylation
         printf "$SN\t$CASE\t$DISEASE\t$ES\t$STS\t$ALIQUOT_NAME\t$FN\t$FS\t$DF\t$CHANNEL\t$ID\t$MD5\t$REF\t$SAMPLE_TYPE\t$SAMPLE_ID\t$SAMPLE_METADATA\t$ALIQUOT_ANNOTATION\n"
