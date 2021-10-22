@@ -222,25 +222,29 @@ the prefix used to generate the sample label.
 
 | Aliquot annotation | Label prefix |
 | ------------------ | ------------ |
-| Duplicate item: CCRCC Tumor heterogeneity study | HET | 
+| Additional DNA Distribution - Additional aliquot | ADD
+| BioTEXT_RNA | BIOTEXT 
 | Duplicate item: Additional DNA for PDA Deep Sequencing | DEEP | 
 | Duplicate item: Additional DNA requested | ADNA
 | Duplicate item: Additional RNA requested | ARNA
+| Duplicate item: CCRCC Tumor heterogeneity study | HET | 
+| Duplicate Item: CHOP GBM Duplicate Primary Tumor DNA Aliquot | ADNA
+| Duplicate Item: CHOP GBM Duplicate Primary Tumor RNA Aliquot | ADNA
+| Duplicate Item: CHOP GBM Duplicate Recurrent Tumor DNA Aliquot | ADNA
+| Duplicate Item: CHOP GBM Duplicate Recurrent Tumor RNA Aliquot | ADNA
+| Duplicate item: No new shipment/material. DNA aliquot resubmission for Broad post-harmonization sequencing and sample type mismatch correction. | RDNA
+| Duplicate item: PDA BIOTEXT DNA | BIOTEXT
 | Duplicate item: PDA Pilot - bulk-derived DNA | BULK
 | Duplicate item: PDA Pilot - core-derived DNA | CORE
 | Duplicate item: Replacement DNA Distribution - original aliquot failed | RDNA
-| Duplicate item: Replacement RNA Distribution - original aliquot failed | RRNA
 | Duplicate item: Replacement RNA Aliquot | RRNA 
+| Duplicate item: Replacement RNA Distribution - original aliquot failed | RRNA
 | Duplicate item: UCEC BioTEXT Pilot | BIOTEXT
 | Duplicate item: UCEC LMD Heterogeneity Pilot | LMD
-| BioTEXT_RNA | BIOTEXT 
-| Additional DNA Distribution - Additional aliquot | ADD
-| Replacement DNA Aliquot | RDNA
 | Original DNA Aliquot | ODNA
-| Duplicate item: PDA BIOTEXT DNA | BIOTEXT
-| Duplicate item: No new shipment/material. DNA aliquot resubmission for Broad post-harmonization sequencing and sample type mismatch correction. | RDNA
+| Replacement DNA Aliquot | RDNA
+| This entity was not yet authorized to be released by the submitters | UNAV
 | unknown | UNK | 
-
 
 ## Demographics
 

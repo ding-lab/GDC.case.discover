@@ -260,9 +260,6 @@ function get_SN_suffix {
 
 # hg38 suffix added if reference code is hg38
 
-# For heterogeneity studies, "het-xxx" is added after sample type code , with xxx
-# a hash generated from aliquot name ("CPT", "_", and leading 0's stripped)
-
 # Create sample name from case, experimental_strategy, and sample_type abbreviation
 # In the case of RNA-Seq, we extract the read number (R1 or R2) from the file name - this is empirical, and may change with different data types
 # For the purpose of the name, experimental strategy "Targeted Sequencing" is renamed as "Targeted" and "Methylation Array" as "MethArray"
@@ -401,25 +398,31 @@ function get_aliquot_annotation_codes {
 # \b(?:^duplicate(.*)|supplementary|replacement)(.*)(DNA|RNA)(.*)\b
 
 # Listing of aliquot annotations from GDC and their corresponding ANN_CODE. Note, be sure to update ../README.md when this is updated.
-# * Duplicate item: CCRCC Tumor heterogeneity study aliquot     : HET
-# * Duplicate item: Additional DNA for PDA Deep Sequencing      : DEEP
-# * Duplicate item: Additional DNA requested                    : ADNA
-# * Duplicate item: Additional RNA requested                    : ARNA
-# * Duplicate item: PDA Pilot - bulk-derived DNA                : BULK
-# * Duplicate item: PDA Pilot - core-derived DNA                : CORE
-# * Duplicate item: Replacement DNA Distribution - original aliquot failed      : RDNA
-# * Duplicate item: Replacement RNA Distribution - original aliquot failed      : RRNA
-# * Duplicate item: UCEC BioTEXT Pilot                          : BIOTEXT
-# * Duplicate item: UCEC LMD Heterogeneity Pilot                : LMD
-# * PDA BIOTEXT RNA                                             : BIOTEXT
-# * Replacement DNA Aliquot                                     : RDNA
-# * Original DNA Aliquot                                        : ODNA
-# * Duplicate item: PDA BIOTEXT DNA                             : BIOTEXT
-# * Duplicate item: Supplementary DNA Aliquot                   : ADNA
-# * Duplicate item: Replacement DNA Aliquot                     : RDNA
-# * Duplicate item: No new shipment/material. DNA aliquot resubmission for Broad post-harmonization sequencing and sample type mismatch correction.                     : RDNA
-# * Duplicate item: Replacement RNA Aliquot                     : RRNA
-
+# | Aliquot annotation | Label prefix |
+# | ------------------ | ------------ |
+# | Additional DNA Distribution - Additional aliquot | ADD
+# | BioTEXT_RNA | BIOTEXT 
+# | Duplicate item: Additional DNA for PDA Deep Sequencing | DEEP | 
+# | Duplicate item: Additional DNA requested | ADNA
+# | Duplicate item: Additional RNA requested | ARNA
+# | Duplicate item: CCRCC Tumor heterogeneity study | HET | 
+# | Duplicate Item: CHOP GBM Duplicate Primary Tumor DNA Aliquot | ADNA
+# | Duplicate Item: CHOP GBM Duplicate Primary Tumor RNA Aliquot | ADNA
+# | Duplicate Item: CHOP GBM Duplicate Recurrent Tumor DNA Aliquot | ADNA
+# | Duplicate Item: CHOP GBM Duplicate Recurrent Tumor RNA Aliquot | ADNA
+# | Duplicate item: No new shipment/material. DNA aliquot resubmission for Broad post-harmonization sequencing and sample type mismatch correction. | RDNA
+# | Duplicate item: PDA BIOTEXT DNA | BIOTEXT
+# | Duplicate item: PDA Pilot - bulk-derived DNA | BULK
+# | Duplicate item: PDA Pilot - core-derived DNA | CORE
+# | Duplicate item: Replacement DNA Distribution - original aliquot failed | RDNA
+# | Duplicate item: Replacement RNA Aliquot | RRNA 
+# | Duplicate item: Replacement RNA Distribution - original aliquot failed | RRNA
+# | Duplicate item: UCEC BioTEXT Pilot | BIOTEXT
+# | Duplicate item: UCEC LMD Heterogeneity Pilot | LMD
+# | Original DNA Aliquot | ODNA
+# | Replacement DNA Aliquot | RDNA
+# | This entity was not yet authorized to be released by the submitters | UNAV
+# | unknown | UNK | 
     if [ "$ALIQUOT_ANNOTATION" == "" ]; then
         return
     fi
@@ -443,6 +446,11 @@ function get_aliquot_annotation_codes {
     elif [ "$ALIQUOT_ANNOTATION" == "Duplicate item: Replacement DNA Aliquot" ]; then ANN_CODE="RDNA"
     elif [ "$ALIQUOT_ANNOTATION" == "Duplicate item: No new shipment/material. DNA aliquot resubmission for Broad post-harmonization sequencing and sample type mismatch correction." ]; then ANN_CODE="RDNA"
     elif [ "$ALIQUOT_ANNOTATION" == "Duplicate item: Replacement RNA Aliquot" ]; then ANN_CODE="RRNA"
+    elif [ "$ALIQUOT_ANNOTATION" == "Duplicate Item: CHOP GBM Duplicate Primary Tumor DNA Aliquot" ]; then ANN_CODE="ADNA"
+    elif [ "$ALIQUOT_ANNOTATION" == "Duplicate Item: CHOP GBM Duplicate Primary Tumor RNA Aliquot" ]; then ANN_CODE="ADNA"
+    elif [ "$ALIQUOT_ANNOTATION" == "Duplicate Item: CHOP GBM Duplicate Recurrent Tumor DNA Aliquot" ]; then ANN_CODE="ADNA"
+    elif [ "$ALIQUOT_ANNOTATION" == "Duplicate Item: CHOP GBM Duplicate Recurrent Tumor RNA Aliquot" ]; then ANN_CODE="ADNA"
+    elif [ "$ALIQUOT_ANNOTATION" == "This entity was not yet authorized to be released by the submitters" ]; then ANN_CODE="UNAV"
     else 
         >&2 echo WARNING: Unknown Aliquot Annotation: "$ALIQUOT_ANNOTATION"
         ANN_CODE="UNK"
@@ -450,13 +458,33 @@ function get_aliquot_annotation_codes {
     echo "$ANN_CODE"
 }
 
+# ALIQUOT_HASH is a string based on the aliquot name, used to create a unique name for an annotated sample
+# For historical names, distinguish CPTAC3-style aliquot names, which start with CPT, from all other aliquot names
+#    CPTAC3 - aliquot names use bashids to create aliquot hash using get_CPT_hash.sh script
+#    All other aliquot names are generated using CRC checksums as described here:
+#       https://stackoverflow.com/questions/44804668/how-to-calculate-crc32-checksum-from-a-string-on-linux-bash 
+function get_aliquot_hash {
+    ALIQUOT_NAME="$1"
+
+    if [[ $ALIQUOT_NAME == CPT* ]] ; then
+        ALIQUOT_HASH=$( $GET_CPT_HASH $ALIQUOT_NAME )
+        test_exit_status
+    else
+        ALIQUOT_HASH=$( echo -n "$ALIQUOT_NAME" | gzip -c | tail -c8 | hexdump -n4 -e '"%08x"' )
+        test_exit_status
+    fi
+    echo "$ALIQUOT_HASH"
+}
+
+# combined to process submitted, harmonized, and methylation data
 function process_reads {
     RFN=$1              # Reads filename, i.e., submitted or harmonized reads file
     ALIQUOTS_FN=$2
     PASSED_CASE=$3      # Sanity check - make sure looking at right dataset
     DISEASE=$4
+    IS_METHYLATION=$5
 
-# columns of RFN
+# columns of RFN - sequencing reads
 #    * case
 #    * aliquot submitter id
 #    * assumed reference 
@@ -466,6 +494,18 @@ function process_reads {
 #    * file size
 #    * id
 #    * md5sum
+# Columns of methylation array 
+#    1 case
+#    2 aliquot submitter id
+#    3 assumed reference = NA 
+#    4 submitter id
+#    5 id
+#    6 channel
+#    7 file name
+#    8 file size
+#    9 data_format
+#   10 experimental strategy
+#   11 md5sum
 
     # Loop over all lines in input file RFN and write catalog entry for each
     while read L; do
@@ -473,15 +513,35 @@ function process_reads {
         if [ "$L" == "" ]; then
             continue
         fi
-        CASE=$(echo "$L" | cut -f 1 )
-        ALIQUOT_NAME=$(echo "$L" | cut -f 2)
-        REF=$(echo "$L" | cut -f 3)
-        ES=$(echo "$L" | cut -f 4)
-        DF=$(echo "$L" | cut -f 5)
-        FN=$(echo "$L" | cut -f 6)
-        FS=$(echo "$L" | cut -f 7)
-        ID=$(echo "$L" | cut -f 8)
-        MD5=$(echo "$L" | cut -f 9)
+        # sequencing reads
+        if [ "$IS_METHYLATION" == 0 ]; then
+>&2 echo DEBUG : ! IS_METH L = $L
+            CASE=$(echo "$L" | cut -f 1 )
+            ALIQUOT_NAME=$(echo "$L" | cut -f 2)
+            REF=$(echo "$L" | cut -f 3)
+            ES=$(echo "$L" | cut -f 4)
+            DF=$(echo "$L" | cut -f 5)
+            FN=$(echo "$L" | cut -f 6)
+            FS=$(echo "$L" | cut -f 7)
+            ID=$(echo "$L" | cut -f 8)
+            MD5=$(echo "$L" | cut -f 9)
+        else 
+>&2 echo DEBUG : IS_METH L = $L
+            CASE=$(echo "$L" | cut -f 1 )
+            ALIQUOT_NAME=$(echo "$L" | cut -f 2)
+            REF=$(echo "$L" | cut -f 3)
+            ID=$(echo "$L" | cut -f 5)
+            CHANNEL=$(echo "$L" | cut -f 6)
+            FN=$(echo "$L" | cut -f 7)
+            FS=$(echo "$L" | cut -f 8)
+            DF=$(echo "$L" | cut -f 9)
+            ES=$(echo "$L" | cut -f 10)
+            MD5=$(echo "$L" | cut -f 11)
+            if [ ! "$ES" == "Methylation Array" ]; then
+                >&2 echo ERROR: Unexpected experimental strategy: $ES
+                exit 1
+            fi
+        fi
 
         if [ $CASE != $PASSED_CASE ]; then
             >&2 echo ERROR: CASE mismatch: passed $PASSED_CASE , $RFN = $CASE
@@ -502,6 +562,8 @@ function process_reads {
                 >&2 echo ERROR: Unknown result type in RNA-Seq BAM $FN
                 exit 1
             fi
+        elif [ "$ES" == "Methylation Array" ] ; then
+            RESULT_TYPE=$CHANNEL
         fi
 
         SAMPLE_TYPE=$(get_sample_type $ALIQUOT_NAME $ALIQUOTS_FN)
@@ -522,7 +584,8 @@ function process_reads {
 #    See https://stackoverflow.com/questions/44804668/how-to-calculate-crc32-checksum-from-a-string-on-linux-bash 
 
         if [ "$ALIQUOT_ANNOTATION" != "" ]; then
-            ALIQUOT_HASH=$( $GET_CPT_HASH $ALIQUOT_NAME )
+            ALIQUOT_HASH=$( get_aliquot_hash $ALIQUOT_NAME )
+            test_exit_status
             ANN_CODE=$( get_aliquot_annotation_codes "$ALIQUOT_ANNOTATION" )
             test_exit_status
             SAMPLE_TAG=${ANN_CODE}_${ALIQUOT_HASH}
@@ -559,105 +622,6 @@ function process_reads {
     done < $RFN
 }
 
-function process_methylation_array {
-# This is very similar to process_reads, and the codebase of the two should be combined.
-# Perhaps keep looping and output in one common codebase, and delegate finding specific values
-# to functions which can distinguish the two types
-# for one, need to maintain both 
-    MAFN=$1
-    ALIQUOTS_FN=$2
-    PASSED_CASE=$3
-    DISEASE=$4
-# columns of MAFN / methylation array 
-#    1 case
-#    2 aliquot submitter id
-#    3 assumed reference = NA 
-#    4 submitter id
-#    5 id
-#    6 channel
-#    7 file name
-#    8 file size
-#    9 data_format
-#   10 experimental strategy
-#   11 md5sum
-
-    # Loop over all lines in input file MAFN and write catalog entry for each
-    while read L; do
-        CASE=$(echo "$L" | cut -f 1 )
-        ALIQUOT_NAME=$(echo "$L" | cut -f 2)
-        REF=$(echo "$L" | cut -f 3)
-        ID=$(echo "$L" | cut -f 5)
-        CHANNEL=$(echo "$L" | cut -f 6)
-        FN=$(echo "$L" | cut -f 7)
-        FS=$(echo "$L" | cut -f 8)
-        DF=$(echo "$L" | cut -f 9)
-        ES=$(echo "$L" | cut -f 10)
-        MD5=$(echo "$L" | cut -f 11)
-
-        if [ ! "$ES" == "Methylation Array" ]; then
-            >&2 echo ERROR: Unexpected experimental strategy: $ES
-            exit 1
-        fi
-
-        if [ $CASE != $PASSED_CASE ]; then
-            >&2 echo ERROR: CASE mismatch: passed $PASSED_CASE , $RFN = $CASE
-            exit 1
-        fi
-
-        SAMPLE_TYPE=$(get_sample_type $ALIQUOT_NAME $ALIQUOTS_FN)
-        test_exit_status
-
-        SAMPLE_ID=$(get_sample_IDs $ALIQUOT_NAME $ALIQUOTS_FN)
-        test_exit_status
-
-        ALIQUOT_ANNOTATION=$(get_aliquot_annotation $ALIQUOT_NAME $ALIQUOTS_FN)
-        test_exit_status
-
-# A sample tag is generated for entries which have aliquot annotation.  An example is HET_qZq3G
-# SAMPLE_TAG - Concatenation of ANN_CODE and ALIQUOT_HASH.  Previously ANN_SUFFIX
-# ANN_CODE - short annotation code based on a lookup of full GDC aliquot annotation text.  Previously ANN_PRE
-# ALIQUOT_HASH is a string based on the aliquot name, used to create a unique name for an annotated sample.  Formerly ANN_CODE
-#    CPTAC3 - aliquot names use bashids to create (get_CPT_hash.sh)
-#    Other projects may use CRC checksums, though this is not currently implemented
-#    See https://stackoverflow.com/questions/44804668/how-to-calculate-crc32-checksum-from-a-string-on-linux-bash 
-
-        if [ "$ALIQUOT_ANNOTATION" != "" ]; then
-            ALIQUOT_HASH=$( $GET_CPT_HASH $ALIQUOT_NAME )
-            ANN_CODE=$( get_aliquot_annotation_codes "$ALIQUOT_ANNOTATION" )
-            test_exit_status
-            SAMPLE_TAG=${ANN_CODE}_${ALIQUOT_HASH}
-            ANN_KV="sample_tag=$SAMPLE_TAG"
-        else
-            SAMPLE_TAG=""
-            ANN_KV=""
-        fi
-
-        SN=$(get_SN $CASE "$SAMPLE_TYPE" "$ES" $FN $DF $REF $CHANNEL $SAMPLE_TAG )
-        test_exit_status
-
-        # if SUFFIX_LIST is defined, ad hoc suffix is added to sample name based on match to UUID or aliquot name 
-        # This should be incorporated into get_SN 
-        # This is presented as "local_meta" in the metadata field
-            SUFFIX_KV=""
-        if [ ! -z $SUFFIX_LIST ]; then
-            SUFFIX=$(get_SN_suffix $SUFFIX_LIST $ID $ALIQUOT_NAME $ES)
-            test_exit_status
-            SN="${SN}$SUFFIX"
-            if [ "$SUFFIX" != "" ]; then
-                SUFFIX_KV="local_meta=$SUFFIX"
-            fi
-        fi
-
-        STS=$(get_sample_short_name "$SAMPLE_TYPE")
-        test_exit_status
-
-        SAMPLE_METADATA="$ANN_KV $SUFFIX_KV"
-
-        # RESULT_TYPE and CHANNEL swapped in methylation
-        printf "$SN\t$CASE\t$DISEASE\t$ES\t$STS\t$ALIQUOT_NAME\t$FN\t$FS\t$DF\t$CHANNEL\t$ID\t$MD5\t$REF\t$SAMPLE_TYPE\t$SAMPLE_ID\t$SAMPLE_METADATA\t$ALIQUOT_ANNOTATION\n"
-    done < $MAFN
-}
-
 confirm $ALIQUOTS_FN
 
 if [ -z $NO_HEADER ]; then
@@ -675,7 +639,7 @@ fi
 
 if [ ! -z $SUBMITTED_FN ] && [ -s $SUBMITTED_FN ]; then
     confirm $SUBMITTED_FN
-    LINES=$(process_reads $SUBMITTED_FN $ALIQUOTS_FN $PASSED_CASE $DISEASE)
+    LINES=$(process_reads $SUBMITTED_FN $ALIQUOTS_FN $PASSED_CASE $DISEASE 0)
     test_exit_status
     if [ ! -z $OUTFN ]; then
         echo "$LINES" >> $OUTFN
@@ -686,7 +650,7 @@ fi
 
 if [ ! -z $HARMONIZED_FN ] && [ -s $HARMONIZED_FN ]; then
     confirm $HARMONIZED_FN
-    LINES=$(process_reads $HARMONIZED_FN $ALIQUOTS_FN $PASSED_CASE $DISEASE)
+    LINES=$(process_reads $HARMONIZED_FN $ALIQUOTS_FN $PASSED_CASE $DISEASE 0)
     test_exit_status
     if [ ! -z $OUTFN ]; then
         echo "$LINES" >> $OUTFN
@@ -697,7 +661,8 @@ fi
 
 if [ ! -z $METHYL_FN ] && [ -s $METHYL_FN ]; then
     confirm $METHYL_FN
-    LINES=$(process_methylation_array $METHYL_FN $ALIQUOTS_FN $PASSED_CASE $DISEASE)
+    #LINES=$(process_methylation_array $METHYL_FN $ALIQUOTS_FN $PASSED_CASE $DISEASE)
+    LINES=$(process_reads $METHYL_FN $ALIQUOTS_FN $PASSED_CASE $DISEASE 1)
     test_exit_status
     if [ ! -z $OUTFN ]; then
         echo "$LINES" >> $OUTFN
