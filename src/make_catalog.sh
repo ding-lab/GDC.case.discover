@@ -515,7 +515,6 @@ function process_reads {
         fi
         # sequencing reads
         if [ "$IS_METHYLATION" == 0 ]; then
->&2 echo DEBUG : ! IS_METH L = $L
             CASE=$(echo "$L" | cut -f 1 )
             ALIQUOT_NAME=$(echo "$L" | cut -f 2)
             REF=$(echo "$L" | cut -f 3)
@@ -526,7 +525,6 @@ function process_reads {
             ID=$(echo "$L" | cut -f 8)
             MD5=$(echo "$L" | cut -f 9)
         else 
->&2 echo DEBUG : IS_METH L = $L
             CASE=$(echo "$L" | cut -f 1 )
             ALIQUOT_NAME=$(echo "$L" | cut -f 2)
             REF=$(echo "$L" | cut -f 3)
@@ -601,6 +599,7 @@ function process_reads {
         # if SUFFIX_LIST is defined, ad hoc suffix is added to sample name based on match to UUID or aliquot name 
         # This should be incorporated into get_SN 
         # This is presented as "local_meta" in the metadata field
+        SUFFIX_KV=""
         if [ ! -z $SUFFIX_LIST ]; then
             SUFFIX=$(get_SN_suffix $SUFFIX_LIST $ID $ALIQUOT_NAME $ES)
             test_exit_status
@@ -608,14 +607,13 @@ function process_reads {
             if [ "$SUFFIX" != "" ]; then
                 SUFFIX_KV="local_meta=$SUFFIX"
             fi
-        else
-            SUFFIX_KV=""
         fi
 
         STS=$(get_sample_short_name "$SAMPLE_TYPE")
         test_exit_status
 
-        SAMPLE_METADATA="$ANN_KV $SUFFIX_KV"
+        # strip leading and trailing whitespace
+        SAMPLE_METADATA=$(echo "$ANN_KV $SUFFIX_KV" | sed 's/^[[:blank:]]*//;s/[[:blank:]]*$//')
 
         # RESULT_TYPE and CHANNEL swapped in methylation
         printf "$SN\t$CASE\t$DISEASE\t$ES\t$STS\t$ALIQUOT_NAME\t$FN\t$FS\t$DF\t$RESULT_TYPE\t$ID\t$MD5\t$REF\t$SAMPLE_TYPE\t$SAMPLE_ID\t$SAMPLE_METADATA\t$ALIQUOT_ANNOTATION\n"
