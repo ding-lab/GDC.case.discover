@@ -398,31 +398,34 @@ function get_aliquot_annotation_codes {
 # \b(?:^duplicate(.*)|supplementary|replacement)(.*)(DNA|RNA)(.*)\b
 
 # Listing of aliquot annotations from GDC and their corresponding ANN_CODE. Note, be sure to update ../README.md when this is updated.
+
 # | Aliquot annotation | Label prefix |
 # | ------------------ | ------------ |
-# | Additional DNA Distribution - Additional aliquot | ADD
-# | BioTEXT_RNA | BIOTEXT 
-# | Duplicate item: Additional DNA for PDA Deep Sequencing | DEEP | 
-# | Duplicate item: Additional DNA requested | ADNA
-# | Duplicate item: Additional RNA requested | ARNA
-# | Duplicate item: CCRCC Tumor heterogeneity study | HET | 
-# | Duplicate Item: CHOP GBM Duplicate Primary Tumor DNA Aliquot | ADNA
-# | Duplicate Item: CHOP GBM Duplicate Primary Tumor RNA Aliquot | ADNA
-# | Duplicate Item: CHOP GBM Duplicate Recurrent Tumor DNA Aliquot | ADNA
-# | Duplicate Item: CHOP GBM Duplicate Recurrent Tumor RNA Aliquot | ADNA
-# | Duplicate item: No new shipment/material. DNA aliquot resubmission for Broad post-harmonization sequencing and sample type mismatch correction. | RDNA
-# | Duplicate item: PDA BIOTEXT DNA | BIOTEXT
-# | Duplicate item: PDA Pilot - bulk-derived DNA | BULK
-# | Duplicate item: PDA Pilot - core-derived DNA | CORE
-# | Duplicate item: Replacement DNA Distribution - original aliquot failed | RDNA
-# | Duplicate item: Replacement RNA Aliquot | RRNA 
-# | Duplicate item: Replacement RNA Distribution - original aliquot failed | RRNA
-# | Duplicate item: UCEC BioTEXT Pilot | BIOTEXT
-# | Duplicate item: UCEC LMD Heterogeneity Pilot | LMD
-# | Original DNA Aliquot | ODNA
-# | Replacement DNA Aliquot | RDNA
-# | This entity was not yet authorized to be released by the submitters | UNAV
-# | unknown | UNK | 
+# | Additional DNA Distribution - Additional aliquot | `ADD`
+# | BioTEXT_RNA | `BIOTEXT`
+# | Duplicate item: Additional DNA for PDA Deep Sequencing | `DEEP`
+# | Duplicate item: Additional DNA requested | `ADNA`
+# | Duplicate item: Additional RNA requested | `ARNA`
+# | Duplicate item: CCRCC Tumor heterogeneity study | `HET`
+# | Duplicate Item: CHOP GBM Duplicate Primary Tumor DNA Aliquot | `ADNA`
+# | Duplicate Item: CHOP GBM Duplicate Primary Tumor RNA Aliquot | `ADNA`
+# | Duplicate Item: CHOP GBM Duplicate Recurrent Tumor DNA Aliquot | `ADNA`
+# | Duplicate Item: CHOP GBM Duplicate Recurrent Tumor RNA Aliquot | `ADNA`
+# | Duplicate item: No new shipment/material. DNA aliquot resubmission for Broad post-harmonization sequencing and sample type mismatch correction. | `RDNA`
+# | Duplicate item: PDA BIOTEXT DNA | `BIOTEXT`
+# | Duplicate item: PDA Pilot - bulk-derived DNA | `BULK`
+# | Duplicate item: PDA Pilot - core-derived DNA | `CORE`
+# | Duplicate item: Replacement DNA Distribution - original aliquot failed | `RDNA`
+# | Duplicate item: Replacement RNA Aliquot | `RRNA`
+# | Duplicate item: Replacement RNA Distribution - original aliquot failed | `RRNA`
+# | Duplicate item: UCEC BioTEXT Pilot | `BIOTEXT`
+# | Duplicate item: UCEC LMD Heterogeneity Pilot | `LMD`
+# | Original DNA Aliquot | `ODNA`
+# | Replacement DNA Aliquot | `RDNA`
+# | This entity was not yet authorized to be released by the submitters | `UNAV`
+# | unknown | `UNK`
+
+
     if [ "$ALIQUOT_ANNOTATION" == "" ]; then
         return
     fi
