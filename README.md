@@ -291,10 +291,11 @@ Processing workflow and hierarchy proceeds as,
         * Iterates over cases file
         * Calls `src/process_case.sh` for each case
         * `src/process_case.sh`  Calls the following:
-            * `src/get_aliquots.sh`
-            * `src/get_read_groups.sh`
-            * `src/get_harmonized_reads.sh`
-            * `src/get_methylation_array.sh`
+            * `src/get_aliquots.sh` - writes dat/cases/CASE/aliquots.dat
+            * `src/get_read_groups.sh` - writes read_groups.dat
+            * `src/get_submitted_reads.sh` - writes submitted_reads.dat
+            * `src/get_harmonized_reads.sh` - writes harmonized_reads.dat
+            * `src/get_methylation_array.sh` - writes methylation_array.dat
             * `src/make_catalog.sh`
             * `src/get_demographics.sh`
         * Collects catalog files to write project catalog file
