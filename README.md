@@ -229,9 +229,11 @@ the prefix used to generate the sample label.
 | Duplicate item: Additional RNA requested | ARNA
 | Duplicate item: CCRCC Tumor heterogeneity study | HET | 
 | Duplicate Item: CHOP GBM Duplicate Primary Tumor DNA Aliquot | ADNA
-| Duplicate Item: CHOP GBM Duplicate Primary Tumor RNA Aliquot | ADNA
+| Duplicate Item: CHOP GBM Duplicate Primary Tumor RNA Aliquot | ARNA
 | Duplicate Item: CHOP GBM Duplicate Recurrent Tumor DNA Aliquot | ADNA
-| Duplicate Item: CHOP GBM Duplicate Recurrent Tumor RNA Aliquot | ADNA
+| Duplicate Item: CHOP GBM Duplicate Recurrent Tumor RNA Aliquot | ARNA
+| Duplicate Item: CHOP GBM Triplicate Primary Tumor DNA Aliquot | ADNA
+| Duplicate Item: CHOP GBM Triplicate Primary Tumor RNA Aliquot | ARNA
 | Duplicate item: No new shipment/material. DNA aliquot resubmission for Broad post-harmonization sequencing and sample type mismatch correction. | RDNA
 | Duplicate item: PDA BIOTEXT DNA | BIOTEXT
 | Duplicate item: PDA Pilot - bulk-derived DNA | BULK

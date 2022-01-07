@@ -352,7 +352,8 @@ function get_sample_IDs {
     ALIQUOT_NAME=$1
     ALIQUOTS_FN=$2
 
-    SAMPLE_ID=$(grep $ALIQUOT_NAME $ALIQUOTS_FN | cut -f 2 | sort -u)
+    #SAMPLE_ID=$(grep $ALIQUOT_NAME $ALIQUOTS_FN | cut -f 2 | sort -u)
+    SAMPLE_ID=$(awk -v AN=$ALIQUOT_NAME 'BEGIN{FS="\t";OFS="\t"}{if ($5 == AN ) print $2}' $ALIQUOTS_FN | sort -u)
     MATCH_COUNT=$(echo -n "$SAMPLE_TYPE" | grep -c '^')
     if [ $MATCH_COUNT == 0 ]; then
         >&2 echo ERROR: Sample ID for aliquot $ALIQUOT_NAME not found in $ALIQUOTS_FN
@@ -368,11 +369,12 @@ function get_aliquot_annotation {
     ALIQUOTS_FN=$2
 
     # remove all leading and trailing whitespace from annotation and remove blank lines
-    ANNOS=$(grep -w $ALIQUOT_NAME $ALIQUOTS_FN | cut -f 8 | sort -u | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | sed '/^$/d' )
+    #ANNOS=$(grep -w $ALIQUOT_NAME $ALIQUOTS_FN | cut -f 8 | sort -u | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | sed '/^$/d' )
+    ANNOS=$(awk -v AN=$ALIQUOT_NAME 'BEGIN{FS="\t";OFS="\t"}{if ($5 == AN ) print $8}' $ALIQUOTS_FN | sort -u)
     MATCH_COUNT=$(echo -n "$ANNOS" | grep -c '^')
 
     if [ $MATCH_COUNT -gt 1 ]; then
-        >&2 echo ERROR: Aliquot $ALIQUOT_NAME in $ALIQUOTS_FN has multiple distinct notes:
+        >&2 echo ERROR: Aliquot $ALIQUOT_NAME in $ALIQUOTS_FN has $MATCH_COUNT distinct notes:
         >&2 echo $ANNOS
         exit 1
     fi
@@ -410,9 +412,11 @@ function get_aliquot_annotation_codes {
 # | Duplicate item: Additional RNA requested | `ARNA`
 # | Duplicate item: CCRCC Tumor heterogeneity study | `HET`
 # | Duplicate Item: CHOP GBM Duplicate Primary Tumor DNA Aliquot | `ADNA`
-# | Duplicate Item: CHOP GBM Duplicate Primary Tumor RNA Aliquot | `ADNA`
+# | Duplicate Item: CHOP GBM Duplicate Primary Tumor RNA Aliquot | `ARNA`
 # | Duplicate Item: CHOP GBM Duplicate Recurrent Tumor DNA Aliquot | `ADNA`
-# | Duplicate Item: CHOP GBM Duplicate Recurrent Tumor RNA Aliquot | `ADNA`
+# | Duplicate Item: CHOP GBM Duplicate Recurrent Tumor RNA Aliquot | `ARNA`
+# | Duplicate Item: CHOP GBM Triplicate Primary Tumor DNA Aliquot | `ADNA`
+# | Duplicate Item: CHOP GBM Triplicate Primary Tumor RNA Aliquot | `ARNA`
 # | Duplicate item: No new shipment/material. DNA aliquot resubmission for Broad post-harmonization sequencing and sample type mismatch correction. | `RDNA`
 # | Duplicate item: PDA BIOTEXT DNA | `BIOTEXT`
 # | Duplicate item: PDA Pilot - bulk-derived DNA | `BULK`
@@ -452,9 +456,11 @@ function get_aliquot_annotation_codes {
     elif [ "$ALIQUOT_ANNOTATION" == "Duplicate item: No new shipment/material. DNA aliquot resubmission for Broad post-harmonization sequencing and sample type mismatch correction." ]; then ANN_CODE="RDNA"
     elif [ "$ALIQUOT_ANNOTATION" == "Duplicate item: Replacement RNA Aliquot" ]; then ANN_CODE="RRNA"
     elif [ "$ALIQUOT_ANNOTATION" == "Duplicate Item: CHOP GBM Duplicate Primary Tumor DNA Aliquot" ]; then ANN_CODE="ADNA"
-    elif [ "$ALIQUOT_ANNOTATION" == "Duplicate Item: CHOP GBM Duplicate Primary Tumor RNA Aliquot" ]; then ANN_CODE="ADNA"
+    elif [ "$ALIQUOT_ANNOTATION" == "Duplicate Item: CHOP GBM Duplicate Primary Tumor RNA Aliquot" ]; then ANN_CODE="ARNA"
     elif [ "$ALIQUOT_ANNOTATION" == "Duplicate Item: CHOP GBM Duplicate Recurrent Tumor DNA Aliquot" ]; then ANN_CODE="ADNA"
-    elif [ "$ALIQUOT_ANNOTATION" == "Duplicate Item: CHOP GBM Duplicate Recurrent Tumor RNA Aliquot" ]; then ANN_CODE="ADNA"
+    elif [ "$ALIQUOT_ANNOTATION" == "Duplicate Item: CHOP GBM Duplicate Recurrent Tumor RNA Aliquot" ]; then ANN_CODE="ARNA"
+    elif [ "$ALIQUOT_ANNOTATION" == "Duplicate Item: CHOP GBM Triplicate Primary Tumor DNA Aliquot" ]; then ANN_CODE="ADNA"
+    elif [ "$ALIQUOT_ANNOTATION" == "Duplicate Item: CHOP GBM Triplicate Primary Tumor RNA Aliquot" ]; then ANN_CODE="ARNA"
     elif [ "$ALIQUOT_ANNOTATION" == "This entity was not yet authorized to be released by the submitters" ]; then ANN_CODE="UNAV"
     else 
         >&2 echo WARNING: Unknown Aliquot Annotation: "$ALIQUOT_ANNOTATION"
