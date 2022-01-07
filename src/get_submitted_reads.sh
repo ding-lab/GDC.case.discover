@@ -162,9 +162,10 @@ while read L; do
     RGSID=$(echo "$L" | cut -f 3)
     ES=$(echo "$L" | cut -f 4)
 
+# ATAC-Seq will be treated as unaligned reads
     if [ "$ES" == "WGS" ] || [ "$ES" == "WXS" ]; then 
         Q=$(SAR_from_read_group $RGSID)
-    elif [ "$ES" == "RNA-Seq" ] || [ "$ES" == "miRNA-Seq" ]; then   
+    elif [ "$ES" == "RNA-Seq" ] || [ "$ES" == "miRNA-Seq" ] || [ "$ES" == "ATAC-Seq" ]; then   
         Q=$(SUR_from_read_group $RGSID)
     elif [ "$ES" == "Targeted Sequencing" ]; then
         # this is a guess
@@ -191,7 +192,7 @@ while read L; do
     fi
 
     # Process results for submitted reads and make query for corresponding harmonized reads
-    if [ "$ES" == "WGS" ] || [ "$ES" == "WXS" ] || [ "$ES" == "Targeted Sequencing" ]; then
+    if [ "$ES" == "WGS" ] || [ "$ES" == "WXS" ] || [ "$ES" == "Targeted Sequencing" ] ; then
         SR=$(echo $R | jq -r '.data.submitted_aligned_reads[]   | "\(.experimental_strategy)\t\(.data_format)\t\(.file_name)\t\(.file_size)\t\(.id)\t\(.md5sum)"' | sed "s/^/$CASE\t$ASID\thg19\t/" )
         test_exit_status
     else
