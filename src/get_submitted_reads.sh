@@ -174,8 +174,9 @@ while read L; do
         Q=$(SUR_from_read_group $RGSID)
     else 
         >&2 echo ERROR: Unknown Experimental Strategy $ES
-        >&2 echo CASE = $CASE   Aliquot = $ASID    Read Group = $RGID
-        exit 1
+        >&2 echo CASE = $CASE   Aliquot = $ASID    Read Group = $RGSID
+        >&2 echo Ignoring and continuing...
+        # exit 1
     fi
 
     # Query for submitted reads

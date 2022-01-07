@@ -136,7 +136,7 @@ mkdir -p $OUTD
 test_exit_status
 
 A_OUT="$OUTD/aliquots.dat"
-CMD="bash $BIND/get_aliquots.sh -o $A_OUT $VERBOSE_ARG $CASE "
+CMD="bash $BIND/get_aliquots_v2.sh -o $A_OUT $VERBOSE_ARG $CASE "
 run_cmd "$CMD"
 
 if [ ! -s $A_OUT ]; then

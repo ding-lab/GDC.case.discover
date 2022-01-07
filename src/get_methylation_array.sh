@@ -138,7 +138,7 @@ while read L; do
     AT=$(echo "$L" | cut -f 7)
 
     # process only DNA aliquots
-    if [ $AT != "DNA" ]; then
+    if [ "$AT" != "DNA" ]; then
 #        >&2 echo Skipping $AT
         continue
     fi

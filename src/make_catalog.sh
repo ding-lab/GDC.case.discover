@@ -298,7 +298,8 @@ function get_SN {
             RN="R2"
         else
             >&2 echo "Unknown filename format (cannot find _R1_ or _R2_): $FN"
-            exit 1
+            >&2 echo Continuing \(calling it Rx\)...
+            RN="Rx"
         fi
         LES="$LES.$RN"
     elif [ "$DF" == "IDAT" ]; then
