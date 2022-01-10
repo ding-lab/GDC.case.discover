@@ -417,6 +417,8 @@ function get_aliquot_annotation_codes {
 # | Duplicate Item: CHOP GBM Duplicate Recurrent Tumor RNA Aliquot | `ARNA`
 # | Duplicate Item: CHOP GBM Triplicate Primary Tumor DNA Aliquot | `ADNA`
 # | Duplicate Item: CHOP GBM Triplicate Primary Tumor RNA Aliquot | `ARNA`
+# | Duplicate Item: CHOP GBM Triplicate Recurrent Tumor DNA Aliquot | `ADNA`
+# | Duplicate Item: CHOP GBM Triplicate Recurrent Tumor RNA Aliquot | `ARNA`
 # | Duplicate item: No new shipment/material. DNA aliquot resubmission for Broad post-harmonization sequencing and sample type mismatch correction. | `RDNA`
 # | Duplicate item: PDA BIOTEXT DNA | `BIOTEXT`
 # | Duplicate item: PDA Pilot - bulk-derived DNA | `BULK`
@@ -461,6 +463,10 @@ function get_aliquot_annotation_codes {
     elif [ "$ALIQUOT_ANNOTATION" == "Duplicate Item: CHOP GBM Duplicate Recurrent Tumor RNA Aliquot" ]; then ANN_CODE="ARNA"
     elif [ "$ALIQUOT_ANNOTATION" == "Duplicate Item: CHOP GBM Triplicate Primary Tumor DNA Aliquot" ]; then ANN_CODE="ADNA"
     elif [ "$ALIQUOT_ANNOTATION" == "Duplicate Item: CHOP GBM Triplicate Primary Tumor RNA Aliquot" ]; then ANN_CODE="ARNA"
+    elif [ "$ALIQUOT_ANNOTATION" == "Duplicate Item: CHOP GBM Triplicate Recurrent Tumor DNA Aliquot" ]; then ANN_CODE="ADNA"
+    elif [ "$ALIQUOT_ANNOTATION" == "Duplicate Item: CHOP GBM Triplicate Recurrent Tumor RNA Aliquot" ]; then ANN_CODE="ARNA"
+# | Duplicate Item: CHOP GBM Triplicate Recurrent Tumor DNA Aliquot | `ADNA`
+# | Duplicate Item: CHOP GBM Triplicate Recurrent Tumor RNA Aliquot | `ARNA`
     elif [ "$ALIQUOT_ANNOTATION" == "This entity was not yet authorized to be released by the submitters" ]; then ANN_CODE="UNAV"
     else 
         >&2 echo WARNING: Unknown Aliquot Annotation: "$ALIQUOT_ANNOTATION"
