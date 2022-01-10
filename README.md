@@ -1,4 +1,9 @@
-# CPTAC3 Case Discover
+# GDC Case Discover
+
+GDC Case Discovery is an update to the CPTAC3-specific implementation, CPTAC3 Case Discover.
+* Uses python-based JSON parser
+* Revised aliquot annotation parsing
+* Generates Catalog files in the [PE-CGS format](https://docs.google.com/document/d/1PI8YaMb_QtS26qKBdlp703OQYGhb3E9z184IahkGr14/edit#)
 
 Query GDC to discover sequence and methylation data and write it to a catalog file
 

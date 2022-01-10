@@ -1,20 +1,22 @@
 # Perform discovery for all cases in CASES file
 
 # This needs to be exported, to be visible to GDC Query scripts
-export GDC_TOKEN="/diskmnt/Projects/cptac_scratch/CPTAC3.workflow/discover/token/gdc-user-token.2021-09-03T22_45_00.098Z.txt"
+export GDC_TOKEN="/diskmnt/Projects/cptac_scratch/CPTAC3.workflow/discover/token/gdc-user-token.2022-01-05T22_45_39.319Z.txt"
 
-PROJECT="discover.20210917"
-CASES="/home/mwyczalk_test/Projects/CPTAC3/CPTAC3.catalog/CPTAC3.cases.dat"
-#CASES="dat/cases-test.dat"
+PROJECT="20220105.GDAC_test"
+#CASES="/home/mwyczalk_test/Projects/CPTAC3/CPTAC3.catalog/CPTAC3.cases.dat"
+CASES="dat/cases_disease.dat"
+#CASES="dat/cases_disease-1.dat"
+
 
 # add suffix to sample names based on aliquot
-SUFFIX_LIST="/home/mwyczalk_test/Projects/CPTAC3/CPTAC3.catalog/SampleRename.dat"
+#SUFFIX_LIST="/home/mwyczalk_test/Projects/CPTAC3/CPTAC3.catalog/SampleRename.dat"
 
 # With vvv each step outputs query details, fewer limits output
 VERBOSE="-vvv"
 
 # N determines how many discovery processes run at once
-N="-J 20"
+N="-J 5"
 
 # Make sure that src/bashids/bashids exists.  This should be tested for in the code but for now make it easy
 # May need to do `git submodule init; git submodule update`
@@ -31,7 +33,8 @@ mkdir -p dat
 
 START=$(date)
 >&2 echo [ $START ] Starting discovery
-bash src/process_multi_cases.sh -s $SUFFIX_LIST $N -o $CATALOG -D $DEMOGRAPHICS $VERBOSE $@ $CASES
+#bash src/process_multi_cases.sh -s $SUFFIX_LIST $N -o $CATALOG -D $DEMOGRAPHICS $VERBOSE $@ $CASES
+bash src/process_multi_cases.sh $N -o $CATALOG -D $DEMOGRAPHICS $VERBOSE $@ $CASES
 
 END=$(date)
 >&2 echo [ $END ] Discovery complete, starting summary
