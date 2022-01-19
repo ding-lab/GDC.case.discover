@@ -9,7 +9,7 @@ GET_CPT_HASH="bash src/get_CPT_hash.sh"
 
 read -r -d '' USAGE <<'EOF'
 Write a comprehensive summary of aligned reads and methylation array from GDC.  
-Output format is BAM Catalog v3.0: https://docs.google.com/document/d/1uSgle8jiIx9EnDFf_XHV3fWYKFElszNLkmGlht_CQGE/edit#heading=h.jywgqbdq062i
+Output format is BAM Catalog v3.0: https://docs.google.com/document/d/1uSgle8jiIx9EnDFf_XHV3fWYKFElszNLkmGlht_CQGE/edit
 
 Usage:
   make_catalog.sh [options] CASE DISEASE PROJECT
@@ -143,6 +143,7 @@ function confirm {
     fi
 }
 
+
 # sample code, short name: sample type name
 # N, blood_normal:   Blood Derived Normal
 # Nbc, buccal_normal:   Buccal Cell Normal
@@ -258,7 +259,7 @@ function get_SN_suffix {
 # Create sample name from case, experimental_strategy, and sample_type abbreviation
 # In the case of RNA-Seq, we extract the read number (R1 or R2) from the file name - this is empirical, and may change with different data types
 # For the purpose of the name, experimental strategy "Targeted Sequencing" is renamed as "Targeted" and "Methylation Array" as "MethArray"
-# RESULT_TYPE codes for two distinct things:
+# RESULT_TYPE (data_variety) codes for two distinct things:
 #   * For Methylation Array data, it is the channel
 #   * For RNA-Seq harmonized BAMs, it is the result type, with values of genomic, chimeric, transcriptome
 
