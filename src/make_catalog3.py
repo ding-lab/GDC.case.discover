@@ -1,7 +1,3 @@
-# Matthew Wyczalkowski
-# m.wyczalkowski@wustl.edu
-# Washington University School of Medicine
-
 import pandas as pd
 import argparse, sys, os, binascii
 
@@ -9,12 +5,12 @@ def read_aliquots(alq_fn):
     alq_header=('case', 'sample_submitter_id', 'sample_id', 'sample_type', 'aliquot_submitter_id', 'aliquot_id', 'analyte_type', 'aliquot_annotation')
     # force aliquot_annotation to be type str - doesn't seem to work?
     type_arg = {'aliquot_annotation': 'str'}
-    aliquots = pd.read_csv(aq_fn, sep="\t", names=alq_header, dtype=type_arg)
+    aliquots = pd.read_csv(alq_fn, sep="\t", names=alq_header, dtype=type_arg, comment='#')
     return(aliquots)
 
 def read_reads_file(reads_fn):
-    header_list=["case", "aliquot_submitter_id", "assumed_reference", "experimental_strategy", "data_format", "file_name", "file_size", "uuid", "md5sum"]
-    rf = pd.read_csv(sr_fn, sep="\t", names=header_list)
+    header_list=["case", "aliquot_submitter_id", "alignment", "experimental_strategy", "data_format", "file_name", "file_size", "uuid", "md5sum"]
+    rf = pd.read_csv(reads_fn, sep="\t", names=header_list, comment='#')
     return(rf)
 
 # get one column, data_variety, for each row of rf
@@ -66,11 +62,11 @@ def get_aliquot_tag(aliquots):
     return(alq_tag + "_" + alq_hash)
 
 # merge all sample_submitter_id's which are used for the same aliquot_submitter_id
-# group aliquots by aliquot_submitter_id, creating a comma-separated list of sample_submitter_id values (named specimen_ids)
-def get_specimen_ids(aliquots):
-    # Below, collapse aliquot by aliquot_submitter_id, and turn specimen_ids into comma-separated list
+# group aliquots by aliquot_submitter_id, creating a comma-separated list of sample_submitter_id values (named sample_ids)
+def get_sample_ids(aliquots):
+    # Below, collapse aliquot by aliquot_submitter_id, and turn sample_ids into comma-separated list
     # Example value of alq_sid:
-    # aliquot_submitter_id    specimen_ids
+    # aliquot_submitter_id    sample_ids
     # 0   CPT0000160003   C3L-00016-01,C3L-00016-04
     # 1   CPT0000160009   C3L-00016-01,C3L-00016-04
     # 2   CPT0000560002   C3L-00016-31
@@ -78,7 +74,7 @@ def get_specimen_ids(aliquots):
 
     si = pd.Series(aliquots["aliquot_submitter_id"])
     alq_sid = aliquots.groupby(['aliquot_submitter_id'], as_index = False).agg({'sample_submitter_id': lambda x: ','.join(set(x))})
-    alq_sid = alq_sid.rename(columns={'sample_submitter_id': 'specimen_ids'})
+    alq_sid = alq_sid.rename(columns={'sample_submitter_id': 'sample_ids'})
 
     # rf.merge(alq_sid, on='aliquot_submitter_id').head()
     return(alq_sid)
@@ -95,49 +91,95 @@ def get_short_sample_code(aliquots):
         ["Recurrent Tumor" , "R"]
     ]
     sst = pd.DataFrame(short_sample_map, columns = ['sample_type', 'short_sample_code'])
-    return aliquots.merge(sst, on="sample_type")['short_sample_code']
+    merged = aliquots.merge(sst, on="sample_type")['short_sample_code']
+    return merged
 
+def get_sample_name(cd):
+    # Sample name is composed of:
+    # case [. aliquot_tag] . experimental_strategy [. data_variety ] . short_sample_code . reference
+
+    # https://stackoverflow.com/questions/48083074/conditional-concatenation-based-on-string-value-in-column
+    # Conditionally add aliquot tag where aliquot annotation exists
+    cd['labeled_case'] = cd['case'] 
+    m = cd['aliquot_annotation'].notna()
+    cd.loc[m, 'labeled_case'] += ('.' + cd.loc[m, 'aliquot_tag'])
+
+    # include data variety field only if non-trivial
+    cd['data_variety'] = '.' + cd['data_variety'] 
+    cd.loc[cd['data_variety'] == '.NA', "data_variety"] = ""
+
+    dataset_name = cd['labeled_case'] +'.'+ cd['experimental_strategy'] + cd['data_variety'] +'.'+ cd['short_sample_code']
+    return dataset_name        
 
 def generate_catalog(read_data, aliquots):
 
     # process read_data
     # Add "data_variety" column to read_data
-    dv = get_data_variety(rf)
-    read_data.assign(data_variety=dv.values)
+    dv = get_data_variety(read_data)
+    read_data = read_data.assign(data_variety=dv.values)
 
     # remap experimental strategies "Targeted Sequencing" to "Targeted", and "Methylation Array" to "MethArray"
     # will want to save original name in metadata - TODO
     read_data.loc[(read_data["experimental_strategy"]=="Targeted Sequencing"), "experimental_strategy"]="Targeted"
     read_data.loc[(read_data["experimental_strategy"]=="Methylation Array"), "experimental_strategy"]="MethArray"
 
-
     # Now update aliquots
     # Add "aliquot_tag" column to aliquots
-    aliquot_tag = get_aliquot_tag(aliquots) 
+    aliquot_tag = get_aliquot_tag(aliquots)
     aliquots = aliquots.assign(aliquot_tag=aliquot_tag.values)
 
-    # this now has column specimen_ids as a comma-separated lists of all aliquot_submitter_id values
-    sids = get_specimen_ids(aliquots)
+    # this now has column sample_ids as a comma-separated lists of all aliquot_submitter_id values
+    sids = get_sample_ids(aliquots)
     aliquots = aliquots.merge(sids, on="aliquot_submitter_id")
 
     ssc=get_short_sample_code(aliquots)
-    aliquots.assign(short_sample_code=ssc)
+    aliquots = aliquots.assign(short_sample_code=ssc)
 
     # Finally merge aliquot info with reads
-    read_data_aliquots = read_data.merge(aliquots, on='aliquot_submitter_id')
+    catalog_data = read_data.merge(aliquots, on=['aliquot_submitter_id', 'case'])
 
-    # Sample name is composed of:
-    # case . experimental_strategy [. data_variety] . short_sample_code . reference
-    dataset_name = read_data_aliquots['case'] +.+ read_data_aliquots['experimental_strategy'] +.+ read_data_aliquots['data_variety'] +.+ read_data_aliquots['short_sample_code'] 
+    dataset_name = get_sample_name(catalog_data)
+    catalog_data = catalog_data.assign(dataset_name=dataset_name)
 
-    read_data_aliquots.assign(dataset_name=dataset_name)
-    return(read_data_aliquots)
+    # Metadata is empty for now
+    catalog_data['metadata'] = '{}'
 
+#    Index(['case', 'aliquot_submitter_id', 'alignment',
+#       'experimental_strategy', 'data_format', 'file_name', 'file_size',
+#       'uuid', 'md5sum', 'data_variety', 'sample_submitter_id', 'sample_id',
+#       'sample_type', 'aliquot_id', 'analyte_type', 'aliquot_annotation',
+#       'aliquot_tag', 'sample_ids', 'short_sample_code', 'labeled_case',
+#       'dataset_name', 'metadata'],
+#      dtype='object')
+
+    # Rename column names a little
+    catalog_data = catalog_data.rename(columns={'md5sum': 'md5', 'file_name': 'filename', 'file_size': 'filesize'})
+    catalog_data['specimen_name'] = catalog_data['aliquot_submitter_id']
+    return(catalog_data)
+
+def write_catalog(outfn, catalog_data, disease, project):
+    header = [ 'dataset_name', 'case', 'disease', 'experimental_strategy', 'sample_type', 'specimen_name', 'filename',
+        'filesize', 'data_format', 'data_variety', 'alignment', 'project', 'uuid', 'md5', 'metadata']
+    # Index(['case', 'aliquot_submitter_id', 'alignment', 'experimental_strategy',
+    #  'data_format', 'filename', 'filesize', 'uuid', 'md5', 'data_variety',
+    #  'sample_submitter_id', 'sample_id', 'sample_type', 'aliquot_id',
+    #  'analyte_type', 'aliquot_annotation', 'aliquot_tag', 'sample_ids',
+    #  'short_sample_code', 'labeled_case', 'dataset_name', 'metadata',
+    #  'specimen_name'],
+
+    catalog_data['disease']=disease
+    catalog_data['project']=project
+
+    write_data = catalog_data[header]
+
+    # close, but need to comment out leading line
+    print("Writing catalog to " + outfn)
+    write_data.to_csv(outfn, sep="\t", index=False)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Processes reads files to create a catalog3 view of each entry")
     parser.add_argument("reads_fn", help="Harmonized or Submitted Reads file")
-    parser.add_argument("-o", "--output", dest="outfn", help="Output file name")
+    parser.add_argument("-o", "--output", dest="outfn", required=True, help="Output file name")
     parser.add_argument("-Q", "--aliquots", dest="aliquots_fn", required=True, help="Aliquots file")
     parser.add_argument("-D", "--disease", dest="disease", default="DISEASE", help="Disease code")
     parser.add_argument("-P", "--project", dest="project", default="PROJECT", help="Project name")
@@ -147,14 +189,9 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-#    aliquots = pd.read_csv(args.aliquots_fn, sep="\t")
-
-
     aliquots=read_aliquots(args.aliquots_fn)
-
-    read_data = get_read_data(args.reads_fn)
+    read_data = read_reads_file(args.reads_fn)
     catalog_data = generate_catalog(read_data, aliquots)
 
-    write_catalog(catalog_data)
-
-
+    write_catalog(args.outfn, catalog_data, args.disease, args.project)
+    
