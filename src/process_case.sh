@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# TODO: allow make_catalog to be run with aliquots and read_groups already existing
+# This can be with a flag or by moving catalog file creation to a separate process
+
 # Matthew Wyczalkowski <m.wyczalkowski@wustl.edu>
 # https://dinglab.wustl.edu/
 
@@ -161,6 +164,8 @@ else
     CMD="bash $BIND/get_methylation_array.sh -o $MA_OUT $VERBOSE_ARG $A_OUT"
     run_cmd "$CMD"
 
+# Allow make_catalog3.sh to be called directly without having to do discovery
+# Note   
     if [ ! -z $OUTFN ]; then
         CATALOG_OUT="-o $OUTFN"
     fi

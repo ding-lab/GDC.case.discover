@@ -1,5 +1,12 @@
-#PYTHON="/diskmnt/Projects/Users/mwyczalk/miniconda3/bin/python"
-PYTHON="/Users/mwyczalk/miniconda3/bin/python"
+#!/bin/bash
+
+# Matthew Wyczalkowski <m.wyczalkowski@wustl.edu>
+# https://dinglab.wustl.edu/
+
+# Create catalog3 for a given output directory
+# Assumes names of output files
+# Processes both submitted reads and harmonized reads
+# Does not deal with Methylation at this time
 
 #DATD="/Users/mwyczalk/Projects/CPTAC3/Discovery/dev.TCGA2/CPTAC3.case.discover/data/TCGA-A6-6780"
 #DATD="/Users/mwyczalk/Projects/CPTAC3/Discovery/dev.TCGA2/CPTAC3.case.discover/data/TCGA-44-6146"
@@ -8,9 +15,98 @@ PYTHON="/Users/mwyczalk/miniconda3/bin/python"
 # TCGA-A6-5665 has multiple annotations for some datasets
 # DATD="/Users/mwyczalk/Projects/CPTAC3/Discovery/dev.TCGA2/CPTAC3.case.discover/data/TCGA-A6-5665"
 
-OUT="catalog3-tmp.tsv"
 
+read -r -d '' USAGE <<'EOF'
+Describe what script does in one sentence
+
+Usage:
+  make_catalog3.sh [options] DATD
+
+Options:
+-h: Print this help message
+-d: Dry run.  Will not write any data
+-o: Output directery OUTD.  Will create if does not exist.  Default: '.'
+
+Input data: Read the following files $DATD:
+* aliquots.dat
+* submitted_reads.dat
+* harmonized_reads.dat
+All three files must exist.
+
+Files we write:
+* OUTD/submitted_reads.catalog3.dat
+* OUTD/harmonized_reads.catalog3.dat
+
+Additional processing details and background
+EOF
+
+OUTD="."
+# http://wiki.bash-hackers.org/howto/getopts_tutorial
+while getopts ":hdo:" opt; do
+  case $opt in
+    h)
+      echo "$USAGE"
+      exit 0
+      ;;
+    d)  
+      DRYRUN="d"
+      ;;
+    o) 
+      OUTD=$OPTARG
+      ;;
+    \?)
+      >&2 echo "Invalid option: -$OPTARG" 
+      echo "$USAGE"
+      exit 1
+      ;;
+    :)
+      >&2 echo "Option -$OPTARG requires an argument." 
+      echo "$USAGE"
+      exit 1
+      ;;
+  esac
+done
+shift $((OPTIND-1))
+
+function test_exit_status {
+    rcs=${PIPESTATUS[*]};
+    for rc in ${rcs}; do
+        if [[ $rc != 0 ]]; then
+            >&2 echo Fatal error.  Exiting
+            exit $rc;
+        fi;
+    done
+}
+
+function run_cmd {
+    CMD=$1
+    NOW=$(date)
+    if [ "$DRYRUN" == "d" ]; then
+        >&2 echo [ $NOW ] Dryrun: $CMD
+    else
+        >&2 echo [ $NOW ] Running: $CMD
+        eval $CMD
+        test_exit_status
+    fi
+}
+
+if [ "$#" -ne 1 ]; then
+    >&2 echo Error: Wrong number of arguments
+    echo "$USAGE"
+    exit 1
+fi
+
+mkdir -p $OUTD
+test_exit_status 
+OUT_SR="$OUTD/submitted_reads.catalog3.dat"
+OUT_HR="$OUTD/harmonized_reads.catalog3.dat"
+
+#PYTHON="/diskmnt/Projects/Users/mwyczalk/miniconda3/bin/python"
+PYTHON="/Users/mwyczalk/miniconda3/bin/python"
+
+# Usage: make_catalog3.sh -o OUTD DATD 
 DATD=$1
+
 if [ ! -d $DATD ]; then >&2 echo ERROR: $DATD does not exist; exit 1; fi
 
 AQ_FN="$DATD/aliquots.dat"
@@ -21,28 +117,11 @@ if [ ! -e $AQ_FN ]; then >&2 echo ERROR: $AQ_FN does not exist; exit 1; fi
 if [ ! -e $SR_FN ]; then >&2 echo ERROR: $SR_FN does not exist; exit 1; fi
 if [ ! -e $HR_FN ]; then >&2 echo ERROR: $HR_FN does not exist; exit 1; fi
 
-#    parser.add_argument("-o", "--output", dest="outfn", help="Output file name")
-#    parser.add_argument("-Q", "--aliquots", dest="aliquots_fn", required=True, help="Aliquots file")
-#    parser.add_argument("-D", "--disease", dest="disease", default="DISEASE", help="Disease code")
-#    parser.add_argument("-P", "--project", dest="project", default="PROJECT", help="Project name")
-#    parser.add_argument("-A", "--annotation", dest="annotation_fn", help="Annotation table")
-#    parser.add_argument("-d", "--debug", action="store_true", help="Print debugging information to stderr")
-#    parser.add_argument("-n", "--no-header", action="store_true", help="Do not print header")
+echo Processing $SR_FN, writing to $OUT_SR
+CMD="$PYTHON src/make_catalog3.py -Q $AQ_FN -o $OUT_SR $SR_FN"
+run_cmd "$CMD"
 
-echo SRFN: $SR_FN
+echo Processing $HR_FN, writing to $OUT_HR
+CMD="$PYTHON src/make_catalog3.py -Q $AQ_FN -o $OUT_HR $HR_FN"
+run_cmd "$CMD"
 
-CMD="$PYTHON src/make_catalog3.py -Q $AQ_FN -o $OUT $SR_FN"
-echo Running: $CMD
-eval $CMD
-
-rc=$?
-if [[ $rc != 0 ]]; then
-    >&2 echo Fatal ERROR $rc: $!.  Exiting.
-    exit $rc;
-fi
-
-
-
-#$PYTHON src/make_catalog3.py $@ -Q $AQ_FN $SR_FN
-
-# Repeat for HR_FN

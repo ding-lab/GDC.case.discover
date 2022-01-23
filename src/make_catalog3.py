@@ -11,6 +11,8 @@ def read_aliquots(alq_fn):
 def read_reads_file(reads_fn):
     header_list=["case", "aliquot_submitter_id", "alignment", "experimental_strategy", "data_format", "file_name", "file_size", "uuid", "md5sum"]
     rf = pd.read_csv(reads_fn, sep="\t", names=header_list, comment='#')
+    # make sure "alignment" has the string value "NA", not NaN
+    rf.loc[rf['alignment'].isna(), "alignment"] = "NA"
     return(rf)
 
 # get one column, data_variety, for each row of rf
@@ -32,7 +34,8 @@ def get_data_variety(rf):
     # do something similar for all FASTQs, marking data_variety as R1 or R2 based on pattern match to filename.
     # Value of Rx if not matched (this happens with non-CPTAC3 data)
     RNA_FQ_ix = (rf['data_format']=='FASTQ')
-    dv[RNA_FQ_ix]="Rx"    # default is unmatched
+#    dv[RNA_FQ_ix]="Rx"    # default is unmatched
+    # Some of these are .tar.gz files so no need to mark them as an "unknown" Rx
     dv[(RNA_FQ_ix & rf['file_name'].str.contains("_R1_"))]="R1"
     dv[(RNA_FQ_ix & rf['file_name'].str.contains("_R2_"))]="R2"
 
@@ -79,24 +82,33 @@ def get_sample_ids(aliquots):
     # rf.merge(alq_sid, on='aliquot_submitter_id').head()
     return(alq_sid)
 
-def get_short_sample_code(aliquots):
-    short_sample_map = [
-        ["Blood Derived Normal", "N"],
-        ["Solid Tissue Normal", "A"],
-        ["Primary Tumor", "T"],
-        ["Tumor", "T"],
-        ["Buccal Cell Normal" , "Nbc"],
-        ["Primary Blood Derived Cancer - Bone Marrow" , "Tbm"],
-        ["Primary Blood Derived Cancer - Peripheral Blood" , "Tpb"],
-        ["Recurrent Tumor" , "R"]
+# returns tuple of Series sample_code and sample_type_short
+def get_sample_code(aliquots):
+    sample_map = [
+        ["Blood Derived Normal", "blood_normal", "N"],
+# N, blood_normal:   Blood Derived Normal
+        ["Solid Tissue Normal", "tissue_normal", "A"],
+# A, tissue_normal:   Solid Tissue Normal
+        ["Primary Tumor", "tumor", "T"],
+# T, tumor:   Primary Tumor or Tumor
+        ["Tumor", "tumor", "T"],
+        ["Buccal Cell Normal" , "buccal_normal", "Nbc"],
+# Nbc, buccal_normal:   Buccal Cell Normal
+        ["Primary Blood Derived Cancer - Bone Marrow" , "tumor_bone_marrow", "Tbm"],
+# Tbm, tumor_bone_marrow: Primary Blood Derived Cancer - Bone Marrow
+        ["Primary Blood Derived Cancer - Peripheral Blood" , "tumor_peripheral_blood", "Tpb"],
+# Tpb, tumor_peripheral_blood: Primary Blood Derived Cancer - Peripheral Blood
+        ["Recurrent Tumor" , "recurrent_tumor", "R"]
+# R, recurrent_tumor:   Recurrent Tumor
     ]
-    sst = pd.DataFrame(short_sample_map, columns = ['sample_type', 'short_sample_code'])
-    merged = aliquots.merge(sst, on="sample_type")['short_sample_code']
-    return merged
+    sst = pd.DataFrame(sample_map, columns = ['sample_type', 'sample_type_short', 'sample_code'])
+    merged = aliquots.merge(sst, on="sample_type")# [['sample_code', 'sample_type_short']]
+    return merged['sample_code'], merged['sample_type_short']
 
 def get_sample_name(cd):
     # Sample name is composed of:
-    # case [. aliquot_tag] . experimental_strategy [. data_variety ] . short_sample_code . reference
+    # case [. aliquot_tag] . experimental_strategy [. data_variety ] . sample_code . reference
+    # reference not implemented yet
 
     # https://stackoverflow.com/questions/48083074/conditional-concatenation-based-on-string-value-in-column
     # Conditionally add aliquot tag where aliquot annotation exists
@@ -105,10 +117,10 @@ def get_sample_name(cd):
     cd.loc[m, 'labeled_case'] += ('.' + cd.loc[m, 'aliquot_tag'])
 
     # include data variety field only if non-trivial
-    cd['data_variety'] = '.' + cd['data_variety'] 
-    cd.loc[cd['data_variety'] == '.NA', "data_variety"] = ""
+    cd['data_variety_tag'] = '.' + cd['data_variety'] 
+    cd.loc[cd['data_variety_tag'] == '.NA', "data_variety"] = ""
 
-    dataset_name = cd['labeled_case'] +'.'+ cd['experimental_strategy'] + cd['data_variety'] +'.'+ cd['short_sample_code']
+    dataset_name = cd['labeled_case'] +'.'+ cd['experimental_strategy'] + cd['data_variety_tag'] +'.'+ cd['sample_code']
     return dataset_name        
 
 def generate_catalog(read_data, aliquots):
@@ -132,8 +144,9 @@ def generate_catalog(read_data, aliquots):
     sids = get_sample_ids(aliquots)
     aliquots = aliquots.merge(sids, on="aliquot_submitter_id")
 
-    ssc=get_short_sample_code(aliquots)
-    aliquots = aliquots.assign(short_sample_code=ssc)
+    sample_code, sample_type_short = get_sample_code(aliquots)
+    aliquots = aliquots.assign(sample_code=sample_code)
+    aliquots = aliquots.assign(sample_type_short=sample_type_short)
 
     # Finally merge aliquot info with reads
     catalog_data = read_data.merge(aliquots, on=['aliquot_submitter_id', 'case'])
@@ -141,20 +154,14 @@ def generate_catalog(read_data, aliquots):
     dataset_name = get_sample_name(catalog_data)
     catalog_data = catalog_data.assign(dataset_name=dataset_name)
 
+    # Rename column names a little
+    catalog_data = catalog_data.rename(columns={'md5sum': 'md5', 'file_name': 'filename', 'file_size': 'filesize', \
+        'sample_type': 'sample_type_full', 'sample_type_short': 'sample_type'})
+    catalog_data['specimen_name'] = catalog_data['aliquot_submitter_id']
+
+    # Get metadata
     # Metadata is empty for now
     catalog_data['metadata'] = '{}'
-
-#    Index(['case', 'aliquot_submitter_id', 'alignment',
-#       'experimental_strategy', 'data_format', 'file_name', 'file_size',
-#       'uuid', 'md5sum', 'data_variety', 'sample_submitter_id', 'sample_id',
-#       'sample_type', 'aliquot_id', 'analyte_type', 'aliquot_annotation',
-#       'aliquot_tag', 'sample_ids', 'short_sample_code', 'labeled_case',
-#       'dataset_name', 'metadata'],
-#      dtype='object')
-
-    # Rename column names a little
-    catalog_data = catalog_data.rename(columns={'md5sum': 'md5', 'file_name': 'filename', 'file_size': 'filesize'})
-    catalog_data['specimen_name'] = catalog_data['aliquot_submitter_id']
     return(catalog_data)
 
 def write_catalog(outfn, catalog_data, disease, project):
@@ -164,7 +171,7 @@ def write_catalog(outfn, catalog_data, disease, project):
     #  'data_format', 'filename', 'filesize', 'uuid', 'md5', 'data_variety',
     #  'sample_submitter_id', 'sample_id', 'sample_type', 'aliquot_id',
     #  'analyte_type', 'aliquot_annotation', 'aliquot_tag', 'sample_ids',
-    #  'short_sample_code', 'labeled_case', 'dataset_name', 'metadata',
+    #  'sample_code', 'labeled_case', 'dataset_name', 'metadata',
     #  'specimen_name'],
 
     catalog_data['disease']=disease

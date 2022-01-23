@@ -205,6 +205,10 @@ function collect_catalog {
 
         CASE=$(echo "$L" | cut -f 1 )
         CATALOG="$LOGBASE/cases/$CASE/Catalog.dat"
+        # Will merge harmonized and submitted reads here implicitly
+        # Output location of make_catalog3.sh
+        # OUT_SR="$OUTD/submitted_reads.catalog3.dat"
+        # OUT_HR="$OUTD/harmonized_reads.catalog3.dat"
 
         if [ ! -f $CATALOG ]; then
             if [ "$DRYRUN" != "d" ]; then
