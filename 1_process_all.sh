@@ -2,8 +2,8 @@
 
 # This needs to be exported, to be visible to GDC Query scripts
 export GDC_TOKEN="/diskmnt/Projects/cptac_scratch/CPTAC3.workflow/discover/token/gdc-user-token.2022-01-05T22_45_39.319Z.txt"
+PROJECT="TCGA_GDC"  # Administrative project associated with these cases
 
-PROJECT="20220105.GDAC_test"
 #CASES="/home/mwyczalk_test/Projects/CPTAC3/CPTAC3.catalog/CPTAC3.cases.dat"
 CASES="dat/cases_disease.dat"
 #CASES="dat/cases_disease-1.dat"
@@ -26,25 +26,33 @@ if [ ! -x $BID ]; then
 fi
 
 ##############################
-CATALOG="dat/${PROJECT}.Catalog.dat"
-DEMOGRAPHICS="dat/${PROJECT}.Demographics.dat"
+CATALOG="dat/Catalog.dat"
+DEMOGRAPHICS="dat/Demographics.dat"
 
 mkdir -p dat
 
 START=$(date)
 >&2 echo [ $START ] Starting discovery
 #bash src/process_multi_cases.sh -s $SUFFIX_LIST $N -o $CATALOG -D $DEMOGRAPHICS $VERBOSE $@ $CASES
-bash src/process_multi_cases.sh $N -o $CATALOG -D $DEMOGRAPHICS $VERBOSE $@ $CASES
+CMD="bash src/process_multi_cases.sh $N -o $CATALOG -D $DEMOGRAPHICS $VERBOSE $@ $CASES $PROJECT"
+echo Running: $CMD
+eval "$CMD"
+rc=$?
+if [[ $rc != 0 ]]; then
+    >&2 echo ERROR $rc: $!
+    exit $rc;
+fi
+
 
 END=$(date)
->&2 echo [ $END ] Discovery complete, starting summary
+>&2 echo [ $END ] Discovery complete
 
-SUMMARY_OUT="dat/${PROJECT}.Catalog.Summary.txt"
-rm -f $SUMMARY_OUT
-bash src/summarize_cases.sh $@ -o $SUMMARY_OUT $CATALOG $CASES
-
-END2=$(date)
->&2 echo [ $END2 ] Summary complete
+# Not doing summary.  Maybe later.  Too many CPTAC3 assumptions
+#SUMMARY_OUT="dat/Catalog.Summary.txt"
+#rm -f $SUMMARY_OUT
+#bash src/summarize_cases.sh $@ -o $SUMMARY_OUT $CATALOG $CASES
+#END2=$(date)
+#>&2 echo [ $END2 ] Summary complete
 
 
 NERR=$(grep -il error dat/cases/*/*log* | wc -l)
@@ -60,5 +68,4 @@ fi
 
 >&2 echo Timing summary: 
 >&2 echo Discovery start: [ $START ]  End: [ $END ]
->&2 echo Summary start: [ $END ]  End: [ $END2 ]
 

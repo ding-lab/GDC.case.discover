@@ -193,10 +193,10 @@ while read L; do
 
     # Process results for submitted reads and make query for corresponding harmonized reads
     if [ "$ES" == "WGS" ] || [ "$ES" == "WXS" ] || [ "$ES" == "Targeted Sequencing" ] ; then
-        SR=$(echo $R | jq -r '.data.submitted_aligned_reads[]   | "\(.experimental_strategy)\t\(.data_format)\t\(.file_name)\t\(.file_size)\t\(.id)\t\(.md5sum)"' | sed "s/^/$CASE\t$ASID\thg19\t/" )
+        SR=$(echo $R | jq -r '.data.submitted_aligned_reads[]   | "\(.experimental_strategy)\t\(.data_format)\t\(.file_name)\t\(.file_size)\t\(.id)\t\(.md5sum)"' | sed "s/^/$CASE\t$ASID\taligned\t/" )
         test_exit_status
     else
-        SR=$(echo $R | jq -r '.data.submitted_unaligned_reads[] | "\(.experimental_strategy)\t\(.data_format)\t\(.file_name)\t\(.file_size)\t\(.id)\t\(.md5sum)"' | sed "s/^/$CASE\t$ASID\tNA\t/" )
+        SR=$(echo $R | jq -r '.data.submitted_unaligned_reads[] | "\(.experimental_strategy)\t\(.data_format)\t\(.file_name)\t\(.file_size)\t\(.id)\t\(.md5sum)"' | sed "s/^/$CASE\t$ASID\tunaligned\t/" )
         test_exit_status
     fi
     echo "$SR" >> $TMPFILE

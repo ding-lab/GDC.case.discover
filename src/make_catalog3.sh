@@ -17,7 +17,7 @@
 
 
 read -r -d '' USAGE <<'EOF'
-Describe what script does in one sentence
+Create catalog3 files for both submitted and harmonized reads
 
 Usage:
   make_catalog3.sh [options] DATD
@@ -26,6 +26,8 @@ Options:
 -h: Print this help message
 -d: Dry run.  Will not write any data
 -o: Output directery OUTD.  Will create if does not exist.  Default: '.'
+-D DISEASE: Disease code associated with case, e.g., BRCA.  Used only `disease` column in catalog output
+-P PROJECT: Project code associated with case, e.g., CPTAC3.  Used only `project` column in catalog output
 
 Input data: Read the following files $DATD:
 * aliquots.dat
@@ -37,12 +39,12 @@ Files we write:
 * OUTD/submitted_reads.catalog3.dat
 * OUTD/harmonized_reads.catalog3.dat
 
-Additional processing details and background
 EOF
 
 OUTD="."
+DP_ARGS=""  # Will hold optional flags for DISEASE and PROJECT
 # http://wiki.bash-hackers.org/howto/getopts_tutorial
-while getopts ":hdo:" opt; do
+while getopts ":hdo:D:P:" opt; do
   case $opt in
     h)
       echo "$USAGE"
@@ -53,6 +55,12 @@ while getopts ":hdo:" opt; do
       ;;
     o) 
       OUTD=$OPTARG
+      ;;
+    D) 
+      DP_ARGS="$DP_ARGS -D $OPTARG"
+      ;;
+    P) 
+      DP_ARGS="$DP_ARGS -P $OPTARG"
       ;;
     \?)
       >&2 echo "Invalid option: -$OPTARG" 
@@ -101,8 +109,8 @@ test_exit_status
 OUT_SR="$OUTD/submitted_reads.catalog3.dat"
 OUT_HR="$OUTD/harmonized_reads.catalog3.dat"
 
-#PYTHON="/diskmnt/Projects/Users/mwyczalk/miniconda3/bin/python"
-PYTHON="/Users/mwyczalk/miniconda3/bin/python"
+PYTHON="/diskmnt/Projects/Users/mwyczalk/miniconda3/bin/python"
+#PYTHON="/Users/mwyczalk/miniconda3/bin/python"
 
 # Usage: make_catalog3.sh -o OUTD DATD 
 DATD=$1
@@ -118,10 +126,10 @@ if [ ! -e $SR_FN ]; then >&2 echo ERROR: $SR_FN does not exist; exit 1; fi
 if [ ! -e $HR_FN ]; then >&2 echo ERROR: $HR_FN does not exist; exit 1; fi
 
 echo Processing $SR_FN, writing to $OUT_SR
-CMD="$PYTHON src/make_catalog3.py -Q $AQ_FN -o $OUT_SR $SR_FN"
+CMD="$PYTHON src/make_catalog3.py $DP_ARGS -Q $AQ_FN -o $OUT_SR $SR_FN"
 run_cmd "$CMD"
 
 echo Processing $HR_FN, writing to $OUT_HR
-CMD="$PYTHON src/make_catalog3.py -Q $AQ_FN -o $OUT_HR $HR_FN"
+CMD="$PYTHON src/make_catalog3.py $DP_ARGS -Q $AQ_FN -o $OUT_HR $HR_FN"
 run_cmd "$CMD"
 

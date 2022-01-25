@@ -1,6 +1,11 @@
 import pandas as pd
 import argparse, sys, os, binascii
 
+# Write Catalog3 file for every line of reads file 
+# Essentially a merge of reads and aliquots, with some normalization of data, and output to data format as defined here:
+#   https://docs.google.com/document/d/1uSgle8jiIx9EnDFf_XHV3fWYKFElszNLkmGlht_CQGE/edit#
+# Implemented in pandas (i.e., column-wise operations)
+
 def read_aliquots(alq_fn):
     alq_header=('case', 'sample_submitter_id', 'sample_id', 'sample_type', 'aliquot_submitter_id', 'aliquot_id', 'analyte_type', 'aliquot_annotation')
     # force aliquot_annotation to be type str - doesn't seem to work?

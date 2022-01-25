@@ -8,27 +8,31 @@
 
 read -r -d '' USAGE <<'EOF'
 Query GDC with series of GraphQL calls to obtain information about submitted reads and methylation data for a given case
-Writes out file dat/cases/CASE/Catalog.dat with summary of such data
+Writes out file dat/cases/CASE/Catalog.dat with summary of such data (Catalog3 format)
 
 Usage:
-  process_case.sh [options] CASE DISEASE
+  process_case.sh [options] CASE DISEASE PROJECT
 
-Writes the following intermediate files
+Writes the following intermediate files in the directory OUTD
 * aliquots.dat
+* [is_empty.flag] - only if aliquots are empty
 * read_groups.dat
-* aligned_reads.sh
 * methylation_array.dat
+* submitted_reads.catalog3.dat
+* harmonized_reads.catalog3.dat
+* Also writes demographics - currently not implemented
 
 Options:
 -h: Print this help message
 -v: Verbose.  May be repeated to get verbose output from called scripts
 -d: dry run
 -O OUTD: intermediate file output directory.  Default: ./dat
--o OUTFN: write final results to output file instead of STDOUT.  Will be overwritten if exists
--s SUFFIX_LIST: data file for appending suffix to sample names
 -D DEM_OUT: write demograhics data to given file
+-C: create catalog only.  Assume that all the above files exist in $OUTD except for the catalog3
 
 Require GDC_TOKEN environment variable to be defined with path to gdc-user-token.*.txt file
+
+Both DISEASE (e.g., BRCA) and PROJECT (e.g., CPTAC3) are passed as-is to appropriate Catalog columns
 
 SUFFIX_LIST is a TSV file listing a UUID or Aliquot ID in first column,
 second column is suffix to be added to sample_name.  This allows specific samples to have modified names
@@ -42,7 +46,7 @@ EOF
 BIND="src"
 OUTD="./dat"
 # http://wiki.bash-hackers.org/howto/getopts_tutorial
-while getopts ":hdf:O:o:s:vD:" opt; do
+while getopts ":hdf:O:vD:C" opt; do
   case $opt in
     h)
       echo "$USAGE"
@@ -57,18 +61,11 @@ while getopts ":hdf:O:o:s:vD:" opt; do
     O)
       OUTD="$OPTARG"
       ;;
-    o)  
-      OUTFN="$OPTARG"
-      if [ -f $OUTFN ]; then
-          >&2 echo WARNING: $OUTFN exists.  Deleting
-          rm -f $OUTFN
-      fi
-      ;;
-    s)
-      SUFFIX_ARG="-s $OPTARG"
-      ;;
     D)
       DEM_OUT="$OPTARG"
+      ;;
+    C)
+      CATALOG_ONLY=1
       ;;
     \?)
       >&2 echo "Invalid option: -$OPTARG"
@@ -84,7 +81,7 @@ while getopts ":hdf:O:o:s:vD:" opt; do
 done
 shift $((OPTIND-1))
 
-if [ "$#" -ne 2 ]; then
+if [ "$#" -ne 3 ]; then
     >&2 echo Error: Wrong number of arguments
     echo "$USAGE"
     exit 1
@@ -92,6 +89,7 @@ fi
 
 CASE=$1
 DISEASE=$2
+PROJECT=$2
 
 mkdir -p $OUTD
 
@@ -132,46 +130,61 @@ function test_exit_status {
     done
 }
 
+function confirm {
+    FN=$1
+    if [ ! -s $FN ]; then
+        >&2 echo ERROR: $FN does not exist or is empty
+        exit 1
+    fi
+}
+
 >&2 echo Processing $CASE \($DISEASE\)
 
 OUTD="dat/cases/$CASE"
-mkdir -p $OUTD
-test_exit_status
+RG_OUT="$OUTD/read_groups.dat"
+SR_OUT="$OUTD/submitted_reads.dat"
+HR_OUT="$OUTD/harmonized_reads.dat"
+MA_OUT="$OUTD/methylation_array.dat"
 
-A_OUT="$OUTD/aliquots.dat"
-CMD="bash $BIND/get_aliquots_v2.sh -o $A_OUT $VERBOSE_ARG $CASE "
-run_cmd "$CMD"
+if [ -z $CATALOG_ONLY ]; then
+    mkdir -p $OUTD
+    test_exit_status
 
-if [ ! -s $A_OUT ]; then
-    >&2 echo NOTE: $A_OUT is empty.  Skipping case
-    if [ ! -z $OUTFN ]; then
-        touch $OUTFN
+    A_OUT="$OUTD/aliquots.dat"
+    CMD="bash $BIND/get_aliquots_v2.sh -o $A_OUT $VERBOSE_ARG $CASE "
+    run_cmd "$CMD"
+
+    if [ ! -s $A_OUT ]; then
+        >&2 echo NOTE: $A_OUT is empty.  Skipping case
+        CMD="touch $OUTD/is_empty.flag"
+        return
     fi
-else
-    RG_OUT="$OUTD/read_groups.dat"
+
     CMD="bash $BIND/get_read_groups.sh -o $RG_OUT $VERBOSE_ARG $A_OUT"
     run_cmd "$CMD"
 
-    SR_OUT="$OUTD/submitted_reads.dat"
     CMD="bash $BIND/get_submitted_reads.sh -o $SR_OUT $VERBOSE_ARG $RG_OUT"
     run_cmd "$CMD"
 
-    HR_OUT="$OUTD/harmonized_reads.dat"
     CMD="bash $BIND/get_harmonized_reads.sh -o $HR_OUT $VERBOSE_ARG $SR_OUT"
     run_cmd "$CMD"
 
-    MA_OUT="$OUTD/methylation_array.dat"
     CMD="bash $BIND/get_methylation_array.sh -o $MA_OUT $VERBOSE_ARG $A_OUT"
     run_cmd "$CMD"
-
-# Allow make_catalog3.sh to be called directly without having to do discovery
-# Note   
-    if [ ! -z $OUTFN ]; then
-        CATALOG_OUT="-o $OUTFN"
-    fi
-    CMD="bash $BIND/make_catalog.sh -Q $A_OUT -R $SR_OUT -H $HR_OUT -M $MA_OUT $SUFFIX_ARG $CATALOG_OUT $VERBOSE_ARG $CASE $DISEASE"
-    run_cmd "$CMD"
+else
+    confirm $RG_OUT
+    confirm $SR_OUT
+    confirm $HR_OUT
+#    confirm $MA_OUT    # methylation array currently not implemented in make_catalog3
 fi
+
+# TODO: Allow make_catalog3.sh to be called directly without having to do discovery
+# Note   
+# CMD="bash $BIND/make_catalog.sh -Q $A_OUT -R $SR_OUT -H $HR_OUT -M $MA_OUT $SUFFIX_ARG $CATALOG_OUT $VERBOSE_ARG $CASE $DISEASE"
+# make_catalog3.sh does not have VERBOSE_ARG implemented, nor is its DEBUG flag passed here
+# Do not pass CASE explicitly, since that information is obtained from submitted / harmonized reads
+CMD="bash $BIND/make_catalog3.sh -o $OUTD -D $DISEASE -P $PROJECT $OUTD"
+run_cmd "$CMD"
 
 if [ ! -z $DEM_OUT ]; then
     CMD="bash $BIND/get_demographics.sh -o $DEM_OUT $VERBOSE_ARG $CASE $DISEASE"

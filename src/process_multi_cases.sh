@@ -7,34 +7,35 @@ read -r -d '' USAGE <<'EOF'
 Obtain Catalog file with GDC sequence and methylation data for all cases
 
 Usage:
-  process_multi_cases.sh [options] CASES
+  process_multi_cases.sh [options] CASES PROJECT
 
 Options:
 -h: Print this help message
 -d: Dry run.  Print commands but do not execute queries
 -v: Verbose.  May be repeated to get verbose output from called scripts
 -J N: Evaluate N cases in parallel.  If 0, disable parallel mode. Default 0
--o OUTFN: write result Catalog file instead of stdout
+-o OUTFN: write result Catalog file.  Required, must not exist
 -1: stop after processing one case
--s SUFFIX_LIST: data file for appending suffix to sample names
 -D DEMS_OUT: write demographics information from all cases to given file
+-C: create catalog only.  Assume that all discovery files exist from previous run 
 
 CASES is a TSV file with case name and disease in first and second columns
+
+PROJECT (e.g., CPTAC3) is passed directly to catalog3 column
 
 This calls process_case.sh once for each case, possibly using GNU parallel to process multiple cases at once
 Require GDC_TOKEN environment variable to be defined with path to gdc-user-token.*.txt file
 
-SUFFIX_LIST is a TSV file listing a UUID or Aliquot ID in first column,
-second column is suffix to be added to sample_name.  This allows specific samples to have modified names
 EOF
 
 NJOBS=0
 # Where scripts live
 BIND="src"
+XARGS=""
 
 # Using rungo as a template for parallel: https://github.com/ding-lab/TinDaisy/blob/master/src/rungo
 # http://wiki.bash-hackers.org/howto/getopts_tutorial
-while getopts ":hdvJ:1o:s:D:" opt; do
+while getopts ":hdvJ:1o:D:C" opt; do
   case $opt in
     h)
       echo "$USAGE"
@@ -55,19 +56,15 @@ while getopts ":hdvJ:1o:s:D:" opt; do
     o)  
       OUTFN="$OPTARG"
       if [ -f $OUTFN ]; then
-          >&2 echo WARNING: $OUTFN exists.  Deleting
-          rm -f $OUTFN
-      fi
-      ;;
-    s)
-      SUFFIX_ARG="-s $OPTARG"
-      if [ ! -f $OPTARG ]; then
-          >&2 echo ERROR: SUFFIX_LIST file $OUTFN does not exist
+          >&2 echo ERROR: $OUTFN exists.  Exiting
           exit 1
       fi
       ;;
     D)
       DEMS_OUT="$OPTARG"
+      ;;
+    C)  
+      XARGS="$XARGS -C"
       ;;
     \?)
       >&2 echo "Invalid option: -$OPTARG"
@@ -122,18 +119,19 @@ function run_cmd {
     fi
 }
 
-if [ "$#" -ne 1 ]; then
+if [ "$#" -ne 2 ]; then
     >&2 echo Error: Wrong number of arguments
     echo "$USAGE"
     exit 1
 fi
 
 CASES=$1
+PROJECT=$2
 if [ ! -s $CASES ]; then
     >&2 echo ERROR: $CASES does not exist or is empty
     exit 1
 fi
->&2 echo Iterating over $CASES
+>&2 echo Project $PROJECT, iterating over $CASES
 
 # If verbose flag repeated multiple times (e.g., VERBOSE="vvv"), pass the value of VERBOSE with one flag popped off (i.e., VERBOSE_ARG="vv")
 if [ $VERBOSE ]; then
@@ -167,12 +165,11 @@ function process_cases {
         mkdir -p $LOGD
         STDOUT_FN="$LOGD/log.${CASE}.out"
         STDERR_FN="$LOGD/log.${CASE}.err"
-        CATALOG="$LOGD/Catalog.dat"
         if [ ! -z $DEMS_OUT ]; then  # get demographics only if requested
             DEM="-D $LOGD/Demographics.dat"
         fi
 
-        CMD="bash $BIND/process_case.sh -O $LOGD -o $CATALOG $DEM $SUFFIX_ARG $VERBOSE_ARG $CASE $DIS > $STDOUT_FN 2> $STDERR_FN"
+        CMD="bash $BIND/process_case.sh $XARGS -O $LOGD $DEM $VERBOSE_ARG $CASE $DIS $PROJECT > $STDOUT_FN 2> $STDERR_FN"
 
         if [ $NJOBS != 0 ]; then
             JOBLOG="$LOGD/$CASE.log"
@@ -199,40 +196,38 @@ function process_cases {
 function collect_catalog {
     WRITE_HEADER=1
 
-    # Now collect all Catalog and demographics files and write out to stdout or OUTFN
+    if [ ! -e $OUTFN ]; then
+        touch $OUTFN
+    fi
+
+    # Now collect all catalog3 and demographics files and write out to stdout or OUTFN
     while read L; do
         [[ $L = \#* ]] && continue  # Skip commented out entries
 
         CASE=$(echo "$L" | cut -f 1 )
-        CATALOG="$LOGBASE/cases/$CASE/Catalog.dat"
+        DATAD="$LOGBASE/cases/$CASE"
         # Will merge harmonized and submitted reads here implicitly
-        # Output location of make_catalog3.sh
-        # OUT_SR="$OUTD/submitted_reads.catalog3.dat"
-        # OUT_HR="$OUTD/harmonized_reads.catalog3.dat"
+        # These are expected to exist unless is_empty.flag file exists
+        SR_CAT="$LOGBASE/cases/$CASE/submitted_reads.catalog3.dat"
+        HR_CAT="$LOGBASE/cases/$CASE/harmonized_reads.catalog3.dat"
 
-        if [ ! -f $CATALOG ]; then
-            if [ "$DRYRUN" != "d" ]; then
-                >&2 echo WARNING: Catalog file $CATALOG for case $CASE does not exist
-            fi
+        # Use the existence of the `is_empty.flag` file to identify empty cases
+        if [ -e "$DATAD/is_empty.flag" ]; then
             continue
         fi
 
-        # header goes only in first loop
+        # header taken from submitted reads, goes only in first loop
+        # Note that make_catalog3.py does not put "#" character in header line.
+        # Assume that a header is identified by starting with `dataset_name`
         if [ $WRITE_HEADER == 1 ]; then
-            HEADER=$(grep "^#" $CATALOG | head -n1)
-            if [ ! -z $OUTFN ]; then
-                echo "$HEADER" > $OUTFN
-            else
-                echo "$HEADER"
-            fi
+            HEADER=$(grep "^dataset_name" $SR_CAT | head -n1 | sed 's/^/# /' )
+            echo "$HEADER" > $OUTFN
+            test_exit_status
             WRITE_HEADER=0
         fi
             
-        if [ ! -z $OUTFN ]; then
-            sort -u $CATALOG | grep -v "^#" >> $OUTFN
-        else
-            sort -u $CATALOG | grep -v "^#"
-        fi
+        cat $SR_CAT $HR_CAT | grep -v "^dataset_name" | sed '/^[[:space:]]*$/d' | sort -u >> $OUTFN
+        test_exit_status
 
         if [ $JUSTONE ]; then
             break
@@ -281,11 +276,7 @@ function collect_demographics {
 # main loop
 process_cases
 
-if [ ! -z $OUTFN ]; then
-    >&2 echo Collecting all Catalog files, writing to $OUTFN
-else
-    >&2 echo Collecting all Catalog files, writing to STDOUT
-fi
+>&2 echo Collecting all Catalog files, writing to $OUTFN
 collect_catalog
 
 if [ ! -z $DEMS_OUT ]; then

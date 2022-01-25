@@ -172,7 +172,7 @@ while read L; do
         continue
     fi
 
-    AR=$(echo $R | jq -r '.data.aligned_reads[] | "\(.experimental_strategy)\t\(.data_format)\t\(.file_name)\t\(.file_size)\t\(.id)\t\(.md5sum)"' | sed "s/^/$CASE\t$ASID\thg38\t/" )
+    AR=$(echo $R | jq -r '.data.aligned_reads[] | "\(.experimental_strategy)\t\(.data_format)\t\(.file_name)\t\(.file_size)\t\(.id)\t\(.md5sum)"' | sed "s/^/$CASE\t$ASID\tharmonized\t/" )
     test_exit_status
 
     if [ ! -z $OUTFN ]; then
