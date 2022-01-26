@@ -50,8 +50,8 @@ def get_data_variety(rf):
 # It consists of two parts: an annotation code and an aliquot hash, separated by '_'
 # An annotation code is meant to be a three-letter identifier of an aliquot annotation, for
 #    instance indicating that the aliquot is marked as "duplicate" (annotaton code "DUP")
-#    If an annotation does not exist, default annotation code is NAN
-#    If an annotation exists but code is not known, default annotation code is ALQ
+#    If an annotation does not exist, default annotation code is ALQ
+#    If an annotation exists but code is not known, default annotation code is ANN
 #    Otherwise, annotation code is performed by the dictionary passed, annotations (not impelmented)
 # Aliquot has is a CRC checksum string based on aliquot_submitter_id, used to create a unique name
 #    compact representation of aliquot name.  Details about CRC checksums:
@@ -62,8 +62,8 @@ def get_aliquot_tag(aliquots):
         return format(binascii.crc32(text.encode("utf8")), "x")
     alq_hash=aliquots[["aliquot_submitter_id"]].squeeze().map(get_hash)
 
-    alq_tag = pd.Series("NAN", index=aliquots.index)
-    alq_tag.loc[aliquots[["aliquot_annotation"]].notna().squeeze()]="ALQ"
+    alq_tag = pd.Series("ALQ", index=aliquots.index)
+    alq_tag.loc[aliquots[["aliquot_annotation"]].notna().squeeze()]="ANN"
 
     # Depending on specific values of aliquot_annotation, in consultation with
     # annotations dictionary (not implemented), different annotation codes can be used
@@ -110,10 +110,9 @@ def get_sample_code(aliquots):
     merged = aliquots.merge(sst, on="sample_type")# [['sample_code', 'sample_type_short']]
     return merged['sample_code'], merged['sample_type_short']
 
-def get_sample_name(cd):
-    # Sample name is composed of:
+def get_dataset_name(cd):
+    # Dataset name is composed of:
     # case [. aliquot_tag] . experimental_strategy [. data_variety ] . sample_code . reference
-    # reference not implemented yet
 
     # https://stackoverflow.com/questions/48083074/conditional-concatenation-based-on-string-value-in-column
     # Conditionally add aliquot tag where aliquot annotation exists
@@ -121,11 +120,14 @@ def get_sample_name(cd):
     m = cd['aliquot_annotation'].notna()
     cd.loc[m, 'labeled_case'] += ('.' + cd.loc[m, 'aliquot_tag'])
 
-    # include data variety field only if non-trivial
+    # include data variety field (e.g., R1) only if non-trivial
     cd['data_variety_tag'] = '.' + cd['data_variety'] 
-    cd.loc[cd['data_variety_tag'] == '.NA', "data_variety"] = ""
+    cd.loc[cd['data_variety_tag'] == '.NA', "data_variety_tag"] = ""
 
-    dataset_name = cd['labeled_case'] +'.'+ cd['experimental_strategy'] + cd['data_variety_tag'] +'.'+ cd['sample_code']
+    cd['alignment_tag'] = ""
+    cd.loc[cd['alignment'] == 'harmonized', "alignment_tag"] = ".hg38"
+
+    dataset_name = cd['labeled_case'] +'.'+ cd['experimental_strategy'] + cd['data_variety_tag'] +'.'+ cd['sample_code'] + cd['alignment_tag']
     return dataset_name        
 
 def generate_catalog(read_data, aliquots):
@@ -156,7 +158,7 @@ def generate_catalog(read_data, aliquots):
     # Finally merge aliquot info with reads
     catalog_data = read_data.merge(aliquots, on=['aliquot_submitter_id', 'case'])
 
-    dataset_name = get_sample_name(catalog_data)
+    dataset_name = get_dataset_name(catalog_data)
     catalog_data = catalog_data.assign(dataset_name=dataset_name)
 
     # Rename column names a little
@@ -166,7 +168,8 @@ def generate_catalog(read_data, aliquots):
 
     # Get metadata
     # Metadata is empty for now
-    catalog_data['metadata'] = '{}'
+    meta_aliquot_tag = "'aliquot_tag': '" + catalog_data['aliquot_tag'] + "'"   # e.g., 'aliquot_tag': 'ALQ_e412b5f2'
+    catalog_data['metadata'] = "{ " + meta_aliquot_tag + " }"
     return(catalog_data)
 
 def write_catalog(outfn, catalog_data, disease, project):
