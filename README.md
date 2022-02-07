@@ -242,6 +242,7 @@ the prefix used to generate the sample label.
 | Duplicate item: PDA Pilot - core-derived DNA | CORE
 | Duplicate item: Replacement DNA Distribution - original aliquot failed | RDNA
 | Duplicate item: Replacement RNA Aliquot | RRNA 
+| Duplicate item: Replacement RNA aliquot per UNC request | RRNA
 | Duplicate item: Replacement RNA Distribution - original aliquot failed | RRNA
 | Duplicate item: UCEC BioTEXT Pilot | BIOTEXT
 | Duplicate item: UCEC LMD Heterogeneity Pilot | LMD

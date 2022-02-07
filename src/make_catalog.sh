@@ -384,6 +384,11 @@ function get_aliquot_annotation {
 function get_aliquot_annotation_codes {
 
     ALIQUOT_ANNOTATION="$1"
+    
+    # Strip leading and trailing whitespace
+    # per https://stackoverflow.com/questions/369758/how-to-trim-whitespace-from-a-bash-variable
+    ALIQUOT_ANNOTATION="$(echo -e "${ALIQUOT_ANNOTATION}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
+
 
 
 # ANN_CODE is based on a dictionary lookup of known GDC annotation codes.  This dictionary is updated as GDC creates additional annotations
@@ -425,6 +430,7 @@ function get_aliquot_annotation_codes {
 # | Duplicate item: PDA Pilot - core-derived DNA | `CORE`
 # | Duplicate item: Replacement DNA Distribution - original aliquot failed | `RDNA`
 # | Duplicate item: Replacement RNA Aliquot | `RRNA`
+# | Duplicate item: Replacement RNA aliquot per UNC request | `RRNA`
 # | Duplicate item: Replacement RNA Distribution - original aliquot failed | `RRNA`
 # | Duplicate item: UCEC BioTEXT Pilot | `BIOTEXT`
 # | Duplicate item: UCEC LMD Heterogeneity Pilot | `LMD`
@@ -451,6 +457,7 @@ function get_aliquot_annotation_codes {
     elif [ "$ALIQUOT_ANNOTATION" == "Additional DNA Distribution - Additional aliquot" ]; then ANN_CODE="ADD"
     elif [ "$ALIQUOT_ANNOTATION" == "PDA BIOTEXT RNA" ]; then ANN_CODE="BIOTEXT"
     elif [ "$ALIQUOT_ANNOTATION" == "Replacement DNA Aliquot" ]; then ANN_CODE="RDNA"
+    elif [ "$ALIQUOT_ANNOTATION" == "Duplicate item: Replacement RNA aliquot per UNC request" ]; then ANN_CODE="RDNA"
     elif [ "$ALIQUOT_ANNOTATION" == "Original DNA Aliquot" ]; then ANN_CODE="ODNA"
     elif [ "$ALIQUOT_ANNOTATION" == "Duplicate item: PDA BIOTEXT DNA" ]; then ANN_CODE="BIOTEXT"
     elif [ "$ALIQUOT_ANNOTATION" == "Duplicate item: Supplementary DNA Aliquot" ]; then ANN_CODE="ADNA"
