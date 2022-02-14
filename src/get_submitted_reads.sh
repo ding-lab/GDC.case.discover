@@ -162,16 +162,22 @@ while read L; do
     RGSID=$(echo "$L" | cut -f 3)
     ES=$(echo "$L" | cut -f 4)
 
-# ATAC-Seq will be treated as unaligned reads
-    if [ "$ES" == "WGS" ] || [ "$ES" == "WXS" ]; then 
+# Submitted aligned reads:
+#    WGS
+#    WXS
+#    Targeted Sequencing
+# Submitted unaligned reads: 
+#    RNA-Seq
+#    miRNA-Seq
+#    ATAC-Seq
+#    scRNA-Seq
+#    HiChIP
+#    scATAC-Seq
+
+
+    if [ "$ES" == "WGS" ] || [ "$ES" == "WXS" ] || [ "$ES" == "Targeted Sequencing" ]; then
         Q=$(SAR_from_read_group $RGSID)
-    elif [ "$ES" == "RNA-Seq" ] || [ "$ES" == "miRNA-Seq" ] || [ "$ES" == "ATAC-Seq" ]; then   
-        Q=$(SUR_from_read_group $RGSID)
-    elif [ "$ES" == "Targeted Sequencing" ]; then
-        # this is a guess
-        Q=$(SAR_from_read_group $RGSID)
-    elif [ "$ES" == "scRNA-Seq" ]; then
-        # this is a guess
+    elif [ "$ES" == "RNA-Seq" ] || [ "$ES" == "miRNA-Seq" ] || [ "$ES" == "ATAC-Seq" ] || [ "$ES" == "scRNA-Seq" ] || [ "$ES" == "HiChIP" ] || [ "$ES" == "scATAC-Seq" ] ; then   
         Q=$(SUR_from_read_group $RGSID)
     else 
         >&2 echo ERROR: Unknown Experimental Strategy $ES

@@ -43,6 +43,7 @@ def get_data_variety(rf):
     # Some of these are .tar.gz files so no need to mark them as an "unknown" Rx
     dv[(RNA_FQ_ix & rf['file_name'].str.contains("_R1_"))]="R1"
     dv[(RNA_FQ_ix & rf['file_name'].str.contains("_R2_"))]="R2"
+    dv[(RNA_FQ_ix & rf['file_name'].str.contains("_R3_"))]="R3"
 
     return dv
 

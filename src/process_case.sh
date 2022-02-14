@@ -89,7 +89,7 @@ fi
 
 CASE=$1
 DISEASE=$2
-PROJECT=$2
+PROJECT=$3
 
 mkdir -p $OUTD
 
