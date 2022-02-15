@@ -217,10 +217,9 @@ function collect_catalog {
         fi
 
         # header taken from submitted reads, goes only in first loop
-        # Note that make_catalog3.py does not put "#" character in header line.
-        # Assume that a header is identified by starting with `dataset_name`
+        # We no longer put a "#" in header line
         if [ $WRITE_HEADER == 1 ]; then
-            HEADER=$(grep "^dataset_name" $SR_CAT | head -n1 | sed 's/^/# /' )
+            HEADER=$(grep "dataset_name" $SR_CAT | head -n1 )
             echo "$HEADER" > $OUTFN
             test_exit_status
             WRITE_HEADER=0
