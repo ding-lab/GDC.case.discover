@@ -1,16 +1,17 @@
 # Perform discovery for all cases in CASES file
 
 # This needs to be exported, to be visible to GDC Query scripts
-export GDC_TOKEN="/diskmnt/Projects/cptac_scratch/CPTAC3.workflow/discover/token/gdc-user-token.2022-01-05T22_45_39.319Z.txt"
-PROJECT="TCGA_GDC"  # Administrative project associated with these cases
-
+export GDC_TOKEN="../token/gdc-user-token.2022-03-03T16_20_37.493Z.txt"
+PROJECT="dev.CPTAC3"
 #CASES="/home/mwyczalk_test/Projects/CPTAC3/CPTAC3.catalog/CPTAC3.cases.dat"
-CASES="dat/cases_disease.dat"
-#CASES="dat/cases_disease-1.dat"
+#CASES="dat/cases-1-TCGA.dat"
+CASES="dat/cases-1.dat"
 
-
-# add suffix to sample names based on aliquot
-#SUFFIX_LIST="/home/mwyczalk_test/Projects/CPTAC3/CPTAC3.catalog/SampleRename.dat"
+# Data model.  See src/get_aliquots.py for details
+# * CPTAC3 for CPTAC3 projects
+# * TCGA for various GDAN projects
+DATA_MODEL="CPTAC3"
+#DATA_MODEL="TCGA"
 
 # With vvv each step outputs query details, fewer limits output
 VERBOSE="-vvv"
@@ -34,7 +35,7 @@ mkdir -p dat
 START=$(date)
 >&2 echo [ $START ] Starting discovery
 #bash src/process_multi_cases.sh -s $SUFFIX_LIST $N -o $CATALOG -D $DEMOGRAPHICS $VERBOSE $@ $CASES
-CMD="bash src/process_multi_cases.sh $N -o $CATALOG -D $DEMOGRAPHICS $VERBOSE $@ $CASES $PROJECT"
+CMD="bash src/process_multi_cases.sh $N -m $DATA_MODEL -o $CATALOG -D $DEMOGRAPHICS $VERBOSE $@ $CASES $PROJECT"
 echo Running: $CMD
 eval "$CMD"
 rc=$?

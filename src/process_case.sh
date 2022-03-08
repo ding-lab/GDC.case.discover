@@ -29,6 +29,7 @@ Options:
 -O OUTD: intermediate file output directory.  Default: ./dat
 -D DEM_OUT: write demograhics data to given file
 -C: create catalog only.  Assume that all the above files exist in $OUTD except for the catalog3
+-m DATA_MODEL: determines how case associated with aliquot.  Allowed values TCGA or CPTAC
 
 Require GDC_TOKEN environment variable to be defined with path to gdc-user-token.*.txt file
 
@@ -46,7 +47,7 @@ EOF
 BIND="src"
 OUTD="./dat"
 # http://wiki.bash-hackers.org/howto/getopts_tutorial
-while getopts ":hdf:O:vD:C" opt; do
+while getopts ":hdf:O:vD:Cm:" opt; do
   case $opt in
     h)
       echo "$USAGE"
@@ -66,6 +67,9 @@ while getopts ":hdf:O:vD:C" opt; do
       ;;
     C)
       CATALOG_ONLY=1
+      ;;
+    m)
+      ALIQUOT_ARGS="-m $OPTARG"
       ;;
     \?)
       >&2 echo "Invalid option: -$OPTARG"
@@ -151,7 +155,7 @@ if [ -z $CATALOG_ONLY ]; then
     test_exit_status
 
     A_OUT="$OUTD/aliquots.dat"
-    CMD="bash $BIND/get_aliquots_v2.sh -o $A_OUT $VERBOSE_ARG $CASE "
+    CMD="bash $BIND/get_aliquots.sh $ALIQUOT_ARGS -o $A_OUT $VERBOSE_ARG $CASE "
     run_cmd "$CMD"
 
     if [ ! -s $A_OUT ]; then

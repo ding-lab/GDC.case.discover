@@ -18,6 +18,7 @@ Options:
 -1: stop after processing one case
 -D DEMS_OUT: write demographics information from all cases to given file
 -C: create catalog only.  Assume that all discovery files exist from previous run 
+-m DATA_MODEL: data model.  TCGA or CPTAC3
 
 CASES is a TSV file with case name and disease in first and second columns
 
@@ -35,7 +36,7 @@ XARGS=""
 
 # Using rungo as a template for parallel: https://github.com/ding-lab/TinDaisy/blob/master/src/rungo
 # http://wiki.bash-hackers.org/howto/getopts_tutorial
-while getopts ":hdvJ:1o:D:C" opt; do
+while getopts ":hdvJ:1o:D:Cm:" opt; do
   case $opt in
     h)
       echo "$USAGE"
@@ -65,6 +66,9 @@ while getopts ":hdvJ:1o:D:C" opt; do
       ;;
     C)  
       XARGS="$XARGS -C"
+      ;;
+    m)
+      XARGS="$XARGS -m $OPTARG"
       ;;
     \?)
       >&2 echo "Invalid option: -$OPTARG"
