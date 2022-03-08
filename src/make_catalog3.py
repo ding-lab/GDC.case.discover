@@ -124,8 +124,10 @@ def get_sample_code(aliquots):
 # Tpb, tumor_peripheral_blood: Primary Blood Derived Cancer - Peripheral Blood
         ["Recurrent Tumor" , "recurrent_tumor", "R"],
 # R, recurrent_tumor:   Recurrent Tumor
-        ["Slides" , "slides", "S"]
+        ["Slides" , "slides", "S"],
 # S, slides: Slides - this is new and weird but adding this along with code to detect such situations in the future
+        ["FFPE Scrolls", "ffpe", "F"]
+# FFPE scrolls also observed in the wild
     ]
     sst = pd.DataFrame(sample_map, columns = ['sample_type', 'sample_type_short', 'sample_code'])
     merged = aliquots.merge(sst, on="sample_type", how="left")# [['sample_code', 'sample_type_short']]
@@ -188,16 +190,19 @@ def generate_catalog(read_data, aliquots):
 
     # Rename column names a little
     catalog_data = catalog_data.rename(columns={'md5sum': 'md5', 'file_name': 'filename', 'file_size': 'filesize', \
-        'sample_type': 'sample_type_full', 'sample_type_short': 'sample_type'})
+        'sample_type': 'gdc_sample_type', 'sample_type_short': 'sample_type'})
     catalog_data['specimen_name'] = catalog_data['aliquot_submitter_id']
 
     # Generate metadata.  This is a work in progress
     # Since metadata is JSON this could be done using more sophisticated libraries, but for now
     # just piece it together
+    # Other metadata to add - gdc_sample_type (full name as reported by GDC)
 
     # Add aliquot_tag to everything
     meta_aliquot_tag = "'aliquot_tag': '" + catalog_data['aliquot_tag'] + "'"   # e.g., 'aliquot_tag': 'ALQ_e412b5f2'
     catalog_data['metadata'] = meta_aliquot_tag
+
+    catalog_data['metadata'] += ", 'gdc_sample_type': '" + catalog_data['gdc_sample_type'] + "'"
 
     # Add aliquot_annotation to only datasets with such annotation
     m = catalog_data['aliquot_annotation'].notna()
