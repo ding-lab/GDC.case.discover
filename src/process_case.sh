@@ -8,7 +8,7 @@
 
 read -r -d '' USAGE <<'EOF'
 Query GDC with series of GraphQL calls to obtain information about submitted reads and methylation data for a given case
-Writes out file dat/cases/CASE/Catalog.dat with summary of such data (Catalog3 format)
+Writes out file dat/outputs/CASE/Catalog.dat with summary of such data (Catalog3 format)
 
 Usage:
   process_case.sh [options] CASE DISEASE PROJECT
@@ -144,7 +144,7 @@ function confirm {
 
 >&2 echo Processing $CASE \($DISEASE\)
 
-OUTD="dat/cases/$CASE"
+OUTD="dat/outputs/$CASE"
 RG_OUT="$OUTD/read_groups.dat"
 SR_OUT="$OUTD/submitted_reads.dat"
 HR_OUT="$OUTD/harmonized_reads.dat"
@@ -158,23 +158,24 @@ if [ -z $CATALOG_ONLY ]; then
     CMD="bash $BIND/get_aliquots.sh $ALIQUOT_ARGS -o $A_OUT $VERBOSE_ARG $CASE "
     run_cmd "$CMD"
 
-    if [ ! -s $A_OUT ]; then
+    # aliquots.dat has a header line
+    if [ $(wc -l $A_OUT | cut -f 1 -d ' ' ) == "1" ]; then
         >&2 echo NOTE: $A_OUT is empty.  Skipping case
         CMD="touch $OUTD/is_empty.flag"
-        return
+        run_cmd "$CMD"
+    else
+        CMD="bash $BIND/get_read_groups.sh -o $RG_OUT $VERBOSE_ARG $A_OUT"
+        run_cmd "$CMD"
+
+        CMD="bash $BIND/get_submitted_reads.sh -o $SR_OUT $VERBOSE_ARG $RG_OUT"
+        run_cmd "$CMD"
+
+        CMD="bash $BIND/get_harmonized_reads.sh -o $HR_OUT $VERBOSE_ARG $SR_OUT"
+        run_cmd "$CMD"
+
+        CMD="bash $BIND/get_methylation_array.sh -o $MA_OUT $VERBOSE_ARG $A_OUT"
+        run_cmd "$CMD"
     fi
-
-    CMD="bash $BIND/get_read_groups.sh -o $RG_OUT $VERBOSE_ARG $A_OUT"
-    run_cmd "$CMD"
-
-    CMD="bash $BIND/get_submitted_reads.sh -o $SR_OUT $VERBOSE_ARG $RG_OUT"
-    run_cmd "$CMD"
-
-    CMD="bash $BIND/get_harmonized_reads.sh -o $HR_OUT $VERBOSE_ARG $SR_OUT"
-    run_cmd "$CMD"
-
-    CMD="bash $BIND/get_methylation_array.sh -o $MA_OUT $VERBOSE_ARG $A_OUT"
-    run_cmd "$CMD"
 else
     confirm $RG_OUT
     confirm $SR_OUT
@@ -187,8 +188,10 @@ fi
 # CMD="bash $BIND/make_catalog.sh -Q $A_OUT -R $SR_OUT -H $HR_OUT -M $MA_OUT $SUFFIX_ARG $CATALOG_OUT $VERBOSE_ARG $CASE $DISEASE"
 # make_catalog3.sh does not have VERBOSE_ARG implemented, nor is its DEBUG flag passed here
 # Do not pass CASE explicitly, since that information is obtained from submitted / harmonized reads
-CMD="bash $BIND/make_catalog3.sh -o $OUTD -D $DISEASE -P $PROJECT $OUTD"
-run_cmd "$CMD"
+if [ ! -e $OUTD/is_empty.flag ]; then
+    CMD="bash $BIND/make_catalog3.sh -o $OUTD -D $DISEASE -P $PROJECT $OUTD"
+    run_cmd "$CMD"
+fi
 
 if [ ! -z $DEM_OUT ]; then
     CMD="bash $BIND/get_demographics.sh -o $DEM_OUT $VERBOSE_ARG $CASE $DISEASE"

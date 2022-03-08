@@ -98,7 +98,7 @@ def parse_YAML(infn, outfn, case, data_model):
     header=('sample_submitter_id', 'sample_id', 'sample_type', 'aliquot_submitter_id', 'aliquot_id', 'analyte_type', 'aliquot_annotation')
     if case is not None:
         header = ('case',) + header
-    print('# %s' % '\t'.join(header), file=outf)
+    print('%s' % '\t'.join(header), file=outf)
 
     if data_model == "TCGA":
         samples = data['data']['sample']

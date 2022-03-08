@@ -55,16 +55,16 @@ END=$(date)
 #END2=$(date)
 #>&2 echo [ $END2 ] Summary complete
 
-
-NERR=$(grep -il error dat/cases/*/*log* | wc -l)
-if grep -q -i error dat/cases/*/*log* ; then
+OUTD="./dat/outputs" # must match value in src/process_multi_cases.sh
+NERR=$(grep -il error $OUTD/*/*log* | wc -l)
+if grep -q -i error $OUTD/*/*log* ; then
     >&2 echo The following $NERR files had errors \(top 10 shown\):
-    grep -il error dat/cases/*/*log* | head
+    grep -il error $OUTD/*/*log* | head
 fi
-NWRN=$(grep -il warning dat/cases/*/*log* | wc -l)
-if grep -q -i warning dat/cases/*/*log* ; then
+NWRN=$(grep -il warning $OUTD/*/*log* | wc -l)
+if grep -q -i warning $OUTD/*/*log* ; then
     >&2 echo The following $NWRN files had warnings \(top 10 shown\):
-    grep -il warning dat/cases/*/*log* | head
+    grep -il warning $OUTD/*/*log* | head
 fi
 
 >&2 echo Timing summary: 

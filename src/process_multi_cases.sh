@@ -57,8 +57,9 @@ while getopts ":hdvJ:1o:D:Cm:" opt; do
     o)  
       OUTFN="$OPTARG"
       if [ -f $OUTFN ]; then
-          >&2 echo ERROR: $OUTFN exists.  Exiting
-          exit 1
+          #>&2 echo ERROR: $OUTFN exists.  Exiting
+          >&2 echo WARNING: $OUTFN exists.  Continuing...
+          #exit 1
       fi
       ;;
     D)
@@ -165,7 +166,7 @@ function process_cases {
         CASE=$(echo "$L" | cut -f 1 )
         DIS=$(echo "$L" | cut -f 2 )
 
-        LOGD="$LOGBASE/cases/$CASE"
+        LOGD="$LOGBASE/outputs/$CASE"
         mkdir -p $LOGD
         STDOUT_FN="$LOGD/log.${CASE}.out"
         STDERR_FN="$LOGD/log.${CASE}.err"
@@ -209,11 +210,11 @@ function collect_catalog {
         [[ $L = \#* ]] && continue  # Skip commented out entries
 
         CASE=$(echo "$L" | cut -f 1 )
-        DATAD="$LOGBASE/cases/$CASE"
+        DATAD="$LOGBASE/outputs/$CASE"
         # Will merge harmonized and submitted reads here implicitly
         # These are expected to exist unless is_empty.flag file exists
-        SR_CAT="$LOGBASE/cases/$CASE/submitted_reads.catalog3.dat"
-        HR_CAT="$LOGBASE/cases/$CASE/harmonized_reads.catalog3.dat"
+        SR_CAT="$DATAD/submitted_reads.catalog3.dat"
+        HR_CAT="$DATAD/harmonized_reads.catalog3.dat"
 
         # Use the existence of the `is_empty.flag` file to identify empty cases
         if [ -e "$DATAD/is_empty.flag" ]; then
@@ -248,7 +249,7 @@ function collect_demographics {
 
         CASE=$(echo "$L" | cut -f 1 )
         # Demographics info, if evaluated, is always written to file DEMS_OUT
-        DEM="$LOGBASE/cases/$CASE/Demographics.dat"
+        DEM="$LOGBASE/outputs/$CASE/Demographics.dat"
 
         if [ ! -f $DEM ]; then
             if [ "$DRYRUN" != "d" ]; then
