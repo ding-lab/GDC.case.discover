@@ -6,11 +6,13 @@ import argparse, sys, os, binascii
 #   https://docs.google.com/document/d/1uSgle8jiIx9EnDFf_XHV3fWYKFElszNLkmGlht_CQGE/edit#
 # Implemented in pandas (i.e., column-wise operations)
 
+# Note that currently aliquot file has header.  This is not consistent with the other input data files
 def read_aliquots(alq_fn):
-    alq_header=('case', 'sample_submitter_id', 'sample_id', 'sample_type', 'aliquot_submitter_id', 'aliquot_id', 'analyte_type', 'aliquot_annotation')
+    #alq_header=('case', 'sample_submitter_id', 'sample_id', 'sample_type', 'aliquot_submitter_id', 'aliquot_id', 'analyte_type', 'aliquot_annotation')
     # force aliquot_annotation to be type str - doesn't seem to work?
     type_arg = {'aliquot_annotation': 'str'}
-    aliquots = pd.read_csv(alq_fn, sep="\t", names=alq_header, dtype=type_arg, comment='#')
+    #aliquots = pd.read_csv(alq_fn, sep="\t", names=alq_header, dtype=type_arg, comment='#')
+    aliquots = pd.read_csv(alq_fn, sep="\t", dtype=type_arg, comment='#')
     return(aliquots)
 
 def read_reads_file(reads_fn):
@@ -120,11 +122,17 @@ def get_sample_code(aliquots):
 # Tbm, tumor_bone_marrow: Primary Blood Derived Cancer - Bone Marrow
         ["Primary Blood Derived Cancer - Peripheral Blood" , "tumor_peripheral_blood", "Tpb"],
 # Tpb, tumor_peripheral_blood: Primary Blood Derived Cancer - Peripheral Blood
-        ["Recurrent Tumor" , "recurrent_tumor", "R"]
+        ["Recurrent Tumor" , "recurrent_tumor", "R"],
 # R, recurrent_tumor:   Recurrent Tumor
+        ["Slides" , "slides", "S"]
+# S, slides: Slides - this is new and weird but adding this along with code to detect such situations in the future
     ]
     sst = pd.DataFrame(sample_map, columns = ['sample_type', 'sample_type_short', 'sample_code'])
-    merged = aliquots.merge(sst, on="sample_type")# [['sample_code', 'sample_type_short']]
+    merged = aliquots.merge(sst, on="sample_type", how="left")# [['sample_code', 'sample_type_short']]
+    if merged['sample_code'].isnull().values.any():
+        m=merged['sample_code'].isnull()
+        msg="Unknown sample type: {}".format(merged.loc[m, "sample_type"].unique())
+        raise ValueError(msg)
     return merged['sample_code'], merged['sample_type_short']
 
 def get_dataset_name(cd):
