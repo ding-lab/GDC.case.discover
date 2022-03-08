@@ -143,7 +143,7 @@ def parse_YAML(infn, outfn, case, data_model):
             sample_submitter_id = s['submitter_id']
             sample_id = s['id']
             for l in s['aliquots']:
-                analyte_type = l['analyte_type']
+                analyte_type = format(l['analyte_type'])    # sometimes analyte_type is `null`
                 aliquot_id=l['id']
                 aliquot_submitter_id=l['submitter_id']
                 annotations=set()
