@@ -51,8 +51,11 @@ def get_data_variety(rf):
 # It consists of two parts: an annotation code and an aliquot hash, separated by '_'
 # An annotation code is meant to be a three-letter identifier of an aliquot annotation, for
 #    instance indicating that the aliquot is marked as "duplicate" (annotaton code "DUP")
-#    If an annotation does not exist, default annotation code is ALQ
+#    If an annotation does not exist, default annotation code  is ALQ
 #    If an annotation exists but code is not known, default annotation code is ANN
+#    If annotation contains "duplicate item" the annotation code is DUP
+#    If annotation contains "additional" the annotation code is ADD
+#    If annotation contains "replacement" the annotation code is REP
 #    Otherwise, annotation code is performed by the dictionary passed, annotations (not impelmented)
 # Aliquot has is a CRC checksum string based on aliquot_submitter_id, used to create a unique name
 #    compact representation of aliquot name.  Details about CRC checksums:
@@ -63,12 +66,25 @@ def get_aliquot_tag(aliquots):
         return format(binascii.crc32(text.encode("utf8")), "x")
     alq_hash=aliquots[["aliquot_submitter_id"]].squeeze().map(get_hash)
 
-    alq_tag = pd.Series("ALQ", index=aliquots.index)
-    alq_tag.loc[aliquots[["aliquot_annotation"]].notna().squeeze()]="ANN"
+    # By default, code is ALQ
+    alq_code = pd.Series("ALQ", index=aliquots.index)
+    # if aliquot_annotation exists, tag is ANN
+    alq_code.loc[aliquots[["aliquot_annotation"]].notna().squeeze()]="ANN"
+
+    # go from more generic to less generic
+    dup = aliquots["aliquot_annotation"].str.contains("duplicate item", case=False, na=False)
+    add = aliquots["aliquot_annotation"].str.contains("additional", case=False, na=False)
+    rep = aliquots["aliquot_annotation"].str.contains("replacement", case=False, na=False)
+
+    alq_code.loc[dup] = "DUP"
+    alq_code.loc[add] = "ADD"
+    alq_code.loc[rep] = "REP"
+
+
 
     # Depending on specific values of aliquot_annotation, in consultation with
     # annotations dictionary (not implemented), different annotation codes can be used
-    return(alq_tag + "_" + alq_hash)
+    return(alq_code + "_" + alq_hash)
 
 # merge all sample_submitter_id's which are used for the same aliquot_submitter_id
 # group aliquots by aliquot_submitter_id, creating a comma-separated list of sample_submitter_id values (named sample_ids)
@@ -167,10 +183,19 @@ def generate_catalog(read_data, aliquots):
         'sample_type': 'sample_type_full', 'sample_type_short': 'sample_type'})
     catalog_data['specimen_name'] = catalog_data['aliquot_submitter_id']
 
-    # Get metadata
-    # Metadata is empty for now
+    # Generate metadata.  This is a work in progress
+    # Since metadata is JSON this could be done using more sophisticated libraries, but for now
+    # just piece it together
+
+    # Add aliquot_tag to everything
     meta_aliquot_tag = "'aliquot_tag': '" + catalog_data['aliquot_tag'] + "'"   # e.g., 'aliquot_tag': 'ALQ_e412b5f2'
-    catalog_data['metadata'] = "{ " + meta_aliquot_tag + " }"
+    catalog_data['metadata'] = meta_aliquot_tag
+
+    # Add aliquot_annotation to only datasets with such annotation
+    m = catalog_data['aliquot_annotation'].notna()
+    catalog_data.loc[m, 'metadata'] += ", 'aliquot_annotation': '" + catalog_data.loc[m, 'aliquot_annotation'] + "'"
+
+    catalog_data['metadata'] = "{ " + catalog_data['metadata'] + " }"
     return(catalog_data)
 
 def write_catalog(outfn, catalog_data, disease, project):
