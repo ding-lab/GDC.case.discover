@@ -121,15 +121,24 @@ AQ_FN="$DATD/aliquots.dat"
 SR_FN="$DATD/submitted_reads.dat"
 HR_FN="$DATD/harmonized_reads.dat"
 
+# Deal gracefully with situation where reads do not exist.
 if [ ! -e $AQ_FN ]; then >&2 echo ERROR: $AQ_FN does not exist; exit 1; fi
-if [ ! -e $SR_FN ]; then >&2 echo ERROR: $SR_FN does not exist; exit 1; fi
-if [ ! -e $HR_FN ]; then >&2 echo ERROR: $HR_FN does not exist; exit 1; fi
 
-echo Processing $SR_FN, writing to $OUT_SR
-CMD="$PYTHON src/make_catalog3.py $DP_ARGS -Q $AQ_FN -o $OUT_SR $SR_FN"
-run_cmd "$CMD"
+if [ ! -e $SR_FN ]; then 
+    >&2 echo NOTE: $SR_FN does not exist.  Continuing
+else
+    echo Processing $SR_FN, writing to $OUT_SR
+    CMD="$PYTHON src/make_catalog3.py $DP_ARGS -Q $AQ_FN -o $OUT_SR $SR_FN"
+    run_cmd "$CMD"
+fi
 
-echo Processing $HR_FN, writing to $OUT_HR
-CMD="$PYTHON src/make_catalog3.py $DP_ARGS -Q $AQ_FN -o $OUT_HR $HR_FN"
-run_cmd "$CMD"
+if [ ! -e $HR_FN ]; then 
+    >&2 echo NOTE: $HR_FN does not exist.  Continuing
+else
+    echo Processing $HR_FN, writing to $OUT_HR
+    CMD="$PYTHON src/make_catalog3.py $DP_ARGS -Q $AQ_FN -o $OUT_HR $HR_FN"
+    run_cmd "$CMD"
+fi
+
+
 
