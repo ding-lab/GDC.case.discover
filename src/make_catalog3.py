@@ -66,12 +66,13 @@ def get_data_variety(rf):
 def get_aliquot_tag(aliquots):
     def get_hash(text):
         return format(binascii.crc32(text.encode("utf8")), "x")
-    alq_hash=aliquots[["aliquot_submitter_id"]].squeeze().map(get_hash)
+
+    alq_hash=aliquots[["aliquot_submitter_id"]].squeeze(axis=1).map(get_hash) 
 
     # By default, code is ALQ
     alq_code = pd.Series("ALQ", index=aliquots.index)
     # if aliquot_annotation exists, tag is ANN
-    alq_code.loc[aliquots[["aliquot_annotation"]].notna().squeeze()]="ANN"
+    alq_code.loc[aliquots[["aliquot_annotation"]].notna().squeeze(axis=1)]="ANN"
 
     # go from more generic to less generic
     dup = aliquots["aliquot_annotation"].str.contains("duplicate item", case=False, na=False)
@@ -81,8 +82,6 @@ def get_aliquot_tag(aliquots):
     alq_code.loc[dup] = "DUP"
     alq_code.loc[add] = "ADD"
     alq_code.loc[rep] = "REP"
-
-
 
     # Depending on specific values of aliquot_annotation, in consultation with
     # annotations dictionary (not implemented), different annotation codes can be used
