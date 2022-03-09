@@ -284,7 +284,7 @@ process_cases
 collect_catalog
 
 if [ ! -z $DEMS_OUT ]; then
-    >&2 echo Collecting all demograhics, writing to $DEMS_OUT
+    >&2 echo Collecting all Demographics, writing to $DEMS_OUT
     collect_demographics
 fi
 

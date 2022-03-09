@@ -27,7 +27,7 @@ Options:
 -v: Verbose.  May be repeated to get verbose output from called scripts
 -d: dry run
 -O OUTD: intermediate file output directory.  Default: ./dat
--D DEM_OUT: write demograhics data to given file
+-D DEM_OUT: write demographics data to given file
 -C: create catalog only.  Assume that all the above files exist in $OUTD except for the catalog3
 -m DATA_MODEL: determines how case associated with aliquot.  Allowed values TCGA or CPTAC
 
