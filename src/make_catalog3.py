@@ -16,38 +16,74 @@ def read_aliquots(alq_fn):
     return(aliquots)
 
 def read_reads_file(reads_fn):
+#    * case
+#    * aliquot submitter id
+#    * alignment
+#    * experimental strategy
+#    * data format
+#    * file name
+#    * file size
+#    * uuid
+#    * md5sum
     header_list=["case", "aliquot_submitter_id", "alignment", "experimental_strategy", "data_format", "file_name", "file_size", "uuid", "md5sum"]
     rf = pd.read_csv(reads_fn, sep="\t", names=header_list, comment='#')
     # make sure "alignment" has the string value "NA", not NaN
     rf.loc[rf['alignment'].isna(), "alignment"] = "NA"
     return(rf)
 
-# get one column, data_variety, for each row of rf
-def get_data_variety(rf):
-    # Data Variety
-    # NA by default
+def read_methylation_file(reads_fn):
+#    1 case
+#    2 aliquot submitter id
+#    3 alignment
+#    4 submitter id
+#    5 uuid
+#    6 channel
+#    7 file name
+#    8 file size
+#    9 data_format
+#   10 experimental strategy
+#   11 md5sum
+    header_list=["case", "aliquot_submitter_id", "alignment", "submitter_id", "uuid", "channel", "file_name", "file_size", "data_format", "experimental_strategy", "md5sum"]
+    rf = pd.read_csv(reads_fn, sep="\t", names=header_list, comment='#')
+    # make sure "alignment" has the string value "NA", not NaN
+    rf.loc[rf['alignment'].isna(), "alignment"] = "NA"
+    return(rf)
+
+
+def get_data_variety_RNA_BAM(rf):
     # For RNA-Seq BAMs, evaluate filename for specific strings: "genomic", "transcriptome", and "chimeric"
     # These strings are then the data_variety value
-    dv = pd.Series("NA", index=rf.index)
 
     RNA_BAM_ix = ((rf['data_format']=='BAM') & (rf['experimental_strategy']=="RNA-Seq"))
     genomic_ix = (RNA_BAM_ix & rf['file_name'].str.contains("genomic"))
     transcriptome_ix = (RNA_BAM_ix & rf['file_name'].str.contains("transcriptome"))
     chimeric_ix = (RNA_BAM_ix & rf['file_name'].str.contains("chimeric"))
-    dv[genomic_ix]="genomic"
-    dv[transcriptome_ix]="transcriptome"
-    dv[chimeric_ix]="chimeric"
+    rf.loc[genomic_ix, "data_variety"]="genomic"
+    rf.loc[transcriptome_ix, "data_variety"]="transcriptome"
+    rf.loc[chimeric_ix, "data_variety"]="chimeric"
 
-    # do something similar for all FASTQs, marking data_variety as R1 or R2 based on pattern match to filename.
-    # Value of Rx if not matched (this happens with non-CPTAC3 data)
+# writes to rf['data_variety'] directly
+# Should also add to rf['metadata']
+def get_data_variety_FASTQ(rf):
     RNA_FQ_ix = (rf['data_format']=='FASTQ')
-#    dv[RNA_FQ_ix]="Rx"    # default is unmatched
-    # Some of these are .tar.gz files so no need to mark them as an "unknown" Rx
-    dv[(RNA_FQ_ix & rf['file_name'].str.contains("_R1_"))]="R1"
-    dv[(RNA_FQ_ix & rf['file_name'].str.contains("_R2_"))]="R2"
-    dv[(RNA_FQ_ix & rf['file_name'].str.contains("_R3_"))]="R3"
+    rf['read'] = ""
+    rf['lane'] = ""
+    # this approach is a bit idiotic but will do for now
+    rf.loc[RNA_FQ_ix & rf['file_name'].str.contains("_R1_"), 'read']="R1"
+    rf.loc[RNA_FQ_ix & rf['file_name'].str.contains("_R2_"), 'read']="R2"
+    rf.loc[RNA_FQ_ix & rf['file_name'].str.contains("_R3_"), 'read']="R3"
 
-    return dv
+    rf.loc[RNA_FQ_ix & rf['file_name'].str.contains("_L001_"), 'lane']="L001"
+    rf.loc[RNA_FQ_ix & rf['file_name'].str.contains("_L002_"), 'lane']="L002"
+    rf.loc[RNA_FQ_ix & rf['file_name'].str.contains("_L003_"), 'lane']="L003"
+    rf.loc[RNA_FQ_ix & rf['file_name'].str.contains("_L004_"), 'lane']="L004"
+    rf.loc[RNA_FQ_ix & rf['file_name'].str.contains("_L005_"), 'lane']="L005"
+    rf.loc[RNA_FQ_ix & rf['file_name'].str.contains("_L006_"), 'lane']="L006"
+    rf.loc[RNA_FQ_ix & rf['file_name'].str.contains("_L007_"), 'lane']="L007"
+    rf.loc[RNA_FQ_ix & rf['file_name'].str.contains("_L008_"), 'lane']="L008"
+    rf.loc[RNA_FQ_ix, 'data_variety'] = rf["read"] + "_" + rf["lane"]
+
+    # TODO: add read and lane to metadata.
 
 # An Aliquot Tag is a string associated with an aliquot which may be appended to dataset names
 # It consists of two parts: an annotation code and an aliquot hash, separated by '_'
@@ -148,25 +184,29 @@ def get_dataset_name(cd):
 
     # include data variety field (e.g., R1) only if non-trivial
     cd['data_variety_tag'] = '.' + cd['data_variety'] 
-    cd.loc[cd['data_variety_tag'] == '.NA', "data_variety_tag"] = ""
+    cd.loc[cd['data_variety_tag'] == '.', "data_variety_tag"] = ""
 
     cd['alignment_tag'] = ""
     cd.loc[cd['alignment'] == 'harmonized', "alignment_tag"] = ".hg38"
 
-    dataset_name = cd['labeled_case'] +'.'+ cd['experimental_strategy'] + cd['data_variety_tag'] +'.'+ cd['sample_code'] + cd['alignment_tag']
+    dataset_name = cd['labeled_case'] +'.'+ cd['experimental_strategy_short'] + cd['data_variety_tag'] +'.'+ cd['sample_code'] + cd['alignment_tag']
     return dataset_name        
 
-def generate_catalog(read_data, aliquots):
-
+def generate_catalog(read_data, aliquots, is_methylation):
     # process read_data
     # Add "data_variety" column to read_data
-    dv = get_data_variety(read_data)
-    read_data = read_data.assign(data_variety=dv.values)
+    read_data['data_variety'] = ""
+    if is_methylation:
+        read_data['data_variety'] = read_data["channel"]
+    else:
+        get_data_variety_RNA_BAM(read_data)
+        get_data_variety_FASTQ(read_data)
 
     # remap experimental strategies "Targeted Sequencing" to "Targeted", and "Methylation Array" to "MethArray"
-    # will want to save original name in metadata - TODO
-    read_data.loc[(read_data["experimental_strategy"]=="Targeted Sequencing"), "experimental_strategy"]="Targeted"
-    read_data.loc[(read_data["experimental_strategy"]=="Methylation Array"), "experimental_strategy"]="MethArray"
+    # for the purpose of creating dataset name
+    read_data["experimental_strategy_short"] = read_data["experimental_strategy"]
+    read_data.loc[(read_data["experimental_strategy_short"]=="Targeted Sequencing"), "experimental_strategy_short"]="Targeted"
+    read_data.loc[(read_data["experimental_strategy_short"]=="Methylation Array"), "experimental_strategy_short"]="MethArray"
 
     # Now update aliquots
     # Add "aliquot_tag" column to aliquots
@@ -239,12 +279,16 @@ if __name__ == "__main__":
     parser.add_argument("-A", "--annotation", dest="annotation_fn", help="Annotation table")
     parser.add_argument("-d", "--debug", action="store_true", help="Print debugging information to stderr")
     parser.add_argument("-n", "--no-header", action="store_true", help="Do not print header")
+    parser.add_argument("-M", "--is_methylation", dest="is_methylation", default=False, action="store_true", help="Reads are methylation data")
 
     args = parser.parse_args()
 
     aliquots=read_aliquots(args.aliquots_fn)
-    read_data = read_reads_file(args.reads_fn)
-    catalog_data = generate_catalog(read_data, aliquots)
+    if args.is_methylation:
+        read_data = read_methylation_file(args.reads_fn)
+    else:
+        read_data = read_reads_file(args.reads_fn)
+    catalog_data = generate_catalog(read_data, aliquots, args.is_methylation)
 
     write_catalog(args.outfn, catalog_data, args.disease, args.project)
     

@@ -108,6 +108,7 @@ mkdir -p $OUTD
 test_exit_status 
 OUT_SR="$OUTD/submitted_reads.catalog3.dat"
 OUT_HR="$OUTD/harmonized_reads.catalog3.dat"
+OUT_ME="$OUTD/methylation_array.catalog3.dat"
 
 PYTHON="/diskmnt/Projects/Users/mwyczalk/miniconda3/bin/python"
 #PYTHON="/Users/mwyczalk/miniconda3/bin/python"
@@ -120,6 +121,7 @@ if [ ! -d $DATD ]; then >&2 echo ERROR: $DATD does not exist; exit 1; fi
 AQ_FN="$DATD/aliquots.dat"
 SR_FN="$DATD/submitted_reads.dat"
 HR_FN="$DATD/harmonized_reads.dat"
+ME_FN="$DATD/methylation_array.dat"
 
 # Deal gracefully with situation where reads do not exist.
 if [ ! -e $AQ_FN ]; then >&2 echo ERROR: $AQ_FN does not exist; exit 1; fi
@@ -140,5 +142,10 @@ else
     run_cmd "$CMD"
 fi
 
-
-
+if [ ! -e $ME_FN ]; then 
+    >&2 echo NOTE: $ME_FN does not exist.  Continuing
+else
+    echo Processing $ME_FN, writing to $OUT_ME
+    CMD="$PYTHON src/make_catalog3.py $DP_ARGS -M -Q $AQ_FN -o $OUT_ME $ME_FN"
+    run_cmd "$CMD"
+fi

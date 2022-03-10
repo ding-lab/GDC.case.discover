@@ -223,13 +223,16 @@ function collect_catalog {
 
         SR_CAT="$DATAD/submitted_reads.catalog3.dat"
         HR_CAT="$DATAD/harmonized_reads.catalog3.dat"
-        # Possibly add Methylation?
+        ME_CAT="$DATAD/methylation_array.catalog3.dat"
 
         if [ -e $SR_CAT ]; then 
             CAT="$SR_CAT"
         fi
         if [ -e $HR_CAT ]; then 
             CAT="$CAT $HR_CAT"
+        fi
+        if [ -e $ME_CAT ]; then 
+            CAT="$CAT $ME_CAT"
         fi
 
         # header taken from submitted reads, goes only in first loop
