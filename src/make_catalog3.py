@@ -1,5 +1,8 @@
 import pandas as pd
 import argparse, sys, os, binascii
+def eprint(*args, **kwargs):
+    print(*args, file=sys.stderr, **kwargs)
+
 
 # Write Catalog3 file for every line of reads file 
 # Essentially a merge of reads and aliquots, with some normalization of data, and output to data format as defined here:
@@ -265,7 +268,6 @@ def write_catalog(outfn, catalog_data, disease, project):
 
     write_data = catalog_data[header]
 
-    # close, but need to comment out leading line
     print("Writing catalog to " + outfn)
     write_data.to_csv(outfn, sep="\t", index=False)
 
@@ -290,5 +292,9 @@ if __name__ == "__main__":
         read_data = read_reads_file(args.reads_fn)
     catalog_data = generate_catalog(read_data, aliquots, args.is_methylation)
 
-    write_catalog(args.outfn, catalog_data, args.disease, args.project)
+    if (not catalog_data.empty):
+        write_catalog(args.outfn, catalog_data, args.disease, args.project)
+    else:
+        eprint("Catalog is empty.  Not writing " + args.outfn)
+
     

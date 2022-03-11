@@ -214,7 +214,6 @@ while read L; do
 
 done < $DAT
 
-touch $OUTFN
 # Skip sorting in the event $DAT is empty
 if [ -e $TMPFILE ]; then
     if [ ! -z $OUTFN ]; then

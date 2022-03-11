@@ -214,7 +214,8 @@ function collect_catalog {
         # Will merge harmonized and submitted reads
         # If is_empty.flag file exists then just go on
         # Note that we're not making assumptions about the existence of these even if is_empty.flag exists
-        # since harmonized reads may not exist even if submitted reads do
+        # since submitted reads may not exist even if aliquots do, and 
+        # harmonized reads may not exist even if submitted reads do
 
         # Use the existence of the `is_empty.flag` file to identify empty cases
         if [ -e "$DATAD/is_empty.flag" ]; then
@@ -225,6 +226,7 @@ function collect_catalog {
         HR_CAT="$DATAD/harmonized_reads.catalog3.dat"
         ME_CAT="$DATAD/methylation_array.catalog3.dat"
 
+        unset CAT
         if [ -e $SR_CAT ]; then 
             CAT="$SR_CAT"
         fi
@@ -235,6 +237,9 @@ function collect_catalog {
             CAT="$CAT $ME_CAT"
         fi
 
+        if [ -z "$CAT" ]; then
+            continue
+        fi
         # header taken from submitted reads, goes only in first loop
         # We no longer put a "#" in header line
         if [ $WRITE_HEADER == 1 ]; then
@@ -243,8 +248,7 @@ function collect_catalog {
             test_exit_status
             WRITE_HEADER=0
         fi
-            
-        cat $CAT | grep -v "^dataset_name" | sed '/^[[:space:]]*$/d' | sort -u >> $OUTFN
+        cat $CAT | grep -v '^dataset_name' | sed '/^[[:space:]]*$/d' | sort -u >> $OUTFN
         test_exit_status
 
         if [ $JUSTONE ]; then

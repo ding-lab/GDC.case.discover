@@ -180,7 +180,7 @@ else
     confirm $RG_OUT
     confirm $SR_OUT
     confirm $HR_OUT
-#    confirm $MA_OUT    # methylation array currently not implemented in make_catalog3
+    confirm $MA_OUT    # methylation array currently not implemented in make_catalog3
 fi
 
 # TODO: Allow make_catalog3.sh to be called directly without having to do discovery
