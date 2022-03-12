@@ -278,13 +278,14 @@ function collect_demographics {
 
         # header goes only in first loop
         if [ $WRITE_HEADER == 1 ]; then
-            DEM_HEADER=$(grep "^#" $DEM | head -n1)
+            DEM_HEADER=$(head -n1 $DEM)
             echo "$DEM_HEADER" > $DEMS_OUT
             WRITE_HEADER=0
         fi
             
         if [ ! -z $DEMS_OUT ] && [ -f $DEM ]; then
-            grep -v "^#" $DEM | sed '/^[[:space:]]*$/d' >> $DEMS_OUT
+            #grep -v "^case" $DEM | sed '/^[[:space:]]*$/d' >> $DEMS_OUT
+            tail -n +2 $DEM | sed '/^[[:space:]]*$/d' >> $DEMS_OUT
         fi
 
         if [ $JUSTONE ]; then

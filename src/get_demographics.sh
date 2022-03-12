@@ -101,8 +101,8 @@ cat <<EOF
 EOF
 }
 
-# print header
-OUTLINE=$(printf "# case\tdisease\tethnicity\tgender\trace\tdays_to_birth\n")
+# print header.  No hash mark in header
+OUTLINE=$(printf "case\tdisease\tethnicity\tgender\trace\tdays_to_birth\n")
 if [ ! -z $OUTFN ]; then
     echo "$OUTLINE" >> $OUTFN
 else
