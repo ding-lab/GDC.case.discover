@@ -4,14 +4,13 @@
 export GDC_TOKEN="../token/gdc-user-token.2022-03-03T16_20_37.493Z.txt"
 PROJECT="TCGA_DLBCL"  # Administrative project associated with these cases
 #CASES="/home/mwyczalk_test/Projects/CPTAC3/CPTAC3.catalog/CPTAC3.cases.dat"
-#CASES="dat/cases-1-TCGA.dat"
-CASES="dat/cases.dat"
+CASES="dat/cases-1.dat"
 
 # Data model.  See src/get_aliquots.py for details
 # * CPTAC3 for CPTAC3 projects
 # * TCGA for various GDAN projects
-#DATA_MODEL="CPTAC3"
-DATA_MODEL="TCGA"
+DATA_MODEL="CPTAC3"
+#DATA_MODEL="TCGA"
 
 # With vvv each step outputs query details, fewer limits output
 VERBOSE="-vvv"
@@ -27,14 +26,13 @@ if [ ! -x $BID ]; then
 fi
 
 ##############################
-CATALOG="dat/Catalog.dat"
-DEMOGRAPHICS="dat/Demographics.dat"
+CATALOG="dat/${PROJECT}.Catalog3.tsv"
+DEMOGRAPHICS="dat/${PROJECT}.Demographics.tsv"
 
 mkdir -p dat
 
 START=$(date)
 >&2 echo [ $START ] Starting discovery
-#bash src/process_multi_cases.sh -s $SUFFIX_LIST $N -o $CATALOG -D $DEMOGRAPHICS $VERBOSE $@ $CASES
 CMD="bash src/process_multi_cases.sh $N -m $DATA_MODEL -o $CATALOG -D $DEMOGRAPHICS $VERBOSE $@ $CASES $PROJECT"
 echo Running: $CMD
 eval "$CMD"
@@ -47,13 +45,6 @@ fi
 
 END=$(date)
 >&2 echo [ $END ] Discovery complete
-
-# Not doing summary.  Maybe later.  Too many CPTAC3 assumptions
-#SUMMARY_OUT="dat/Catalog.Summary.txt"
-#rm -f $SUMMARY_OUT
-#bash src/summarize_cases.sh $@ -o $SUMMARY_OUT $CATALOG $CASES
-#END2=$(date)
-#>&2 echo [ $END2 ] Summary complete
 
 OUTD="./dat/outputs" # must match value in src/process_multi_cases.sh
 NERR=$(grep -il error $OUTD/*/*log* | wc -l)

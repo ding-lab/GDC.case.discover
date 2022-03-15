@@ -20,7 +20,7 @@ Writes the following intermediate files in the directory OUTD
 * methylation_array.dat
 * submitted_reads.catalog3.dat
 * harmonized_reads.catalog3.dat
-* Also writes demographics - currently not implemented
+* Also writes demographics 
 
 Options:
 -h: Print this help message
