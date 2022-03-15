@@ -66,11 +66,10 @@ def get_data_variety_RNA_BAM(rf):
     rf.loc[chimeric_ix, "data_variety"]="chimeric"
 
 # writes to rf['data_variety'] directly
-# Should also add to rf['metadata']
 def get_data_variety_FASTQ(rf):
     RNA_FQ_ix = (rf['data_format']=='FASTQ')
-    rf['read'] = ""
-    rf['lane'] = ""
+#    rf['read'] = ""
+#    rf['lane'] = ""
     # this approach is a bit idiotic but will do for now
     rf.loc[RNA_FQ_ix & rf['file_name'].str.contains("_R1_"), 'read']="R1"
     rf.loc[RNA_FQ_ix & rf['file_name'].str.contains("_R2_"), 'read']="R2"
@@ -86,8 +85,6 @@ def get_data_variety_FASTQ(rf):
     rf.loc[RNA_FQ_ix & rf['file_name'].str.contains("_L007_"), 'lane']="L007"
     rf.loc[RNA_FQ_ix & rf['file_name'].str.contains("_L008_"), 'lane']="L008"
     rf.loc[RNA_FQ_ix, 'data_variety'] = rf["read"] + "_" + rf["lane"]
-
-    # TODO: add read and lane to metadata.
 
 # An Aliquot Tag is a string associated with an aliquot which may be appended to dataset names
 # It consists of two parts: an annotation code and an aliquot hash, separated by '_'
@@ -250,6 +247,11 @@ def generate_catalog(read_data, aliquots, is_methylation):
     # Add aliquot_annotation to only datasets with such annotation
     m = catalog_data['aliquot_annotation'].notna()
     catalog_data.loc[m, 'metadata'] += ", 'aliquot_annotation': '" + catalog_data.loc[m, 'aliquot_annotation'] + "'"
+
+    # add read and lane info
+    m = catalog_data['read'].notna()
+    catalog_data.loc[m, 'metadata'] += ", 'read': '" + catalog_data.loc[m, 'read'] + "'"
+    catalog_data.loc[m, 'metadata'] += ", 'lane': '" + catalog_data.loc[m, 'lane'] + "'"
 
     catalog_data['metadata'] = "{ " + catalog_data['metadata'] + " }"
     return(catalog_data)
