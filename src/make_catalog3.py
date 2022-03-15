@@ -76,6 +76,7 @@ def get_data_variety_FASTQ(rf):
     rf.loc[RNA_FQ_ix & rf['file_name'].str.contains("_R2_"), 'read']="R2"
     rf.loc[RNA_FQ_ix & rf['file_name'].str.contains("_R3_"), 'read']="R3"
 
+    rf.loc[RNA_FQ_ix & rf['file_name'].str.contains("_L000_"), 'lane']="L000"
     rf.loc[RNA_FQ_ix & rf['file_name'].str.contains("_L001_"), 'lane']="L001"
     rf.loc[RNA_FQ_ix & rf['file_name'].str.contains("_L002_"), 'lane']="L002"
     rf.loc[RNA_FQ_ix & rf['file_name'].str.contains("_L003_"), 'lane']="L003"
