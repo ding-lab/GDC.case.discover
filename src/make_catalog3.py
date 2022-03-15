@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 import argparse, sys, os, binascii
 def eprint(*args, **kwargs):
@@ -68,8 +69,8 @@ def get_data_variety_RNA_BAM(rf):
 # writes to rf['data_variety'] directly
 def get_data_variety_FASTQ(rf):
     RNA_FQ_ix = (rf['data_format']=='FASTQ')
-#    rf['read'] = ""
-#    rf['lane'] = ""
+#    rf['read'] = np.nan
+#    rf['lane'] = np.nan
     # this approach is a bit idiotic but will do for now
     rf.loc[RNA_FQ_ix & rf['file_name'].str.contains("_R1_"), 'read']="R1"
     rf.loc[RNA_FQ_ix & rf['file_name'].str.contains("_R2_"), 'read']="R2"
@@ -248,10 +249,11 @@ def generate_catalog(read_data, aliquots, is_methylation):
     m = catalog_data['aliquot_annotation'].notna()
     catalog_data.loc[m, 'metadata'] += ", 'aliquot_annotation': '" + catalog_data.loc[m, 'aliquot_annotation'] + "'"
 
-    # add read and lane info
-    m = catalog_data['read'].notna()
-    catalog_data.loc[m, 'metadata'] += ", 'read': '" + catalog_data.loc[m, 'read'] + "'"
-    catalog_data.loc[m, 'metadata'] += ", 'lane': '" + catalog_data.loc[m, 'lane'] + "'"
+    if 'read' in catalog_data:
+        # add read and lane info
+        m = catalog_data['read'].notna()
+        catalog_data.loc[m, 'metadata'] += ", 'read': '" + catalog_data.loc[m, 'read'] + "'"
+        catalog_data.loc[m, 'metadata'] += ", 'lane': '" + catalog_data.loc[m, 'lane'] + "'"
 
     catalog_data['metadata'] = "{ " + catalog_data['metadata'] + " }"
     return(catalog_data)
