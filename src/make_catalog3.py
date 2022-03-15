@@ -69,23 +69,23 @@ def get_data_variety_RNA_BAM(rf):
 # writes to rf['data_variety'] directly
 def get_data_variety_FASTQ(rf):
     RNA_FQ_ix = (rf['data_format']=='FASTQ')
-#    rf['read'] = np.nan
-#    rf['lane'] = np.nan
-    # this approach is a bit idiotic but will do for now
-    rf.loc[RNA_FQ_ix & rf['file_name'].str.contains("_R1_"), 'read']="R1"
-    rf.loc[RNA_FQ_ix & rf['file_name'].str.contains("_R2_"), 'read']="R2"
-    rf.loc[RNA_FQ_ix & rf['file_name'].str.contains("_R3_"), 'read']="R3"
 
-    rf.loc[RNA_FQ_ix & rf['file_name'].str.contains("_L000_"), 'lane']="L000"
-    rf.loc[RNA_FQ_ix & rf['file_name'].str.contains("_L001_"), 'lane']="L001"
-    rf.loc[RNA_FQ_ix & rf['file_name'].str.contains("_L002_"), 'lane']="L002"
-    rf.loc[RNA_FQ_ix & rf['file_name'].str.contains("_L003_"), 'lane']="L003"
-    rf.loc[RNA_FQ_ix & rf['file_name'].str.contains("_L004_"), 'lane']="L004"
-    rf.loc[RNA_FQ_ix & rf['file_name'].str.contains("_L005_"), 'lane']="L005"
-    rf.loc[RNA_FQ_ix & rf['file_name'].str.contains("_L006_"), 'lane']="L006"
-    rf.loc[RNA_FQ_ix & rf['file_name'].str.contains("_L007_"), 'lane']="L007"
-    rf.loc[RNA_FQ_ix & rf['file_name'].str.contains("_L008_"), 'lane']="L008"
-    rf.loc[RNA_FQ_ix, 'data_variety'] = rf["read"] + "_" + rf["lane"]
+    if not RNA_FQ_ix.empty:
+        # this approach is a bit idiotic but will do for now
+        rf.loc[RNA_FQ_ix & rf['file_name'].str.contains("_R1_"), 'read']="R1"
+        rf.loc[RNA_FQ_ix & rf['file_name'].str.contains("_R2_"), 'read']="R2"
+        rf.loc[RNA_FQ_ix & rf['file_name'].str.contains("_R3_"), 'read']="R3"
+
+        rf.loc[RNA_FQ_ix & rf['file_name'].str.contains("_L000_"), 'lane']="L000"
+        rf.loc[RNA_FQ_ix & rf['file_name'].str.contains("_L001_"), 'lane']="L001"
+        rf.loc[RNA_FQ_ix & rf['file_name'].str.contains("_L002_"), 'lane']="L002"
+        rf.loc[RNA_FQ_ix & rf['file_name'].str.contains("_L003_"), 'lane']="L003"
+        rf.loc[RNA_FQ_ix & rf['file_name'].str.contains("_L004_"), 'lane']="L004"
+        rf.loc[RNA_FQ_ix & rf['file_name'].str.contains("_L005_"), 'lane']="L005"
+        rf.loc[RNA_FQ_ix & rf['file_name'].str.contains("_L006_"), 'lane']="L006"
+        rf.loc[RNA_FQ_ix & rf['file_name'].str.contains("_L007_"), 'lane']="L007"
+        rf.loc[RNA_FQ_ix & rf['file_name'].str.contains("_L008_"), 'lane']="L008"
+        rf.loc[RNA_FQ_ix, 'data_variety'] = rf["read"] + "_" + rf["lane"]
 
 # An Aliquot Tag is a string associated with an aliquot which may be appended to dataset names
 # It consists of two parts: an annotation code and an aliquot hash, separated by '_'
