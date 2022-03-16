@@ -146,25 +146,29 @@ def get_sample_ids(aliquots):
 # returns tuple of Series sample_code and sample_type_short
 def get_sample_code(aliquots):
     sample_map = [
-        ["Blood Derived Normal", "blood_normal", "N"],
 # N, blood_normal:   Blood Derived Normal
-        ["Solid Tissue Normal", "tissue_normal", "A"],
+        ["Blood Derived Normal", "blood_normal", "N"],
 # A, tissue_normal:   Solid Tissue Normal
-        ["Primary Tumor", "tumor", "T"],
+        ["Solid Tissue Normal", "tissue_normal", "A"],
 # T, tumor:   Primary Tumor or Tumor
+        ["Primary Tumor", "tumor", "T"],
         ["Tumor", "tumor", "T"],
-        ["Buccal Cell Normal" , "buccal_normal", "Nbc"],
 # Nbc, buccal_normal:   Buccal Cell Normal
-        ["Primary Blood Derived Cancer - Bone Marrow" , "tumor_bone_marrow", "Tbm"],
+        ["Buccal Cell Normal" , "buccal_normal", "Nbc"],
 # Tbm, tumor_bone_marrow: Primary Blood Derived Cancer - Bone Marrow
-        ["Primary Blood Derived Cancer - Peripheral Blood" , "tumor_peripheral_blood", "Tpb"],
+        ["Primary Blood Derived Cancer - Bone Marrow" , "tumor_bone_marrow", "Tbm"],
 # Tpb, tumor_peripheral_blood: Primary Blood Derived Cancer - Peripheral Blood
-        ["Recurrent Tumor" , "recurrent_tumor", "R"],
+        ["Primary Blood Derived Cancer - Peripheral Blood" , "tumor_peripheral_blood", "Tpb"],
 # R, recurrent_tumor:   Recurrent Tumor
-        ["Slides" , "slides", "S"],
+        ["Recurrent Tumor" , "recurrent_tumor", "R"],
 # S, slides: Slides - this is new and weird but adding this along with code to detect such situations in the future
-        ["FFPE Scrolls", "ffpe", "F"]
+        ["Slides" , "slides", "S"],
 # FFPE scrolls also observed in the wild
+        ["FFPE Scrolls", "ffpe", "F"],
+# 'Additional - New Primary' - assume we can treat this exactly as a tumor...
+        ['Additional - New Primary', "tumor", "T"],
+# Metastatic
+        ["Metastatic", "metastatic", "M"]
     ]
     sst = pd.DataFrame(sample_map, columns = ['sample_type', 'sample_type_short', 'sample_code'])
     merged = aliquots.merge(sst, on="sample_type", how="left")# [['sample_code', 'sample_type_short']]
@@ -185,7 +189,9 @@ def get_dataset_name(cd):
     cd.loc[m, 'labeled_case'] += ('.' + cd.loc[m, 'aliquot_tag'])
 
     # include data variety field (e.g., R1) only if non-trivial
-    cd['data_variety_tag'] = '.' + cd['data_variety'] 
+    cd['data_variety_tag'] = ''
+    m = cd['data_variety'].notna() 
+    cd.loc[m, 'data_variety_tag'] = '.' + cd.loc[m,'data_variety'] 
     cd.loc[cd['data_variety_tag'] == '.', "data_variety_tag"] = ""
 
     cd['alignment_tag'] = ""
