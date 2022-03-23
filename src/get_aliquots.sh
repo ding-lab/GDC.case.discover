@@ -5,7 +5,7 @@
 
 read -r -d '' USAGE <<'EOF'
 Query GDC to obtain sample and aliquot details associated with a case.
-TCGA and CPTAC3 data models supported.
+TCGA and CPTAC data models supported.
 
 Usage:
   get_aliquots.sh [options] CASE
@@ -14,7 +14,7 @@ Options:
 -h: Print this help message
 -v: Verbose.  May be repeated to get verbose output from queryGDC.sh
 -o OUTFN: write results to output file instead of STDOUT.  Will be overwritten if exists
--m DATA_MODEL: CPTAC3 (default) or TCGA.  Details below
+-m DATA_MODEL: CPTAC (default) or TCGA.  Details below
 
 Writes the following columns for each aliquot:
     * case
@@ -31,8 +31,10 @@ Specific to TCGA-style data with sample, portion, analyte, and aliquots
 
 Data model describes the relationship between the case and aliquot in the GDC data model.  Two
 varieties (currently) exist:
-* CPTAC3: data / sample / aliquots
-* TCGA: data / sample / portions / analytes / aliquots
+* CPTAC: case / sample / aliquots
+* TCGA: case / sample / portions / analytes / aliquots
+
+Other data models may exist.  Question to ask GDC
 
 The data model determines the GraphQL query "aliquot_from_case" and
 in the subsequent parsing (`src/parse_aliquot.py`)
@@ -41,7 +43,7 @@ EOF
 
 PYTHON="/diskmnt/Projects/Users/mwyczalk/miniconda3/bin/python"
 QUERYGDC="src/queryGDC.sh"
-DATA_MODEL="CPTAC3"
+DATA_MODEL="CPTAC"
 # http://wiki.bash-hackers.org/howto/getopts_tutorial
 while getopts ":hvo:m:" opt; do
   case $opt in
@@ -130,7 +132,7 @@ function aliquot_from_case_TCGA {
 EOF
 }
 
-function aliquot_from_case_CPTAC3 {
+function aliquot_from_case_CPTAC {
     SAMPLE=$1 # E.g C3L-00004-31
     cat <<EOF
     {
@@ -153,8 +155,8 @@ EOF
 }
 
 
-if [ "$DATA_MODEL" == "CPTAC3" ] ; then
-    Q=$(aliquot_from_case_CPTAC3 $CASE)
+if [ "$DATA_MODEL" == "CPTAC" ] ; then
+    Q=$(aliquot_from_case_CPTAC $CASE)
 elif [ "$DATA_MODEL" == "TCGA" ]; then
     Q=$(aliquot_from_case_TCGA $CASE)
 else

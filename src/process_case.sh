@@ -34,9 +34,6 @@ Options:
 Require GDC_TOKEN environment variable to be defined with path to gdc-user-token.*.txt file
 
 Both DISEASE (e.g., BRCA) and PROJECT (e.g., CPTAC3) are passed as-is to appropriate Catalog columns
-
-SUFFIX_LIST is a TSV file listing a UUID or Aliquot ID in first column,
-second column is suffix to be added to sample_name.  This allows specific samples to have modified names
 EOF
 
 # An optimization which can be performed is to reuse results from past runs

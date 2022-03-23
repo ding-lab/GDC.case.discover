@@ -13,22 +13,23 @@ def eprint(*args, **kwargs):
 # Inputs
 # -i YAML - in specific format, document
 # -o output TSV table
-# -m data_model - must be "TCGA" or "CPTAC3"
+# -m data_model - must be "TCGA" or "CPTAC"
 
-# Goal is to create Catalog3 for CPTAC3.  Note that GDC has a different internal model for CPTAC3 data vs. TCGA.
+# Note that GDC has a different internal model for CPTAC data vs. TCGA.
 # This diffrence is explored in initial TCGA work here:
 #     /diskmnt/Projects/cptac_scratch/CPTAC3.workflow/discover/dev/20220105.GDAC_test/README.project.md
+# Background: https://gdc.cancer.gov/developers/gdc-data-model
 #
-# * CPTAC3 data model:  data / sample / aliquots
-# * TCGA data model: data / sample / portions / analytes / aliquots
+# * CPTAC data model:  case - sample - aliquots
+# * TCGA data model: case - sample - portions - analytes - aliquots
 #
 # This difference is reflected in the GraphQL query "aliquot_from_case" in the get_aliquot step, and
 # in the subsequent parsing.  For TCGA the parsing has been implemented in the python parser 
-# `parse_aliquot_TCGA.py`.  Work here will be to implement parsing of CPTAC3-model data in the python
+# `parse_aliquot_TCGA.py`.  Work here will be to implement parsing of CPTAC-model data in the python
 # parser and to make the get_aliquot.sh step be able to handle both modes.  
 
 # It is possible there may be other data models.  For now, will pass "data_model" as a string, with
-# only "CPTAC3" and "TCGA" recognized.
+# only "CPTAC" and "TCGA" recognized.
 
 # In either data model, the format of the file aliquots.dat generaged by get_aliquots.sh will be the same
 
@@ -69,7 +70,7 @@ def eprint(*args, **kwargs):
 #        }, ...
 
 #
-# For CPTAC3, it is
+# For CPTAC, it is
 #    { sample(with_path_to: {type: "case", submitter_id:"$CASE"}, first:10000) {
 #          submitter_id
 #          id
@@ -121,7 +122,7 @@ def parse_YAML(infn, outfn, case, data_model):
                         if case is not None:
                             output_data = (case,) + output_data
                         print('\t'.join(output_data), file=outf)
-    elif data_model == "CPTAC3":
+    elif data_model == "CPTAC":
 #{
 #  "data": {
 #    "sample": [
@@ -168,7 +169,7 @@ if __name__ == "__main__":
     parser.add_argument("-i", "--input", dest="infn", help="Input file name.  Default reads from stdin")
     parser.add_argument("-o", "--output", dest="outfn", help="Output file name.  default writes to stdout")
     parser.add_argument("-c", "--case", dest="case", help="Case name to prepend to table, for convenience")
-    parser.add_argument("-m", "--data_model", dest="data_model", default="CPTAC3", choices={"CPTAC3", "TCGA"}, help="GDC data model associating case and aliquots")
+    parser.add_argument("-m", "--data_model", dest="data_model", default="CPTAC", choices={"CPTAC", "TCGA"}, help="GDC data model associating case and aliquots")
 
     args = parser.parse_args()
 

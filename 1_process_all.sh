@@ -2,21 +2,21 @@
 
 # This needs to be exported, to be visible to GDC Query scripts
 export GDC_TOKEN="../token/gdc-user-token.2022-03-03T16_20_37.493Z.txt"
-PROJECT="TCGA_DLBCL"  # Administrative project associated with these cases
+PROJECT="DLBCL"  # Administrative project associated with these cases
 #CASES="/home/mwyczalk_test/Projects/CPTAC3/CPTAC3.catalog/CPTAC3.cases.dat"
-CASES="dat/cases-1.dat"
+CASES="dat/cases_DLBCL-202.dat"
 
 # Data model.  See src/get_aliquots.py for details
 # * CPTAC3 for CPTAC3 projects
 # * TCGA for various GDAN projects
-DATA_MODEL="CPTAC3"
-#DATA_MODEL="TCGA"
+# DATA_MODEL="CPTAC3"
+DATA_MODEL="TCGA"
 
 # With vvv each step outputs query details, fewer limits output
 VERBOSE="-vvv"
 
 # N determines how many discovery processes run at once
-N="-J 5"
+N="-J 10"
 
 # Make sure that src/bashids/bashids exists.  This should be tested for in the code but for now make it easy
 # May need to do `git submodule init; git submodule update`

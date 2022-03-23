@@ -33,6 +33,7 @@ Input data: Read the following files $DATD:
 * aliquots.dat
 * submitted_reads.dat
 * harmonized_reads.dat
+* methylation_array.dat
 All three files must exist.
 
 Files we write:
