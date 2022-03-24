@@ -19,6 +19,7 @@ Options:
 -D DEMS_OUT: write demographics information from all cases to given file
 -C: create catalog only.  Assume that all discovery files exist from previous run 
 -m DATA_MODEL: data model.  TCGA or CPTAC3
+-L LOGBASE: base directory of runtime output.  Default ./dat
 
 CASES is a TSV file with case name and disease in first and second columns
 
@@ -33,10 +34,11 @@ NJOBS=0
 # Where scripts live
 BIND="src"
 XARGS=""
+LOGBASE="./dat"
 
 # Using rungo as a template for parallel: https://github.com/ding-lab/TinDaisy/blob/master/src/rungo
 # http://wiki.bash-hackers.org/howto/getopts_tutorial
-while getopts ":hdvJ:1o:D:Cm:" opt; do
+while getopts ":hdvJ:1o:D:Cm:L:" opt; do
   case $opt in
     h)
       echo "$USAGE"
@@ -70,6 +72,9 @@ while getopts ":hdvJ:1o:D:Cm:" opt; do
       ;;
     m)
       XARGS="$XARGS -m $OPTARG"
+      ;;
+    L)
+      LOGBASE="$OPTARG"
       ;;
     \?)
       >&2 echo "Invalid option: -$OPTARG"
@@ -154,8 +159,6 @@ else
     >&2 echo Job submission with $NJOBS cases in parallel
 fi
 
-# logs will go in same directory as output
-LOGBASE="./dat"
 
 function process_cases {
     # Case file has two tab separated columns, case name and disease

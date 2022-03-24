@@ -6,16 +6,16 @@ PROJECT="TCGA-DLBCL"  # Administrative project associated with these cases
 CASES="/home/mwyczalk_test/Projects/Catalog3/GDAN.catalog/Catalog3/DLBCL.cases.tsv"
 
 # Data model.  See src/get_aliquots.py for details
-# * CPTAC3 for CPTAC3 projects
+# * CPTAC for CPTAC projects
 # * TCGA for various GDAN projects
-# DATA_MODEL="CPTAC3"
-DATA_MODEL="TCGA"
+DATA_MODEL="CPTAC"
+#DATA_MODEL="TCGA"
 
 # With vvv each step outputs query details, fewer limits output
 VERBOSE="-vvv"
 
 # N determines how many discovery processes run at once
-N="-J 10"
+N="-J 5"
 
 # Make sure that src/bashids/bashids exists.  This should be tested for in the code but for now make it easy
 # May need to do `git submodule init; git submodule update`
