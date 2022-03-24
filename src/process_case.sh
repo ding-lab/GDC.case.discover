@@ -26,7 +26,7 @@ Options:
 -h: Print this help message
 -v: Verbose.  May be repeated to get verbose output from called scripts
 -d: dry run
--O OUTD_BASE: intermediate file output directory.  Default: ./dat
+-O OUTD: intermediate file output directory.  Default: ./dat
 -D DEM_OUT: write demographics data to given file
 -C: create catalog only.  Assume that all the above files exist in $OUTD except for the catalog3
 -m DATA_MODEL: determines how case associated with aliquot.  Allowed values TCGA or CPTAC
@@ -42,7 +42,7 @@ EOF
 
 # Where scripts live
 BIND="src"
-OUTD_BASE="./dat"
+OUTD="./dat"
 # http://wiki.bash-hackers.org/howto/getopts_tutorial
 while getopts ":hdf:O:vD:Cm:" opt; do
   case $opt in
@@ -57,7 +57,7 @@ while getopts ":hdf:O:vD:Cm:" opt; do
       DRYRUN="d"
       ;;
     O)
-      OUTD_BASE="$OPTARG"
+      OUTD="$OPTARG"
       ;;
     D)
       DEM_OUT="$OPTARG"
@@ -92,7 +92,7 @@ CASE=$1
 DISEASE=$2
 PROJECT=$3
 
-mkdir -p $OUTD_BASE
+mkdir -p $OUTD
 
 function run_cmd {
     CMD=$1
@@ -141,7 +141,6 @@ function confirm {
 
 >&2 echo Processing $CASE \($DISEASE\)
 
-OUTD="$OUTD_BASE/outputs/$CASE"
 RG_OUT="$OUTD/read_groups.dat"
 SR_OUT="$OUTD/submitted_reads.dat"
 HR_OUT="$OUTD/harmonized_reads.dat"
