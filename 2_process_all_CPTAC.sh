@@ -2,7 +2,7 @@
 
 # This needs to be exported, to be visible to GDC Query scripts
 export GDC_TOKEN="../token/gdc-user-token.2022-03-03T16_20_37.493Z.txt"
-PROJECT="TCGA-DLBCL"  # Administrative project associated with these cases
+PROJECT="DLBCL"  # Administrative project associated with these cases
 CASES="/home/mwyczalk_test/Projects/Catalog3/GDAN.catalog/Catalog3/DLBCL.cases.tsv"
 
 # Data model.  See src/get_aliquots.py for details
