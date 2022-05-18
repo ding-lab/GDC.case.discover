@@ -238,6 +238,7 @@ the prefix used to generate the sample label.
 | Duplicate Item: CHOP GBM Triplicate Recurrent Tumor RNA Aliquot | `ARNA`
 | Duplicate item: No new shipment/material. DNA aliquot resubmission for Broad post-harmonization sequencing and sample type mismatch correction. | RDNA
 | Duplicate item: PDA BIOTEXT DNA | BIOTEXT
+| Duplicate item: PDA BioTEXT RNA | BIOTEXT
 | Duplicate item: PDA Pilot - bulk-derived DNA | BULK
 | Duplicate item: PDA Pilot - core-derived DNA | CORE
 | Duplicate item: Replacement DNA Distribution - original aliquot failed | RDNA

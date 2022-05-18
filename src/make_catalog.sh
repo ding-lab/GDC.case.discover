@@ -426,6 +426,7 @@ function get_aliquot_annotation_codes {
 # | Duplicate Item: CHOP GBM Triplicate Recurrent Tumor RNA Aliquot | `ARNA`
 # | Duplicate item: No new shipment/material. DNA aliquot resubmission for Broad post-harmonization sequencing and sample type mismatch correction. | `RDNA`
 # | Duplicate item: PDA BIOTEXT DNA | `BIOTEXT`
+# | Duplicate item: PDA BioTEXT RNA | `BIOTEXT`
 # | Duplicate item: PDA Pilot - bulk-derived DNA | `BULK`
 # | Duplicate item: PDA Pilot - core-derived DNA | `CORE`
 # | Duplicate item: Replacement DNA Distribution - original aliquot failed | `RDNA`
@@ -460,6 +461,7 @@ function get_aliquot_annotation_codes {
     elif [ "$ALIQUOT_ANNOTATION" == "Duplicate item: Replacement RNA aliquot per UNC request" ]; then ANN_CODE="RDNA"
     elif [ "$ALIQUOT_ANNOTATION" == "Original DNA Aliquot" ]; then ANN_CODE="ODNA"
     elif [ "$ALIQUOT_ANNOTATION" == "Duplicate item: PDA BIOTEXT DNA" ]; then ANN_CODE="BIOTEXT"
+    elif [ "$ALIQUOT_ANNOTATION" == "Duplicate item: PDA BioTEXT RNA" ]; then ANN_CODE="BIOTEXT"    # this is pretty arbitrary. Could be RRNA or BRNA
     elif [ "$ALIQUOT_ANNOTATION" == "Duplicate item: Supplementary DNA Aliquot" ]; then ANN_CODE="ADNA"
     elif [ "$ALIQUOT_ANNOTATION" == "Duplicate item: Replacement DNA Aliquot" ]; then ANN_CODE="RDNA"
     elif [ "$ALIQUOT_ANNOTATION" == "Duplicate item: No new shipment/material. DNA aliquot resubmission for Broad post-harmonization sequencing and sample type mismatch correction." ]; then ANN_CODE="RDNA"
