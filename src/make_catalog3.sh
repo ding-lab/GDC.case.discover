@@ -6,15 +6,6 @@
 # Create catalog3 for a given output directory
 # Assumes names of output files
 # Processes both submitted reads and harmonized reads
-# Does not deal with Methylation at this time
-
-#DATD="/Users/mwyczalk/Projects/CPTAC3/Discovery/dev.TCGA2/CPTAC3.case.discover/data/TCGA-A6-6780"
-#DATD="/Users/mwyczalk/Projects/CPTAC3/Discovery/dev.TCGA2/CPTAC3.case.discover/data/TCGA-44-6146"
-# C3L-00016 has multiple samples per dataset
-# DATD="/Users/mwyczalk/Projects/CPTAC3/Discovery/dev.TCGA2/CPTAC3.case.discover/data/C3L-00016"
-# TCGA-A6-5665 has multiple annotations for some datasets
-# DATD="/Users/mwyczalk/Projects/CPTAC3/Discovery/dev.TCGA2/CPTAC3.case.discover/data/TCGA-A6-5665"
-
 
 read -r -d '' USAGE <<'EOF'
 Create catalog3 files for both submitted and harmonized reads

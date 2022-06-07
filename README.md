@@ -57,37 +57,35 @@ here](https://docs.gdc.cancer.gov/Data_Submission_Portal/Users_Guide/Authenticat
 
 # File output format
 
+[Catalog 3 file format](https://docs.google.com/document/d/1uSgle8jiIx9EnDFf_XHV3fWYKFElszNLkmGlht_CQGE/edit#)
+
 ## Catalog file
 
 Catalog file columns:
 
-1. `sample_name` - ad hoc name for this file, generated for convenience and consistency
-2. `case`
-3. `disease`
+1. `dataset_name` - ad hoc name for this file, generated for convenience and consistency, formerly called `sample_name`
+2. `case` - Unique ID of participant
+3. `disease` - Disease code
 4. `experimental_strategy` - WGS, WXS, RNA-Seq, miRNA-Seq, Methylation Array, Targeted Sequencing
-5. `short_sample_type` - short name for `sample_type`: `blood_normal`, `tissue_normal`, `tumor`, `buccal_normal`, `tumor_bone_marrow`, `tumor_peripheral_blood`:w
-6. `aliquot` - name of aliquot used
-7. `filename`
-8. `filesize`
+5. `specimen_type` - short name for `sample_type`: `blood_normal`, `tissue_normal`, `tumor`, `buccal_normal`, `tumor_bone_marrow`, `tumor_peripheral_blood`
+6. `specimen_name` - Label of biospecimen which was sequenced
+7. `filename` - This does not include a path
+8. `filesize` - Size in bytes as shown by `ls -l`
 9. `data_format` - BAM, FASTQ, IDAT
-10. `result_type` - ad hoc value specific to sample type
+10. `data_variety` - additional data descriptors
     * "chimeric", "genomic", "transcriptome" for RNA-Seq BAMs, 
     * "Red" or "Green" for Methylation Array
     * "NA" otherwise
-11. `UUID`
-12. `MD5`
-13. `reference` - assumed reference used, hg19 for submitted aligned reads, NA for submitted unaligned reads, and hg38 for harmonized reads
-14. `sample_type` - sample type as reported from GDC, e.g., Blood Derived Normal, Solid Tissue Normal, Primary Tumor, and others
-15. `sample_id` - GDC sample name  
-16. `sample_metadata` - Ad hoc metadata associated with this sample.  May be comma-separated list
-     - see updates below
-17. `aliquot_annotation` - Annotation note associated with aliquot, from GDC 
+11. `alignment` - Description of reference or alignment status
+12. `project` - General administrative category of dataset, e.g., "HTAN"
+13. `uuid` - Unique identifier of this dataset.  Mandatory, must be unique
+14. `md5` - Fingerprint of data for validation purposes, as provided by data generator (sequencing lab)
+15. `metadata` - JSON string providing additional details about this dataset
 
-Example catalog file...
 
-### Sample names
+### Dataset names
 
-Sample names are ad hoc names we generate for convenience.  They indicate the case, experimental strategy, 
+Dataset names are ad hoc names we generate for convenience.  They indicate the case, experimental strategy, 
 sample type, whether data are harmonized (`hg38`) and any aliquot annotation codes.  Examples include,
 
 See Catalog v3 file
