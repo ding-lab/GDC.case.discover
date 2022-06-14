@@ -246,20 +246,20 @@ def generate_catalog(read_data, aliquots, is_methylation):
     # Other metadata to add - gdc_sample_type (full name as reported by GDC)
 
     # Add aliquot_tag to everything
-    meta_aliquot_tag = "'aliquot_tag': '" + catalog_data['aliquot_tag'] + "'"   # e.g., 'aliquot_tag': 'ALQ_e412b5f2'
+    meta_aliquot_tag = '"aliquot_tag": "' + catalog_data['aliquot_tag'] + '"'   # e.g., "aliquot_tag": "ALQ_e412b5f2" - note, single quotes don't work
     catalog_data['metadata'] = meta_aliquot_tag
 
-    catalog_data['metadata'] += ", 'gdc_sample_type': '" + catalog_data['gdc_sample_type'] + "'"
+    catalog_data['metadata'] += ', "gdc_sample_type": "' + catalog_data['gdc_sample_type'] + '"'
 
     # Add aliquot_annotation to only datasets with such annotation
     m = catalog_data['aliquot_annotation'].notna()
-    catalog_data.loc[m, 'metadata'] += ", 'aliquot_annotation': '" + catalog_data.loc[m, 'aliquot_annotation'] + "'"
+    catalog_data.loc[m, 'metadata'] += ', "aliquot_annotation": "' + catalog_data.loc[m, 'aliquot_annotation'] + '"'
 
     if 'read' in catalog_data:
         # add read and lane info
         m = catalog_data['read'].notna()
-        catalog_data.loc[m, 'metadata'] += ", 'read': '" + catalog_data.loc[m, 'read'] + "'"
-        catalog_data.loc[m, 'metadata'] += ", 'lane': '" + catalog_data.loc[m, 'lane'] + "'"
+        catalog_data.loc[m, 'metadata'] += ', "read": "' + catalog_data.loc[m, 'read'] + '"'
+        catalog_data.loc[m, 'metadata'] += ', "lane": "' + catalog_data.loc[m, 'lane'] + '"'
 
     catalog_data['metadata'] = "{ " + catalog_data['metadata'] + " }"
     return(catalog_data)
