@@ -1,6 +1,8 @@
 import numpy as np
 import pandas as pd
 import argparse, sys, os, binascii
+import csv
+
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
 
@@ -262,6 +264,9 @@ def generate_catalog(read_data, aliquots, is_methylation):
         catalog_data.loc[m, 'metadata'] += ', "lane": "' + catalog_data.loc[m, 'lane'] + '"'
 
     catalog_data['metadata'] = "{ " + catalog_data['metadata'] + " }"
+
+    # this is a hack to prevent metadata from being NaN.  however, issue is not resolved
+    catalog_data.loc[catalog_data['metadata'].isnull(), 'metadata'] = '{}'
     return(catalog_data)
 
 def write_catalog(outfn, catalog_data, disease, project):
@@ -280,7 +285,7 @@ def write_catalog(outfn, catalog_data, disease, project):
     write_data = catalog_data[header]
 
     print("Writing catalog to " + outfn)
-    write_data.to_csv(outfn, sep="\t", index=False)
+    write_data.to_csv(outfn, sep="\t", quoting=csv.QUOTE_NONE, index=False)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Processes reads files to create a catalog3 view of each entry")
