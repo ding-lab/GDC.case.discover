@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import argparse, sys, os, binascii
 import csv
+import re
 
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
@@ -68,26 +69,54 @@ def get_data_variety_RNA_BAM(rf):
     rf.loc[transcriptome_ix, "data_variety"]="transcriptome"
     rf.loc[chimeric_ix, "data_variety"]="chimeric"
 
+# Parse filename for read indicator like _R1_
+def get_read(fn):
+     match = re.search(r'_(R\d)_', fn)
+     return match.group(1) if match else None
+
+# Parse filename for lane indicator like _L001_
+def get_lane(fn):
+     match = re.search(r'_(L\d\d\d)_', fn)
+     return match.group(1) if match else None
+
+# Parse filename for sample number indicator like _S12_
+def get_sample_number(fn):
+     match = re.search(r'_(S\d+)_', fn)
+     return match.group(1) if match else None
+
+# Parse filename for index indicator like _I2_
+def get_index(fn):
+     match = re.search(r'_(I\d)_', fn)
+     return match.group(1) if match else None
+
+# append stringB to stringA with _ in between
+# deals nicely if either of these are None
+def nice_append(stringA, stringB):
+    if stringA is None: return stringB
+    if stringB is None: return stringA
+    return stringA + "_" + stringB
+
+def get_dv_string(rf_row):
+    dv = nice_append(None, rf_row['sample'])
+    dv = nice_append(dv, rf_row['lane'])
+    dv = nice_append(dv, rf_row['read'])
+    dv = nice_append(dv, rf_row['index'])
+    return dv
+
+# Creates a convenient name like S19_L005_R1 which incorporates illumina sample, lane, read, and index values
+# https://support.illumina.com/help/BaseSpace_OLH_009008/Content/Source/Informatics/BS/NamingConvention_FASTQ-files-swBS.htm
 # writes to rf['data_variety'] directly
 def get_data_variety_FASTQ(rf):
     RNA_FQ_ix = (rf['data_format']=='FASTQ')
 
     if not RNA_FQ_ix.empty:
-        # this approach is a bit idiotic but will do for now
-        rf.loc[RNA_FQ_ix & rf['file_name'].str.contains("_R1_"), 'read']="R1"
-        rf.loc[RNA_FQ_ix & rf['file_name'].str.contains("_R2_"), 'read']="R2"
-        rf.loc[RNA_FQ_ix & rf['file_name'].str.contains("_R3_"), 'read']="R3"
+        rf.loc[RNA_FQ_ix, 'read'] = rf.loc[RNA_FQ_ix].apply(lambda row: get_read(row['file_name']), axis=1)
+        rf.loc[RNA_FQ_ix, 'lane'] = rf.loc[RNA_FQ_ix].apply(lambda row: get_lane(row['file_name']), axis=1)
+        rf.loc[RNA_FQ_ix, 'sample'] = rf.loc[RNA_FQ_ix].apply(lambda row: get_sample_number(row['file_name']), axis=1)
+        rf.loc[RNA_FQ_ix, 'index'] = rf.loc[RNA_FQ_ix].apply(lambda row: get_index(row['file_name']), axis=1)
+        rf.loc[RNA_FQ_ix, 'data_variety'] = rf.loc[RNA_FQ_ix].apply(lambda row: get_dv_string(row), axis=1)
 
-        rf.loc[RNA_FQ_ix & rf['file_name'].str.contains("_L000_"), 'lane']="L000"
-        rf.loc[RNA_FQ_ix & rf['file_name'].str.contains("_L001_"), 'lane']="L001"
-        rf.loc[RNA_FQ_ix & rf['file_name'].str.contains("_L002_"), 'lane']="L002"
-        rf.loc[RNA_FQ_ix & rf['file_name'].str.contains("_L003_"), 'lane']="L003"
-        rf.loc[RNA_FQ_ix & rf['file_name'].str.contains("_L004_"), 'lane']="L004"
-        rf.loc[RNA_FQ_ix & rf['file_name'].str.contains("_L005_"), 'lane']="L005"
-        rf.loc[RNA_FQ_ix & rf['file_name'].str.contains("_L006_"), 'lane']="L006"
-        rf.loc[RNA_FQ_ix & rf['file_name'].str.contains("_L007_"), 'lane']="L007"
-        rf.loc[RNA_FQ_ix & rf['file_name'].str.contains("_L008_"), 'lane']="L008"
-        rf.loc[RNA_FQ_ix, 'data_variety'] = rf["read"] + "_" + rf["lane"]
+
 
 # An Aliquot Tag is a string associated with an aliquot which may be appended to dataset names
 # It consists of two parts: an annotation code and an aliquot hash, separated by '_'
@@ -102,7 +131,6 @@ def get_data_variety_FASTQ(rf):
 # Aliquot has is a CRC checksum string based on aliquot_submitter_id, used to create a unique name
 #    compact representation of aliquot name.  Details about CRC checksums:
 #    See https://stackoverflow.com/questions/44804668/how-to-calculate-crc32-checksum-from-a-string-on-linux-bash
-
 def get_aliquot_tag(aliquots):
     def get_hash(text):
         return format(binascii.crc32(text.encode("utf8")), "x")
@@ -257,11 +285,17 @@ def generate_catalog(read_data, aliquots, is_methylation):
     m = catalog_data['aliquot_annotation'].notna()
     catalog_data.loc[m, 'metadata'] += ', "aliquot_annotation": "' + catalog_data.loc[m, 'aliquot_annotation'] + '"'
 
+    # Add metadata for FASTQ files
     if 'read' in catalog_data:
         # add read and lane info
+        m = catalog_data['sample'].notna()
+        catalog_data.loc[m, 'metadata'] += ', "sample": "' + catalog_data.loc[m, 'sample'] + '"'
+        m = catalog_data['lane'].notna()
+        catalog_data.loc[m, 'metadata'] += ', "lane": "' + catalog_data.loc[m, 'lane'] + '"'
         m = catalog_data['read'].notna()
         catalog_data.loc[m, 'metadata'] += ', "read": "' + catalog_data.loc[m, 'read'] + '"'
-        catalog_data.loc[m, 'metadata'] += ', "lane": "' + catalog_data.loc[m, 'lane'] + '"'
+        m = catalog_data['index'].notna()
+        catalog_data.loc[m, 'metadata'] += ', "index": "' + catalog_data.loc[m, 'index'] + '"'
 
     catalog_data['metadata'] = "{ " + catalog_data['metadata'] + " }"
 
