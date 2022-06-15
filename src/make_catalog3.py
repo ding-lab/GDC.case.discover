@@ -1,8 +1,7 @@
 import numpy as np
 import pandas as pd
 import argparse, sys, os, binascii
-import csv
-import re
+import csv, re, json
 
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
@@ -230,6 +229,30 @@ def get_dataset_name(cd):
     dataset_name = cd['labeled_case'] +'.'+ cd['experimental_strategy_short'] + cd['data_variety_tag'] +'.'+ cd['sample_code'] + cd['alignment_tag']
     return dataset_name        
 
+# append {key: row[key]} to dictionary d provided key exists in row and is not empty or blank
+def append_safely(d, row, key):
+    if key not in row.keys():
+        return d
+    v = row[key]
+    if v == "":
+        return d
+    if v == None:
+        return d
+    if pd.isnull(v):
+        return d
+    d[key] = row[key]
+    return d
+
+def get_metadata_json(row):
+    md = {}     # metadata dictionary
+    md = append_safely(md, row, 'aliquot_tag')
+    md = append_safely(md, row, 'aliquot_annotation')
+    md = append_safely(md, row, 'sample')
+    md = append_safely(md, row, 'lane')
+    md = append_safely(md, row, 'read')
+    md = append_safely(md, row, 'index')
+    return json.dumps(md)
+
 def generate_catalog(read_data, aliquots, is_methylation):
     # process read_data
     # Add "data_variety" column to read_data
@@ -270,37 +293,9 @@ def generate_catalog(read_data, aliquots, is_methylation):
         'sample_type': 'gdc_sample_type', 'sample_type_short': 'sample_type'})
     catalog_data['specimen_name'] = catalog_data['aliquot_submitter_id']
 
-    # Generate metadata.  This is a work in progress
-    # Since metadata is JSON this could be done using more sophisticated libraries, but for now
-    # just piece it together
-    # Other metadata to add - gdc_sample_type (full name as reported by GDC)
+    # Generate metadata as JSON string
+    catalog_data['metadata'] = catalog_data.apply(lambda row: get_metadata_json(row), axis=1)
 
-    # Add aliquot_tag to everything
-    meta_aliquot_tag = '"aliquot_tag": "' + catalog_data['aliquot_tag'] + '"'   # e.g., "aliquot_tag": "ALQ_e412b5f2" - note, single quotes don't work
-    catalog_data['metadata'] = meta_aliquot_tag
-
-    catalog_data['metadata'] += ', "gdc_sample_type": "' + catalog_data['gdc_sample_type'] + '"'
-
-    # Add aliquot_annotation to only datasets with such annotation
-    m = catalog_data['aliquot_annotation'].notna()
-    catalog_data.loc[m, 'metadata'] += ', "aliquot_annotation": "' + catalog_data.loc[m, 'aliquot_annotation'] + '"'
-
-    # Add metadata for FASTQ files
-    if 'read' in catalog_data:
-        # add read and lane info
-        m = catalog_data['sample'].notna()
-        catalog_data.loc[m, 'metadata'] += ', "sample": "' + catalog_data.loc[m, 'sample'] + '"'
-        m = catalog_data['lane'].notna()
-        catalog_data.loc[m, 'metadata'] += ', "lane": "' + catalog_data.loc[m, 'lane'] + '"'
-        m = catalog_data['read'].notna()
-        catalog_data.loc[m, 'metadata'] += ', "read": "' + catalog_data.loc[m, 'read'] + '"'
-        m = catalog_data['index'].notna()
-        catalog_data.loc[m, 'metadata'] += ', "index": "' + catalog_data.loc[m, 'index'] + '"'
-
-    catalog_data['metadata'] = "{ " + catalog_data['metadata'] + " }"
-
-    # this is a hack to prevent metadata from being NaN.  however, issue is not resolved
-    catalog_data.loc[catalog_data['metadata'].isnull(), 'metadata'] = '{}'
     return(catalog_data)
 
 def write_catalog(outfn, catalog_data, disease, project):
