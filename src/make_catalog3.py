@@ -105,15 +105,20 @@ def get_dv_string(rf_row):
 # Creates a convenient name like S19_L005_R1 which incorporates illumina sample, lane, read, and index values
 # https://support.illumina.com/help/BaseSpace_OLH_009008/Content/Source/Informatics/BS/NamingConvention_FASTQ-files-swBS.htm
 # writes to rf['data_variety'] directly
+# This is also applied to unaligned BAMs
 def get_data_variety_FASTQ(rf):
-    RNA_FQ_ix = (rf['data_format']=='FASTQ')
+    FQ_ix = rf['data_format']=='FASTQ'
+    BM_ix = rf['data_format']=='BAM' 
+    UA_ix = rf['alignment']=='unaligned'
 
-    if not RNA_FQ_ix.empty:
-        rf.loc[RNA_FQ_ix, 'read'] = rf.loc[RNA_FQ_ix].apply(lambda row: get_read(row['file_name']), axis=1)
-        rf.loc[RNA_FQ_ix, 'lane'] = rf.loc[RNA_FQ_ix].apply(lambda row: get_lane(row['file_name']), axis=1)
-        rf.loc[RNA_FQ_ix, 'sample'] = rf.loc[RNA_FQ_ix].apply(lambda row: get_sample_number(row['file_name']), axis=1)
-        rf.loc[RNA_FQ_ix, 'index'] = rf.loc[RNA_FQ_ix].apply(lambda row: get_index(row['file_name']), axis=1)
-        rf.loc[RNA_FQ_ix, 'data_variety'] = rf.loc[RNA_FQ_ix].apply(lambda row: get_dv_string(row), axis=1)
+    target_ix = FQ_ix | (BM_ix & UA_ix)
+
+    if not target_ix.empty:
+        rf.loc[target_ix, 'read'] = rf.loc[target_ix].apply(lambda row: get_read(row['file_name']), axis=1)
+        rf.loc[target_ix, 'lane'] = rf.loc[target_ix].apply(lambda row: get_lane(row['file_name']), axis=1)
+        rf.loc[target_ix, 'sample'] = rf.loc[target_ix].apply(lambda row: get_sample_number(row['file_name']), axis=1)
+        rf.loc[target_ix, 'index'] = rf.loc[target_ix].apply(lambda row: get_index(row['file_name']), axis=1)
+        rf.loc[target_ix, 'data_variety'] = rf.loc[target_ix].apply(lambda row: get_dv_string(row), axis=1)
 
 
 
@@ -146,9 +151,9 @@ def get_aliquot_tag(aliquots):
     add = aliquots["aliquot_annotation"].str.contains("additional", case=False, na=False)
     rep = aliquots["aliquot_annotation"].str.contains("replacement", case=False, na=False)
 
-    alq_code.loc[dup] = "DUP"
-    alq_code.loc[add] = "ADD"
-    alq_code.loc[rep] = "REP"
+    alq_code.loc[dup] = "DUP"   # "duplicate item"
+    alq_code.loc[add] = "ADD"   # "additional"
+    alq_code.loc[rep] = "REP"   # "replacement"
 
     # Depending on specific values of aliquot_annotation, in consultation with
     # annotations dictionary (not implemented), different annotation codes can be used
@@ -173,6 +178,8 @@ def get_sample_ids(aliquots):
     return(alq_sid)
 
 # returns tuple of Series sample_code and sample_type_short
+# This is possible source of fatal errors when there is a new sample_type
+# it would be good to move these definitions out of script and into a configuration file 
 def get_sample_code(aliquots):
     sample_map = [
 # N, blood_normal:   Blood Derived Normal
@@ -182,6 +189,7 @@ def get_sample_code(aliquots):
 # T, tumor:   Primary Tumor or Tumor
         ["Primary Tumor", "tumor", "T"],
         ["Tumor", "tumor", "T"],
+        ['Additional - New Primary', "tumor", "T"],
 # Nbc, buccal_normal:   Buccal Cell Normal
         ["Buccal Cell Normal" , "buccal_normal", "Nbc"],
 # Tbm, tumor_bone_marrow: Primary Blood Derived Cancer - Bone Marrow
@@ -192,10 +200,9 @@ def get_sample_code(aliquots):
         ["Recurrent Tumor" , "recurrent_tumor", "R"],
 # S, slides: Slides - this is new and weird but adding this along with code to detect such situations in the future
         ["Slides" , "slides", "S"],
-# FFPE scrolls also observed in the wild
+# "FFPE scrolls" and "FFPE Recurrent" 
         ["FFPE Scrolls", "ffpe", "F"],
-# 'Additional - New Primary' - assume we can treat this exactly as a tumor...
-        ['Additional - New Primary', "tumor", "T"],
+        ["FFPE Recurrent", "ffpe", "F"],
 # Metastatic
         ["Metastatic", "metastatic", "M"]
     ]
@@ -251,6 +258,7 @@ def get_metadata_json(row):
     md = append_safely(md, row, 'lane')
     md = append_safely(md, row, 'read')
     md = append_safely(md, row, 'index')
+    md = append_safely(md, row, 'gdc_sample_type')
     return json.dumps(md)
 
 def generate_catalog(read_data, aliquots, is_methylation):

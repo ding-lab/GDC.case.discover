@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# TODO: allow make_catalog to be run with aliquots and read_groups already existing
-# This can be with a flag or by moving catalog file creation to a separate process
-
 # Matthew Wyczalkowski <m.wyczalkowski@wustl.edu>
 # https://dinglab.wustl.edu/
 
@@ -173,10 +170,11 @@ if [ -z $CATALOG_ONLY ]; then
         run_cmd "$CMD"
     fi
 else
+    >&2 echo Skipping discovery, writing catalog from existing data
     confirm $RG_OUT
     confirm $SR_OUT
     confirm $HR_OUT
-    confirm $MA_OUT    # methylation array currently not implemented in make_catalog3
+#    confirm $MA_OUT    
 fi
 
 # TODO: Allow make_catalog3.sh to be called directly without having to do discovery

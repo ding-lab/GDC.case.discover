@@ -97,11 +97,14 @@ See Heterogeneity Studies below for information about labels like `HET_qZq3G`.
 The `sample_type` column lists GDC sample types.  We abbreviate these names in the sample name and `short_sample_type` column respectively as,
 * Blood Derived Normal: N, blood_normal
 * Buccal Cell Normal: Nbc, buccal_normal
-* Primary Tumor, Tumor: T, tumor
+* Tumor, Primary Tumor, 'Additional - New Primary': T, tumor
 * Primary Blood Derived Cancer - Bone Marrow: Tbm, tumor_bone_marrow
 * Primary Blood Derived Cancer - Peripheral Blood: Tpb, tumor_peripheral_blood
 * Solid Tissue Normal: A, tissue_normal
 * Recurrent Tumor: R, recurrent_tumor
+* Metastatic: M, metastatic
+* "FFPE Scrolls" and "FFPE Recurrent": ffpe, F
+
 
 ## Heterogeneity Studies and duplicates
 
@@ -121,6 +124,14 @@ leading 0's removed.  The sample label used for the `sample_name` and
 
 Table below lists all known GDC aliquot annotations, and 
 the prefix used to generate the sample label.
+
+TODO: Update this to Catalog3
+```
+alq_code.loc[dup] = "DUP"   # "duplicate item"
+alq_code.loc[add] = "ADD"   # "additional"
+alq_code.loc[rep] = "REP"   # "replacement"
+```
+
 
 | Aliquot annotation | Label prefix |
 | ------------------ | ------------ |
