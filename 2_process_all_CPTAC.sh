@@ -1,9 +1,9 @@
 # Perform discovery for all cases in CASES file
 
 # This needs to be exported, to be visible to GDC Query scripts
-export GDC_TOKEN="../token/gdc-user-token.2022-03-03T16_20_37.493Z.txt"
-PROJECT="DLBCL"  # Administrative project associated with these cases
-CASES="/home/mwyczalk_test/Projects/Catalog3/GDAN.catalog/Catalog3/DLBCL.cases.tsv"
+export GDC_TOKEN="../token/gdc-user-token.2022-06-15T18_08_38.120Z.txt"
+PROJECT="ALCHEMIST"  # Administrative project associated with these cases
+CASES="/home/mwyczalk_test/Projects/Catalog3/GDAN.catalog/Catalog3/ALCHEMIST.cases.tsv"
 
 # Data model.  See src/get_aliquots.py for details
 # * CPTAC for CPTAC projects
@@ -15,7 +15,7 @@ DATA_MODEL="CPTAC"
 VERBOSE="-vvv"
 
 # N determines how many discovery processes run at once
-N="-J 5"
+N="-J 10"
 
 # Make sure that src/bashids/bashids exists.  This should be tested for in the code but for now make it easy
 # May need to do `git submodule init; git submodule update`
@@ -59,11 +59,15 @@ NERR=$(grep -il error $OUTD/*/*log* | wc -l)
 if grep -q -i error $OUTD/*/*log* ; then
     >&2 echo The following $NERR files had errors \(top 10 shown\):
     grep -il error $OUTD/*/*log* | head
+else
+    >&2 echo No errors found
 fi
 NWRN=$(grep -il warning $OUTD/*/*log* | wc -l)
 if grep -q -i warning $OUTD/*/*log* ; then
     >&2 echo The following $NWRN files had warnings \(top 10 shown\):
     grep -il warning $OUTD/*/*log* | head
+else
+    >&2 echo No warnings found
 fi
 
 >&2 echo Timing summary: 
