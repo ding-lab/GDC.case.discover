@@ -181,9 +181,6 @@ if [ $VERBOSE ]; then
     >&2 echo RESULT: $R
 fi
 
-#OUTLINE=$(echo $R | jq -r '.data.aliquot[] | "\(.submitter_id)\t\(.id)\t\(.analyte_type)"' | sed "s/^/$CASE\t/")
-
-# this is a bit messy because I don't know how to get rid of the ["x","y"] for aliquot info
 OUTLINE=$(echo $R | $PYTHON src/parse_aliquot.py -m $DATA_MODEL -c $CASE )
 test_exit_status
 
