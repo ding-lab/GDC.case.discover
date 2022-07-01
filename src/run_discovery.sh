@@ -3,15 +3,9 @@
 GDC_TOKEN=$1
 PROJECT=$2  # Administrative project associated with these cases
 
-# Data model.  See src/get_aliquots.py for details
-# * CPTAC for CPTAC projects
-# * TCGA for various GDAN projects
-# DATA_MODEL="CPTAC"
-DATA_MODEL=$3
+CASES=$3
 
-CASES=$4
-
-shift 4
+shift 3
 
 # N determines how many discovery processes run at once
 N="-J 10"
@@ -35,16 +29,16 @@ fi
 # directory (./dat)
 
 DESTD="./results"
-CATALOG="$DESTD/${PROJECT}.Catalog3_${DATA_MODEL}.tsv"
+CATALOG="$DESTD/${PROJECT}.Catalog3.tsv"
 DEMOGRAPHICS="$DESTD/${PROJECT}.Demographics.tsv"
-LOGBASE="./logs_${DATA_MODEL}"
+LOGBASE="./logs"
 
 mkdir -p $DESTD
 mkdir -p $LOGBASE
 
 START=$(date)
 >&2 echo [ $START ] Starting discovery
-CMD="bash src/process_multi_cases.sh -L $LOGBASE $N -m $DATA_MODEL -o $CATALOG -D $DEMOGRAPHICS $VERBOSE $@ $CASES $PROJECT"
+CMD="bash src/process_multi_cases.sh -L $LOGBASE $N -o $CATALOG -D $DEMOGRAPHICS $VERBOSE $@ $CASES $PROJECT"
 echo Running: $CMD
 eval "$CMD"
 rc=$?

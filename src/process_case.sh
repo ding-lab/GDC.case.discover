@@ -6,6 +6,7 @@
 read -r -d '' USAGE <<'EOF'
 Query GDC with series of GraphQL calls to obtain information about submitted reads and methylation data for a given case
 Writes out file dat/outputs/CASE/Catalog.dat with summary of such data (Catalog3 format)
+Aliquot discovery performed for both TCGA and CPTAC data models
 
 Usage:
   process_case.sh [options] CASE DISEASE PROJECT
@@ -26,7 +27,6 @@ Options:
 -O OUTD: intermediate file output directory.  Default: ./dat
 -D DEM_OUT: write demographics data to given file
 -C: create catalog only.  Assume that all the above files exist in $OUTD except for the catalog3
--m DATA_MODEL: determines how case associated with aliquot.  Allowed values TCGA or CPTAC
 
 Require GDC_TOKEN environment variable to be defined with path to gdc-user-token.*.txt file
 
@@ -38,10 +38,9 @@ EOF
 # so is no longer implemented
 
 # Where scripts live
-BIND="src"
 OUTD="./dat"
 # http://wiki.bash-hackers.org/howto/getopts_tutorial
-while getopts ":hdf:O:vD:Cm:" opt; do
+while getopts ":hdf:O:vD:C" opt; do
   case $opt in
     h)
       echo "$USAGE"
@@ -61,9 +60,6 @@ while getopts ":hdf:O:vD:Cm:" opt; do
       ;;
     C)
       CATALOG_ONLY=1
-      ;;
-    m)
-      ALIQUOT_ARGS="-m $OPTARG"
       ;;
     \?)
       >&2 echo "Invalid option: -$OPTARG"
@@ -147,26 +143,35 @@ if [ -z $CATALOG_ONLY ]; then
     mkdir -p $OUTD
     test_exit_status
 
+    # Run both TCGA and CPTAC data models 
     A_OUT="$OUTD/aliquots.dat"
-    CMD="bash $BIND/get_aliquots.sh $ALIQUOT_ARGS -o $A_OUT $VERBOSE_ARG $CASE "
+    A1_OUT="$OUTD/aliquots-CPTAC.dat"
+    A2_OUT="$OUTD/aliquots-TCGA.dat"
+    CMD="bash src/get_aliquots.sh -m CPTAC $ALIQUOT_ARGS -o $A1_OUT $VERBOSE_ARG $CASE "
+    run_cmd "$CMD"
+    CMD="bash src/get_aliquots.sh -m TCGA $ALIQUOT_ARGS -o $A2_OUT $VERBOSE_ARG $CASE "
     run_cmd "$CMD"
 
-    # aliquots.dat has a header line
+    # Merge the CPTAC and TCGA discovery aliquots, respecting the header line
+    head -n1 $A1_OUT > $A_OUT
+    sort -u <(tail -n +2 $A1_OUT) <(tail -n +2 $A2_OUT) >> $A_OUT
+
+    # see if any aliquots results were found
     if [ $(wc -l $A_OUT | cut -f 1 -d ' ' ) == "1" ]; then
         >&2 echo NOTE: $A_OUT is empty.  Skipping case
         CMD="touch $OUTD/is_empty.flag"
         run_cmd "$CMD"
     else
-        CMD="bash $BIND/get_read_groups.sh -o $RG_OUT $VERBOSE_ARG $A_OUT"
+        CMD="bash src/get_read_groups.sh -o $RG_OUT $VERBOSE_ARG $A_OUT"
         run_cmd "$CMD"
 
-        CMD="bash $BIND/get_submitted_reads.sh -o $SR_OUT $VERBOSE_ARG $RG_OUT"
+        CMD="bash src/get_submitted_reads.sh -o $SR_OUT $VERBOSE_ARG $RG_OUT"
         run_cmd "$CMD"
 
-        CMD="bash $BIND/get_harmonized_reads.sh -o $HR_OUT $VERBOSE_ARG $SR_OUT"
+        CMD="bash src/get_harmonized_reads.sh -o $HR_OUT $VERBOSE_ARG $SR_OUT"
         run_cmd "$CMD"
 
-        CMD="bash $BIND/get_methylation_array.sh -o $MA_OUT $VERBOSE_ARG $A_OUT"
+        CMD="bash src/get_methylation_array.sh -o $MA_OUT $VERBOSE_ARG $A_OUT"
         run_cmd "$CMD"
     fi
 else
@@ -183,15 +188,15 @@ fi
 
 # TODO: Allow make_catalog3.sh to be called directly without having to do discovery
 # Note   
-# CMD="bash $BIND/make_catalog.sh -Q $A_OUT -R $SR_OUT -H $HR_OUT -M $MA_OUT $SUFFIX_ARG $CATALOG_OUT $VERBOSE_ARG $CASE $DISEASE"
+# CMD="bash src/make_catalog.sh -Q $A_OUT -R $SR_OUT -H $HR_OUT -M $MA_OUT $SUFFIX_ARG $CATALOG_OUT $VERBOSE_ARG $CASE $DISEASE"
 # make_catalog3.sh does not have VERBOSE_ARG implemented, nor is its DEBUG flag passed here
 # Do not pass CASE explicitly, since that information is obtained from submitted / harmonized reads
 if [ ! -e $OUTD/is_empty.flag ]; then
-    CMD="bash $BIND/make_catalog3.sh -o $OUTD -D $DISEASE -P $PROJECT $OUTD"
+    CMD="bash src/make_catalog3.sh -o $OUTD -D $DISEASE -P $PROJECT $OUTD"
     run_cmd "$CMD"
 fi
 
 if [ ! -z $DEM_OUT ]; then
-    CMD="bash $BIND/get_demographics.sh -o $DEM_OUT $VERBOSE_ARG $CASE $DISEASE"
+    CMD="bash src/get_demographics.sh -o $DEM_OUT $VERBOSE_ARG $CASE $DISEASE"
     run_cmd "$CMD"
 fi
