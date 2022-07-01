@@ -1,21 +1,24 @@
 # Perform discovery for all cases in CASES file
 
-# This needs to be exported, to be visible to GDC Query scripts
-export GDC_TOKEN="../token/gdc-user-token.2022-06-15T18_08_38.120Z.txt"
-PROJECT="ALCHEMIST"  # Administrative project associated with these cases
-CASES="/home/mwyczalk_test/Projects/Catalog3/GDAN.catalog/Catalog3/ALCHEMIST.cases.tsv"
+GDC_TOKEN=$1
+PROJECT=$2  # Administrative project associated with these cases
 
 # Data model.  See src/get_aliquots.py for details
 # * CPTAC for CPTAC projects
 # * TCGA for various GDAN projects
 # DATA_MODEL="CPTAC"
-DATA_MODEL="TCGA"
+DATA_MODEL=$3
 
-# With vvv each step outputs query details, fewer limits output
-VERBOSE="-vvv"
+CASES=$4
+
+shift 4
 
 # N determines how many discovery processes run at once
 N="-J 10"
+export GDC_TOKEN
+
+# With vvv each step outputs query details, fewer limits output
+VERBOSE="-vvv"
 
 # Make sure that src/bashids/bashids exists.  This should be tested for in the code but for now make it easy
 # May need to do `git submodule init; git submodule update`
