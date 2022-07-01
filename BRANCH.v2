@@ -1,0 +1,7 @@
+As of summer 2022, v2 branch is a maintenance branch for the CPTAC3 project.
+This branch will be used for all CPTAC3 project updates
+
+New development work for GDAN implements a python-based JSON parser and an updated
+way of dealing with annotations.  This work started in branch TCGA and has moved to the
+master branch.
+
