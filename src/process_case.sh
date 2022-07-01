@@ -171,10 +171,14 @@ if [ -z $CATALOG_ONLY ]; then
     fi
 else
     >&2 echo Skipping discovery, writing catalog from existing data
-    confirm $RG_OUT
-    confirm $SR_OUT
-    confirm $HR_OUT
-#    confirm $MA_OUT    
+    if [ -e "$OUTD/is_empty.flag" ]; then
+        >&2 echo $OUTD/is_empty.flag exists.  Skipping case
+    else
+        confirm $RG_OUT
+        confirm $SR_OUT
+        confirm $HR_OUT
+    #    confirm $MA_OUT    
+    fi
 fi
 
 # TODO: Allow make_catalog3.sh to be called directly without having to do discovery

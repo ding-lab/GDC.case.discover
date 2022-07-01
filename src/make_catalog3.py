@@ -216,7 +216,13 @@ def get_sample_code(aliquots):
 
 def get_dataset_name(cd):
     # Dataset name is composed of:
-    # case [. aliquot_tag] . experimental_strategy [. data_variety ] . sample_code . reference
+    # case [. aliquot_tag] . experimental_strategy_ds [. data_variety ] . sample_code . reference
+
+    # whit experimental strategies shortened: "Targeted_Sequencing" to "Targeted", and "Methylation_Array" to "MethArray"
+    # for the purpose of creating dataset name
+    cd["experimental_strategy_ds"] = cd["experimental_strategy"]
+    cd.loc[(cd["experimental_strategy_ds"]=="Targeted_Sequencing"), "experimental_strategy_ds"]="Targeted"
+    cd.loc[(cd["experimental_strategy_ds"]=="Methylation_Array"), "experimental_strategy_ds"]="MethArray"
 
     # https://stackoverflow.com/questions/48083074/conditional-concatenation-based-on-string-value-in-column
     # Conditionally add aliquot tag where aliquot annotation exists
@@ -233,7 +239,7 @@ def get_dataset_name(cd):
     cd['alignment_tag'] = ""
     cd.loc[cd['alignment'] == 'harmonized', "alignment_tag"] = ".hg38"
 
-    dataset_name = cd['labeled_case'] +'.'+ cd['experimental_strategy_short'] + cd['data_variety_tag'] +'.'+ cd['sample_code'] + cd['alignment_tag']
+    dataset_name = cd['labeled_case'] +'.'+ cd['experimental_strategy_ds'] + cd['data_variety_tag'] +'.'+ cd['sample_code'] + cd['alignment_tag']
     return dataset_name        
 
 # append {key: row[key]} to dictionary d provided key exists in row and is not empty or blank
@@ -271,11 +277,10 @@ def generate_catalog(read_data, aliquots, is_methylation):
         get_data_variety_RNA_BAM(read_data)
         get_data_variety_FASTQ(read_data)
 
-    # remap experimental strategies "Targeted Sequencing" to "Targeted", and "Methylation Array" to "MethArray"
-    # for the purpose of creating dataset name
-    read_data["experimental_strategy_short"] = read_data["experimental_strategy"]
-    read_data.loc[(read_data["experimental_strategy_short"]=="Targeted Sequencing"), "experimental_strategy_short"]="Targeted"
-    read_data.loc[(read_data["experimental_strategy_short"]=="Methylation Array"), "experimental_strategy_short"]="MethArray"
+    # Rename experimental strategies containing spaces to underscores.  This could be generalized
+    read_data.loc[(read_data["experimental_strategy"]=="Targeted Sequencing"), "experimental_strategy"]="Targeted_Sequencing"
+    read_data.loc[(read_data["experimental_strategy"]=="Methylation Array"), "experimental_strategy"]="Methylation_Array"
+
 
     # Now update aliquots
     # Add "aliquot_tag" column to aliquots

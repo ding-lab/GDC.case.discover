@@ -1,9 +1,10 @@
 # Perform discovery for all cases in CASES file
 
 # This needs to be exported, to be visible to GDC Query scripts
+PROJECT="CPTAC3"  # Administrative project associated with these cases
 export GDC_TOKEN="../token/gdc-user-token.2022-06-15T18_08_38.120Z.txt"
-PROJECT="ALCHEMIST"  # Administrative project associated with these cases
-CASES="/home/mwyczalk_test/Projects/Catalog3/GDAN.catalog/Catalog3/ALCHEMIST.cases.tsv"
+CASES="/diskmnt/Projects/cptac_scratch/CPTAC3.workflow/CPTAC3.catalog/CPTAC3.cases.dat"
+#CASES="dat/cases.dat"
 
 # Data model.  See src/get_aliquots.py for details
 # * CPTAC for CPTAC projects
