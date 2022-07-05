@@ -27,10 +27,16 @@ Options:
 -O OUTD: intermediate file output directory.  Default: ./dat
 -D DEM_OUT: write demographics data to given file
 -C: create catalog only.  Assume that all the above files exist in $OUTD except for the catalog3
+-c: create v2 catalog 
+-s SUFFIX_LIST: data file for appending suffix to sample names (catalog 2 only)
 
 Require GDC_TOKEN environment variable to be defined with path to gdc-user-token.*.txt file
 
 Both DISEASE (e.g., BRCA) and PROJECT (e.g., CPTAC3) are passed as-is to appropriate Catalog columns
+
+SUFFIX_LIST is a TSV file listing a UUID or Aliquot ID in first column,
+second column is suffix to be added to sample_name.  This allows specific samples to have modified names
+This is implemented only for catalog2
 EOF
 
 # An optimization which can be performed is to reuse results from past runs
@@ -40,7 +46,7 @@ EOF
 # Where scripts live
 OUTD="./dat"
 # http://wiki.bash-hackers.org/howto/getopts_tutorial
-while getopts ":hdf:O:vD:C" opt; do
+while getopts ":hdf:O:vD:Ccs:" opt; do
   case $opt in
     h)
       echo "$USAGE"
@@ -60,6 +66,12 @@ while getopts ":hdf:O:vD:C" opt; do
       ;;
     C)
       CATALOG_ONLY=1
+      ;;
+    c)
+      DO_CATALOG2=1
+      ;;
+    s)
+      SUFFIX_ARG="-s $OPTARG"
       ;;
     \?)
       >&2 echo "Invalid option: -$OPTARG"
@@ -139,12 +151,12 @@ SR_OUT="$OUTD/submitted_reads.dat"
 HR_OUT="$OUTD/harmonized_reads.dat"
 MA_OUT="$OUTD/methylation_array.dat"
 
+A_OUT="$OUTD/aliquots.dat"
 if [ -z $CATALOG_ONLY ]; then
     mkdir -p $OUTD
     test_exit_status
 
     # Run both TCGA and CPTAC data models 
-    A_OUT="$OUTD/aliquots.dat"
     A1_OUT="$OUTD/aliquots-CPTAC.dat"
     A2_OUT="$OUTD/aliquots-TCGA.dat"
     CMD="bash src/get_aliquots.sh -m CPTAC $ALIQUOT_ARGS -o $A1_OUT $VERBOSE_ARG $CASE "
@@ -186,13 +198,17 @@ else
     fi
 fi
 
-# TODO: Allow make_catalog3.sh to be called directly without having to do discovery
-# Note   
-# CMD="bash src/make_catalog.sh -Q $A_OUT -R $SR_OUT -H $HR_OUT -M $MA_OUT $SUFFIX_ARG $CATALOG_OUT $VERBOSE_ARG $CASE $DISEASE"
 # make_catalog3.sh does not have VERBOSE_ARG implemented, nor is its DEBUG flag passed here
-# Do not pass CASE explicitly, since that information is obtained from submitted / harmonized reads
 if [ ! -e $OUTD/is_empty.flag ]; then
-    CMD="bash src/make_catalog3.sh -o $OUTD -D $DISEASE -P $PROJECT $OUTD"
+    # make_catalog3.sh is the standard one
+    if [ -z $DO_CATALOG2 ]; then
+        >&2 echo NOTE: Running Catalog3
+        CMD="bash src/make_catalog3.sh -o $OUTD -D $DISEASE -P $PROJECT $OUTD"
+    else
+        >&2 echo NOTE: Running Catalog2
+        CATALOG_OUT="-o $OUTD/Catalog.dat"  
+        CMD="bash src/make_catalog2.sh -Q $A_OUT -R $SR_OUT -H $HR_OUT -M $MA_OUT $SUFFIX_ARG $CATALOG_OUT -v $CASE $DISEASE"
+    fi
     run_cmd "$CMD"
 fi
 

@@ -70,7 +70,8 @@ def get_data_variety_RNA_BAM(rf):
 
 # Parse filename for read indicator like _R1_
 def get_read(fn):
-     match = re.search(r'_(R\d)_', fn)
+     #match = re.search(r'_(R\d)_', fn)
+     match = re.search(r'_(R\d)', fn)   # want to also match DLBCL11282_4198_RNAseq_R1.fastq.gz
      return match.group(1) if match else None
 
 # Parse filename for lane indicator like _L001_
@@ -106,6 +107,7 @@ def get_dv_string(rf_row):
 # https://support.illumina.com/help/BaseSpace_OLH_009008/Content/Source/Informatics/BS/NamingConvention_FASTQ-files-swBS.htm
 # writes to rf['data_variety'] directly
 # This is also applied to unaligned BAMs
+# We also observe and support extracting R1, R2 from filenames like DLBCL11282_4198_RNAseq_R1.fastq.gz
 def get_data_variety_FASTQ(rf):
     FQ_ix = rf['data_format']=='FASTQ'
     BM_ix = rf['data_format']=='BAM' 
