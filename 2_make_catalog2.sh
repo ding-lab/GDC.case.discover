@@ -1,10 +1,12 @@
-# Perform discovery for all cases in CASES file
+>&2 echo Unimplemented.  See TODO
+exit 1
 
-GDC_TOKEN="../token/gdc-user-token.2022-06-15T18_08_38.120Z.txt"
-PROJECT="DLBCL"  # Administrative project associated with these cases
+GDC_TOKEN="unused"
+PROJECT="CPTAC3"  # Administrative project associated with these cases
 
-#CASES="/home/mwyczalk_test/Projects/Catalog3/GDAN.catalog/Catalog3/DLBCL.cases.tsv"
-CASES="config/cases-test.dat"
+
+# this now excludes stopped cases
+CASES="/home/mwyczalk_test/Projects/CPTAC3/CPTAC3.catalog/CPTAC3.cases.dat"
 
 # Making catalog2 using data from previous discovery run
 SUFFIX_LIST="/home/mwyczalk_test/Projects/CPTAC3/CPTAC3.catalog/SampleRename.dat"
