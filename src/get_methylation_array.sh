@@ -22,6 +22,7 @@ Writes the following columns for each methylation array
     * data_format
     * experimental strategy
     * md5sum
+    * state
 
 Options:
 -h: Print this help message
@@ -107,17 +108,11 @@ function methylation_array_from_aliquot {
             data_format
             experimental_strategy
             md5sum
+            state
         }
     }
 EOF
 }
-
-#OUTD="dat/cases/$CASE"
-#mkdir -p $OUTD
-
-#DAT="dat/cases/$CASE/sample_from_case.$CASE.dat"
-#OUT="$OUTD/read_group_from_case.$CASE.dat"
-#rm -f $OUT
 
 if [ $VERBOSE ]; then
     >&2 echo Processing $DAT
@@ -157,7 +152,7 @@ while read L; do
         >&2 echo RESULT: $R
     fi
 
-    OUTLINE=$(echo $R | jq -r '.data.raw_methylation_array[] | "\(.submitter_id)\t\(.id)\t\(.channel)\t\(.file_name)\t\(.file_size)\t\(.data_format)\t\(.experimental_strategy)\t\(.md5sum)"' | sed "s/^/$CASE\t$ASID\t$REF\t/")
+    OUTLINE=$(echo $R | jq -r '.data.raw_methylation_array[] | "\(.submitter_id)\t\(.id)\t\(.channel)\t\(.file_name)\t\(.file_size)\t\(.data_format)\t\(.experimental_strategy)\t\(.md5sum)\t\(.state)"' | sed "s/^/$CASE\t$ASID\t$REF\t/")
     test_exit_status
 
     if [ "$OUTLINE" ]; then

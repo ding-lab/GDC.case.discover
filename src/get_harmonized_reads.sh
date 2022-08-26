@@ -18,6 +18,7 @@ Writes the following columns for each harmonized aligned reads entry:
     * file size
     * id
     * md5sum
+    * state
 
 Options:
 -h: Print this help message
@@ -104,6 +105,7 @@ function HAR_from_SAR {
         file_name
         file_size
         md5sum 
+        state
     }
 }
 EOF
@@ -121,6 +123,7 @@ function HAR_from_SUR {
         file_name
         file_size
         md5sum 
+        state
     }
 }
 EOF
@@ -141,6 +144,7 @@ while read L; do
 #    * file size
 #    * id
 #    * md5sum
+#    * state
 
     CASE=$(echo "$L" | cut -f 1)
     ASID=$(echo "$L" | cut -f 2)
@@ -172,7 +176,7 @@ while read L; do
         continue
     fi
 
-    AR=$(echo $R | jq -r '.data.aligned_reads[] | "\(.experimental_strategy)\t\(.data_format)\t\(.file_name)\t\(.file_size)\t\(.id)\t\(.md5sum)"' | sed "s/^/$CASE\t$ASID\tharmonized\t/" )
+    AR=$(echo $R | jq -r '.data.aligned_reads[] | "\(.experimental_strategy)\t\(.data_format)\t\(.file_name)\t\(.file_size)\t\(.id)\t\(.md5sum)\t\(.state)"' | sed "s/^/$CASE\t$ASID\tharmonized\t/" )
     test_exit_status
 
     if [ ! -z $OUTFN ]; then

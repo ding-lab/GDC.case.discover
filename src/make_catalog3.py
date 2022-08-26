@@ -31,7 +31,7 @@ def read_reads_file(reads_fn):
 #    * file size
 #    * uuid
 #    * md5sum
-    header_list=["case", "aliquot_submitter_id", "alignment", "experimental_strategy", "data_format", "file_name", "file_size", "uuid", "md5sum"]
+    header_list=["case", "aliquot_submitter_id", "alignment", "experimental_strategy", "data_format", "file_name", "file_size", "uuid", "md5sum", "state"]
     rf = pd.read_csv(reads_fn, sep="\t", names=header_list, comment='#')
     # make sure "alignment" has the string value "NA", not NaN
     rf.loc[rf['alignment'].isna(), "alignment"] = "NA"
@@ -49,7 +49,7 @@ def read_methylation_file(reads_fn):
 #    9 data_format
 #   10 experimental strategy
 #   11 md5sum
-    header_list=["case", "aliquot_submitter_id", "alignment", "submitter_id", "uuid", "channel", "file_name", "file_size", "data_format", "experimental_strategy", "md5sum"]
+    header_list=["case", "aliquot_submitter_id", "alignment", "submitter_id", "uuid", "channel", "file_name", "file_size", "data_format", "experimental_strategy", "md5sum", "state"]
     rf = pd.read_csv(reads_fn, sep="\t", names=header_list, comment='#')
     # make sure "alignment" has the string value "NA", not NaN
     rf.loc[rf['alignment'].isna(), "alignment"] = "NA"
@@ -59,6 +59,9 @@ def read_methylation_file(reads_fn):
 def get_data_variety_RNA_BAM(rf):
     # For RNA-Seq BAMs, evaluate filename for specific strings: "genomic", "transcriptome", and "chimeric"
     # These strings are then the data_variety value
+
+#    print("DEBUG")
+#    print(rf)
 
     RNA_BAM_ix = ((rf['data_format']=='BAM') & (rf['experimental_strategy']=="RNA-Seq"))
     genomic_ix = (RNA_BAM_ix & rf['file_name'].str.contains("genomic"))
@@ -267,6 +270,7 @@ def get_metadata_json(row):
     md = append_safely(md, row, 'read')
     md = append_safely(md, row, 'index')
     md = append_safely(md, row, 'gdc_sample_type')
+    md = append_safely(md, row, 'state')
     return json.dumps(md)
 
 def generate_catalog(read_data, aliquots, is_methylation):
@@ -298,6 +302,9 @@ def generate_catalog(read_data, aliquots, is_methylation):
     aliquots = aliquots.assign(sample_type_short=sample_type_short)
 
     # Finally merge aliquot info with reads
+#    print("DEBUG2")
+#    print(read_data)
+#    print(aliquots)
     catalog_data = read_data.merge(aliquots, on=['aliquot_submitter_id', 'case'])
 
     dataset_name = get_dataset_name(catalog_data)
