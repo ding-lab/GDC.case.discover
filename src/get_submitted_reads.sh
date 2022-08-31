@@ -151,6 +151,11 @@ if [ $VERBOSE ]; then
     VERBOSE_ARG=${VERBOSE%?}
 fi
 
+if [ ! -e $DAT ]; then
+    >&2 echo ERROR: $DAT is empty.  Continuing
+    return
+fi
+
 # Iterate over all read groups, which have a many-one relationship with submitted (un)aligned reads
 while read L; do
 #    * case

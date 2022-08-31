@@ -81,6 +81,7 @@ function confirm {
     fi
 }
 
+
 function test_exit_status {
     # Evaluate return value for chain of pipes; see https://stackoverflow.com/questions/90418/exit-shell-script-based-on-process-exit-code
     rcs=${PIPESTATUS[*]};
@@ -271,9 +272,10 @@ function collect_catalog2 {
 
         CASE=$(echo "$L" | cut -f 1 )
         CATALOG="$LOGBASE/outputs/$CASE/${PROJECT}.Catalog.dat"
+        EMPTY_FLAG="$LOGBASE/outputs/$CASE/is_empty.flag"
 
-        if [ ! -f $CATALOG ]; then
-            if [ "$DRYRUN" != "d" ]; then
+        if [ ! -f $CATALOG ] ; then
+            if [ "$DRYRUN" != "d" ] && [ ! -f $EMPTY_FLAG ]; then
                 >&2 echo WARNING: Catalog file $CATALOG for case $CASE does not exist
             fi
             continue

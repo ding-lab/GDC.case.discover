@@ -143,6 +143,15 @@ while read L; do
 
 done < $DAT
 
+# Do a check to make sure some data has been written to OUTFN. If not, mark this run as empty
 if [ ! -z $OUTFN ]; then
-    >&2 echo Written to $OUTFN
+    if [ -e $OUTFN ]; then
+        >&2 echo Written to $OUTFN
+    else
+        >&2 echo WARNING: $OUTFN is empty / not written.  Will skip this case
+        OUTD=$(dirname $OUTFN)
+        CMD="touch $OUTD/is_empty.flag" 
+        >&2 echo Running: $CMD
+        eval $CMD
+    fi
 fi
