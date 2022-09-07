@@ -12,7 +12,7 @@ read -r -d '' USAGE <<'EOF'
 Write a comprehensive summary of aligned reads and methylation array from GDC.  v2.2
 
 Usage:
-  make_catalog.sh [options] CASE DISEASE
+  make_catalog2.sh [options] CASE DISEASE
 
 Options:
 -h: Print this help message
@@ -533,6 +533,18 @@ function process_reads {
 #   10 experimental strategy
 #   11 md5sum
 
+# Update summer 2022: making discovery common for catalog2 and catalog3 means
+# that "assumed reference" is better interpreted as "alignment", and can have
+# the following values:
+# * submitted_aligned
+# * submitted_unaligned
+# * harmonized
+# * NA
+# For the output, catalog2 uses the following valurs for reference:
+#    * hg19 for submitted aligned reads
+#    * NA for submitted unaligned reads
+#    * hg38 for harmonized reads
+
     # Loop over all lines in input file RFN and write catalog entry for each
     while read L; do
 
@@ -571,6 +583,19 @@ function process_reads {
             >&2 echo ERROR: CASE mismatch: passed $PASSED_CASE , $RFN = $CASE
             exit 1
         fi
+
+        # Rename reference to be consistent with Catalog2 usage
+        # * submitted_aligned -> hg19
+        # * submitted_unaligned -> NA
+        # * harmonized -> hg38
+        # * NA -> NA (this includes methylation)
+        if [ $REF == "submitted_aligned" ]; then
+            REF="hg19"
+        elif [ $REF == "submitted_unaligned" ]; then
+            REF="NA"
+        elif [ $REF == "harmonized" ]; then
+            REF="hg38"
+        fi                
 
         # Get result type for harmonized RNA-Seq BAMs: genomic, chimeric, transcriptome
         #   example: 73746f82-9ea4-45ac-87d8-bf0e3dc0c2fe.rna_seq.transcriptome.gdc_realn.bam

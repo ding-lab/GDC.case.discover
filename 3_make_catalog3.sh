@@ -1,10 +1,10 @@
 source discovery_config.sh
 
+# Making catalog2 using data from previous discovery run
 LOGE="logs/process_catalog3.err"
 LOGO="logs/process_catalog3.out"
 
-#CMD="bash src/process_catalog.sh $@ $PROJECT $CASES > $LOGO 2> $LOGE "
-CMD="bash src/process_catalog.sh $@ $PROJECT $CASES "
+CMD="bash src/process_catalog.sh $@ $PROJECT $CASES > $LOGO 2> $LOGE "
 >&2 echo Running: $CMD
 >&2 echo Writing logs to $LOGO and $LOGE
 eval $CMD

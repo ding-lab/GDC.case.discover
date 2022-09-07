@@ -14,8 +14,10 @@ Options:
 -d: Dry run.  Print commands but do not execute queries
 -v: Verbose.  May be repeated to get verbose output from called scripts
 -L LOGBASE: base directory of runtime output.  Default ./logs
+-1: stop after processing one case
 
 CASES is a TSV file with case name and disease in first and second columns
+We are adding the disease as a field here, as it is no longer written during discovery
 
 PROJECT (e.g., CPTAC3) is passed directly to catalog3 column
 
@@ -29,7 +31,7 @@ DESTD="./results"
 
 # Using rungo as a template for parallel: https://github.com/ding-lab/TinDaisy/blob/master/src/rungo
 # http://wiki.bash-hackers.org/howto/getopts_tutorial
-while getopts ":hdvD:L:" opt; do
+while getopts ":hdvD:L:1" opt; do
   case $opt in
     h)
       echo "$USAGE"
@@ -46,6 +48,9 @@ while getopts ":hdvD:L:" opt; do
       ;;
     L)
       LOGBASE="$OPTARG"
+      ;;
+    1)
+      JUSTONE=1
       ;;
     \?)
       >&2 echo "Invalid option: -$OPTARG"

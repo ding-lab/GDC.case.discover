@@ -114,7 +114,7 @@ def get_dv_string(rf_row):
 def get_data_variety_FASTQ(rf):
     FQ_ix = rf['data_format']=='FASTQ'
     BM_ix = rf['data_format']=='BAM' 
-    UA_ix = rf['alignment']=='unaligned'
+    UA_ix = rf['alignment']=='submitted_unaligned'
 
     target_ix = FQ_ix | (BM_ix & UA_ix)
 

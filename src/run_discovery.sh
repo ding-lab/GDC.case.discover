@@ -15,7 +15,7 @@ Options:
 -v: Verbose.  May be repeated to get verbose output from called scripts
 -J N: Evaluate N cases in parallel.  If 0, disable parallel mode. Default 0
 -1: stop after processing one case
--L LOGBASE: base directory of runtime output.  Default ./dat
+-L LOGBASE: base directory of runtime output.  Default ./logs
 -t GDC_TOKEN: GDC token file
 
 CASES is a TSV file with case name and disease in first and second columns
@@ -164,7 +164,7 @@ function process_cases {
         STDOUT_FN="$LOGD/log.${CASE}.out"
         STDERR_FN="$LOGD/log.${CASE}.err"
 
-        CMD="bash src/process_case.sh $XARGS -t $GDC_TOKEN -O $LOGD $DEM $VERBOSE_ARG $CASE > $STDOUT_FN 2> $STDERR_FN"
+        CMD="bash src/process_case.sh $XARGS -t $GDC_TOKEN -O $LOGD -D $DIS $DEM $VERBOSE_ARG $CASE > $STDOUT_FN 2> $STDERR_FN"
 
         if [ $NJOBS != 0 ]; then
             JOBLOG="$LOGD/$CASE.log"
@@ -205,23 +205,5 @@ fi
 
 END=$(date)
 >&2 echo [ $END ] Discovery complete
-
-OUTD="$LOGBASE/outputs" # must match value in src/process_multi_cases.sh
-NERR=$(grep -il error $OUTD/*/*log* | wc -l)
-if grep -q -i error $OUTD/*/*log* ; then
-    >&2 echo The following $NERR files had errors \(top 10 shown\):
-    grep -il error $OUTD/*/*log* | head
-else
-    >&2 echo No errors found
-fi
-NWRN=$(grep -il warning $OUTD/*/*log* | wc -l)
-if grep -q -i warning $OUTD/*/*log* ; then
-    >&2 echo The following $NWRN files had warnings \(top 10 shown\):
-    grep -il warning $OUTD/*/*log* | head
-else
-    >&2 echo No warnings found
-fi
-
 >&2 echo Timing summary: 
 >&2 echo Discovery start: [ $START ]  End: [ $END ]
-
