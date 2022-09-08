@@ -4,8 +4,8 @@ source discovery_config.sh
 SUFFIX_LIST="/home/mwyczalk_test/Projects/CPTAC3/CPTAC3.catalog/SampleRename.dat"
 ARGS="-c -s $SUFFIX_LIST"
 
-LOGE="logs/process_catalog2.err"
-LOGO="logs/process_catalog2.out"
+LOGE="logs/2_process_catalog2.err"
+LOGO="logs/2_process_catalog2.out"
 
 CMD="bash src/process_catalog.sh $@ $ARGS $PROJECT $CASES > $LOGO 2> $LOGE"
 >&2 echo Running: $CMD

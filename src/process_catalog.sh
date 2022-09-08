@@ -24,8 +24,7 @@ PROJECT (e.g., CPTAC3) is passed directly to catalog3 column and used for catalo
 EOF
 
 NJOBS=0
-# Where scripts live
-XARGS=""
+XARGS2="" # extra arguments for catalog2
 LOGBASE="./logs"
 
 DESTD="./results"
@@ -57,7 +56,7 @@ while getopts ":hdv1L:cs:" opt; do
       DO_CATALOG2=1
       ;;
     s)  
-      XARGS="$XARGS -s $OPTARG"
+      XARGS2="$XARGS2 -s $OPTARG"
       ;;
     \?)
       >&2 echo "Invalid option: -$OPTARG"
@@ -122,13 +121,16 @@ if [ "$#" -ne 2 ]; then
     exit 1
 fi
 
+mkdir -p $DESTD
 PROJECT=$1
 CASES=$2
 if [ ! -s $CASES ]; then
     >&2 echo ERROR: $CASES does not exist or is empty
     exit 1
 fi
->&2 echo Project $PROJECT, iterating over $CASES
+>&2 echo Project $PROJECT, iterating over $CASES 
+>&2 echo Intermediate results stored in $LOGBASE
+>&2 echo Final results written to $DESTD
 
 # If verbose flag repeated multiple times (e.g., VERBOSE="vvv"), pass the value of VERBOSE with one flag popped off (i.e., VERBOSE_ARG="vv")
 if [ $VERBOSE ]; then
@@ -160,7 +162,7 @@ function process_case {
         else
             >&2 echo Running Catalog2
             CATALOG_OUT="-o $OUTD/${PROJECT}.Catalog.dat"  
-            CMD="bash src/make_catalog2.sh -Q $A_OUT -R $SR_OUT -H $HR_OUT -M $MA_OUT $SUFFIX_ARG $CATALOG_OUT -v $CASE $DISEASE"
+            CMD="bash src/make_catalog2.sh -Q $A_OUT -R $SR_OUT -H $HR_OUT -M $MA_OUT $XARGS2 $CATALOG_OUT -v $CASE $DISEASE"
         fi
         run_cmd "$CMD"
     fi

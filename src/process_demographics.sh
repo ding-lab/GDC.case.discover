@@ -120,9 +120,11 @@ if [ $VERBOSE ]; then
     VERBOSE_ARG="-$VERBOSE_ARG"
 fi
 
+
 function collect_demographics {
     WRITE_HEADER=1
     DEMS_OUT="$DESTD/${PROJECT}.Demographics.tsv"
+    mkdir -p $DESTD
     >&2 echo Collecting all Demographics, writing to $DEMS_OUT
 
     # Now collect all Catalog and demographics files and write out to stdout or OUTFN
