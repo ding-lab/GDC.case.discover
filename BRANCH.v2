@@ -1,0 +1,4 @@
+The v2 branch implements the older CPTAC3-style catalog.  It uses a bash-only framework and has been
+superceded by the Catalog3 format, which is implemented in the current master (formerly catalog3) branch.
+
+The v2 branch is maintenance only.
