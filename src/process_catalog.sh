@@ -72,17 +72,32 @@ while getopts ":hdv1L:cs:" opt; do
 done
 shift $((OPTIND-1))
 
+#function confirm {
+#    FN=$1
+#    if [ ! -s $FN ]; then
+#        >&2 echo ERROR: $FN does not exist or is empty
+#        exit 1
+#    fi
+#}
+
 function confirm {
     FN=$1
+    WARN=$2
+    NOW=$(date)
     if [ ! -s $FN ]; then
-        >&2 echo ERROR: $FN does not exist or is empty
-        exit 1
+        if [ -z $WARN ]; then
+            >&2 echo [ $NOW ] ERROR: $FN does not exist or is empty
+            exit 1
+        else
+            >&2 echo [ $NOW ] WARNING: $FN does not exist or is empty.  Continuing
+        fi
     fi
 }
 
 
+
 function test_exit_status {
-    # Evaluate return value for chain of pipes; see https://stackoverflow.com/questions/90418/exit-shell-script-based-on-process-exit-code
+# Evaluate return value for chain of pipes; see https://stackoverflow.com/questions/90418/exit-shell-script-based-on-process-exit-code
     rcs=${PIPESTATUS[*]};
     for rc in ${rcs}; do
         if [[ $rc != 0 ]]; then
@@ -153,7 +168,7 @@ function process_case {
     else
         confirm $RG_OUT
         confirm $SR_OUT
-        confirm $HR_OUT
+        confirm $HR_OUT 1   # continue in instances where harmonize reads don't exist
 
         # make_catalog3.sh is the standard one
         if [ -z $DO_CATALOG2 ]; then

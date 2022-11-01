@@ -209,8 +209,19 @@ def get_sample_code(aliquots):
         ["FFPE Scrolls", "ffpe", "F"],
         ["FFPE Recurrent", "ffpe", "F"],
 # Metastatic
-        ["Metastatic", "metastatic", "M"]
+        ["Metastatic", "metastatic", "M"],
+        ["Additional Metastatic", "additional_metastatic", "M"],
+# 'Human Tumor Original Cells'
+        ["Human Tumor Original Cells", "tumor_cells", "Tc"],
+# 'Saliva'
+        ["Saliva", "Saliva", "V"],
+# these from HCMI
+        ["Neoplasms of Uncertain and Unknown Behavior", "unknown", "X"],
+        ["Next Generation Cancer Model", "model", "L"],
+        ["Post neo-adjuvant therapy", "therapy", "P"]
     ]
+
+
     sst = pd.DataFrame(sample_map, columns = ['sample_type', 'sample_type_short', 'sample_code'])
     merged = aliquots.merge(sst, on="sample_type", how="left")# [['sample_code', 'sample_type_short']]
     if merged['sample_code'].isnull().values.any():
