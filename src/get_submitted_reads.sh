@@ -152,8 +152,8 @@ if [ $VERBOSE ]; then
 fi
 
 if [ ! -e $DAT ]; then
-    >&2 echo ERROR: $DAT is empty.  Continuing
-    return
+    >&2 echo NOTE: $DAT is empty.  Continuing
+    exit 0
 fi
 
 # Iterate over all read groups, which have a many-one relationship with submitted (un)aligned reads
