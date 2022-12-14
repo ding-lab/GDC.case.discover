@@ -105,16 +105,20 @@ if [ $VERBOSE ]; then
 fi
 
 while read L; do
-#    * case
-#    * sample submitter id
-#    * sample id
-#    * sample type
-#    * aliquot submitter id
-#    * aliquot id
-#    * analyte_type
+#    1 case
+#    2 sample_submitter_id
+#    3 sample_id
+#    4 sample_type
+#    5 preservation_method
+#    6 aliquot_submitter_id
+#    7 aliquot_id
+#    8 analyte_type
+#    9 aliquot_annotation
+
+    header=('sample_submitter_id', 'sample_id', 'sample_type', 'preservation_method', 'aliquot_submitter_id', 'aliquot_id', 'analyte_type', 'aliquot_annotation')
 
     CASE=$(echo "$L" | cut -f 1)
-    ASID=$(echo "$L" | cut -f 5)
+    ASID=$(echo "$L" | cut -f 6)
     Q=$(read_group_from_aliquot_query $ASID)
     if [ $VERBOSE ]; then
         >&2 echo QUERY: $Q

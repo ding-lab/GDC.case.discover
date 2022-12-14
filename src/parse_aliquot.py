@@ -39,6 +39,7 @@ def eprint(*args, **kwargs):
 #    submitter_id
 #    id
 #    sample_type
+#    preservation_method
 #    portions {
 #      analytes {
 #        submitter_id
@@ -51,23 +52,7 @@ def eprint(*args, **kwargs):
 #            notes
 #     } } } } } }
 # with a response that looks in part like,
-#{
-#  "id": "2640d6dc-15c7-405f-a348-6751393dee6d",
-#  "portions": [
-#    {
-#      "analytes": [
-#        {
-#          "aliquots": [
-#            {
-#              "annotations": [],
-#              "id": "4b84798f-675b-4232-909b-5c859c87053d",
-#              "submitter_id": "TCGA-44-6146-10A-01W-1804-08"
-#            }
-#          ],
-#          "analyte_type": "Repli-G (Qiagen) DNA",
-#          "id": "970debc0-faae-42f1-a86d-bcd8c45eecb2",
-#          "submitter_id": "TCGA-44-6146-10A-01W"
-#        }, ...
+# {"data":{"sample":[{"id":"5a249602-cb25-4a4e-b671-8937d5f929e2","portions":[{"analytes":[{"aliquots":[{"annotations":[],"id":"d90aaa94-2fcd-4bba-a829-6fbb4a27cfd9","submitter_id":"CTSP-AD2M-NB1-A-1-0-D-A889-36"},{"annotations":[],"id":"1f636e0a-ca29-4731-a808-da2162733e7f","submitter_id":"CTSP-AD2M-NB1-A-1-0-D-A793-36"}],"analyte_type":"DNA","id":"1f892880-82c0-4f8d-bc41-951b210bf5b2","submitter_id":"CTSP-AD2M-NB1-A-1-0-D"}]}],"preservation_method":"Frozen","sample_type":"Blood Derived Normal","submitter_id":"CTSP-AD2M-NB1-A"},{"id":"4f9b4902-a42b-461a-a66d-739375e524fa","portions":[{"analytes":[{"aliquots":[{"annotations":[],"id":"45e33941-1c74-48f6-a52e-6e0923d1b49e","submitter_id":"CTSP-AD2M-TTP1-A-1-1-R-A790-41"}],"analyte_type":"RNA","id":"13934207-23d6-4236-9328-2258643740f4","submitter_id":"CTSP-AD2M-TTP1-A-1-1-R"},{"aliquots":[{"annotations":[],"id":"c5135916-ccbc-4b77-9929-f2d6303cbe73","submitter_id":"CTSP-AD2M-TTP1-A-1-1-D-A83H-48"},{"annotations":[],"id":"a51bbe3e-9458-4097-9f06-d6832d1e39fe","submitter_id":"CTSP-AD2M-TTP1-A-1-1-D-A793-36"},{"annotations":[],"id":"4c3df9ac-d8c1-411c-858b-0d55905963db","submitter_id":"CTSP-AD2M-TTP1-A-1-1-D-A889-36"}],"analyte_type":"DNA","id":"1dc2c727-07f8-472f-9194-a12bf3850446","submitter_id":"CTSP-AD2M-TTP1-A-1-1-D"}]}],"preservation_method":"Frozen","sample_type":"Primary Tumor","submitter_id":"CTSP-AD2M-TTP1-A"},{"id":"35058835-82bb-4e52-a697-24432c2622b0","portions":[{"analytes":[{"aliquots":[{"annotations":[],"id":"d4367cd0-9124-4334-a997-c74a3f2ede28","submitter_id":"CTSP-AD2M-TTP1-G-1-0-D-A793-36"},{"annotations":[],"id":"68688612-8907-4708-b53c-8eedce8b603f","submitter_id":"CTSP-AD2M-TTP1-G-1-0-D-A889-36"},{"annotations":[],"id":"f0ae529c-7407-4cbc-8f13-fa2e5c6a71f8","submitter_id":"CTSP-AD2M-TTP1-G-1-0-D-A83I-48"}],"analyte_type":"DNA","id":"5438ffc4-4ba7-458b-9b42-96f315194abc","submitter_id":"CTSP-AD2M-TTP1-G-1-0-D"},{"aliquots":[{"annotations":[],"id":"22f2364d-fcf7-4a71-91b1-4b93f3c011df","submitter_id":"CTSP-AD2M-TTP1-G-1-0-R-A78Y-41"}],"analyte_type":"RNA","id":"9dcd8be0-cc3e-400e-a8f3-2f04b14f69ec","submitter_id":"CTSP-AD2M-TTP1-G-1-0-R"}]}],"preservation_method":"FFPE","sample_type":"Primary Tumor","submitter_id":"CTSP-AD2M-TTP1-G"}]}}
 
 #
 # For CPTAC, it is
@@ -75,6 +60,7 @@ def eprint(*args, **kwargs):
 #          submitter_id
 #          id
 #          sample_type
+#          preservation_method
 #          aliquots {
 #            submitter_id
 #            id
@@ -83,8 +69,8 @@ def eprint(*args, **kwargs):
 #                notes
 #     } } } } 
 #
-# QUERY: { sample(with_path_to: {type: "case", submitter_id:"C3L-00001"}, first:10000) { submitter_id id sample_type aliquots { submitter_id id analyte_type annotations { notes } } } }
-# RESULT: {"data":{"sample":[{"aliquots":[{"analyte_type":"DNA","annotations":[],"id":"1cc7a20f-b05e-4661-95ec-399b3080a02b","submitter_id":"CPT0001580165"},{"analyte_type":"RNA","annotations":[],"id":"5c89811b-9851-41e7-a0c2-a0e5e3090a54","submitter_id":"CPT0001580164"}],"id":"7089c3bb-b7dc-4fb9-8e3e-d81d16877afd","sample_type":"Primary Tumor","submitter_id":"C3L-00001-02"},{"aliquots":[{"analyte_type":"DNA","annotations":[],"id":"2595f8ca-ef17-4bf0-984d-27caaa8ee608","submitter_id":"CPT0000150163"}],"id":"139ede8b-483b-4e94-a794-593aa18dda50","sample_type":"Blood Derived Normal","submitter_id":"C3L-00001-32"},{"aliquots":[{"analyte_type":"RNA","annotations":[],"id":"1f970bbc-0c72-4494-a07c-6614fee73147","submitter_id":"CPT0001590005"},{"analyte_type":"DNA","annotations":[],"id":"51f174e6-1be7-4819-9339-b95193c935bd","submitter_id":"CPT0001590008"}],"id":"3a96e351-7850-459c-896c-6444e34745b9","sample_type":"Solid Tissue Normal","submitter_id":"C3L-00001-06"}]}}
+#RESULT: {"data":{"sample":[{"aliquots":[],"id":"5a249602-cb25-4a4e-b671-8937d5f929e2","preservation_method":"Frozen","sample_type":"Blood Derived Normal","submitter_id":"CTSP-AD2M-NB1-A"},{"aliquots":[],"id":"4f9b4902-a42b-461a-a66d-739375e524fa","preservation_method":"Frozen","sample_type":"Primary Tumor","submitter_id":"CTSP-AD2M-TTP1-A"},{"aliquots":[],"id":"35058835-82bb-4e52-a697-24432c2622b0","preservation_method":"FFPE","sample_type":"Primary Tumor","submitter_id":"CTSP-AD2M-TTP1-G"}]}}
+
 # Parsing these independently
             
 def parse_YAML(infn, outfn, case, data_model):
@@ -96,7 +82,7 @@ def parse_YAML(infn, outfn, case, data_model):
 
     outf = open(outfn, 'w') if outfn else sys.stdout
 
-    header=('sample_submitter_id', 'sample_id', 'sample_type', 'aliquot_submitter_id', 'aliquot_id', 'analyte_type', 'aliquot_annotation')
+    header=('sample_submitter_id', 'sample_id', 'sample_type', 'preservation_method', 'aliquot_submitter_id', 'aliquot_id', 'analyte_type', 'aliquot_annotation')
     if case is not None:
         header = ('case',) + header
     print('%s' % '\t'.join(header), file=outf)
@@ -107,6 +93,7 @@ def parse_YAML(infn, outfn, case, data_model):
             sample_type = s['sample_type']
             sample_submitter_id = s['submitter_id']
             sample_id = s['id']
+            sample_preservation_method = s['preservation_method']
             for p in s['portions']:
                 for a in p['analytes']:
                     analyte_type = a['analyte_type']
@@ -118,7 +105,7 @@ def parse_YAML(infn, outfn, case, data_model):
                             annotations.add(n['notes'])
                         aliquot_annotation=';'.join(annotations)
 
-                        output_data=(sample_submitter_id, sample_id, sample_type, aliquot_submitter_id, aliquot_id, analyte_type, aliquot_annotation)
+                        output_data=(sample_submitter_id, sample_id, sample_type, sample_preservation_method, aliquot_submitter_id, aliquot_id, analyte_type, aliquot_annotation)
                         if case is not None:
                             output_data = (case,) + output_data
                         print('\t'.join(output_data), file=outf)
@@ -143,6 +130,7 @@ def parse_YAML(infn, outfn, case, data_model):
             sample_type = s['sample_type']
             sample_submitter_id = s['submitter_id']
             sample_id = s['id']
+            sample_preservation_method = s['preservation_method']
             for l in s['aliquots']:
                 analyte_type = format(l['analyte_type'])    # sometimes analyte_type is `null`
                 aliquot_id=l['id']
@@ -152,7 +140,7 @@ def parse_YAML(infn, outfn, case, data_model):
                     annotations.add(n['notes'])
                 aliquot_annotation=';'.join(annotations)
 
-                output_data=(sample_submitter_id, sample_id, sample_type, aliquot_submitter_id, aliquot_id, analyte_type, aliquot_annotation)
+                output_data=(sample_submitter_id, sample_id, sample_type, sample_preservation_method, aliquot_submitter_id, aliquot_id, analyte_type, aliquot_annotation)
                 if case is not None:
                     output_data = (case,) + output_data
                 print('\t'.join(output_data), file=outf)

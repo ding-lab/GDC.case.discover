@@ -27,7 +27,6 @@ Writes the following columns for each aliquot:
     * aliquot_annotation - from annotation.note associated with aliquot
 
 Require GDC_TOKEN environment variable to be defined with path to gdc-user-token.*.txt file
-Specific to TCGA-style data with sample, portion, analyte, and aliquots
 
 Data model describes the relationship between the case and aliquot in the GDC data model.  Two
 varieties (currently) exist:
@@ -113,6 +112,7 @@ function aliquot_from_case_TCGA {
     submitter_id
     id
     sample_type
+    preservation_method
     portions {
       analytes {
         submitter_id
@@ -141,6 +141,7 @@ function aliquot_from_case_CPTAC {
           submitter_id
           id
           sample_type
+          preservation_method
           aliquots {
             submitter_id
             id

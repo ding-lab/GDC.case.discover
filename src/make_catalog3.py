@@ -14,7 +14,7 @@ def eprint(*args, **kwargs):
 
 # Note that currently aliquot file has header.  This is not consistent with the other input data files
 def read_aliquots(alq_fn):
-    #alq_header=('case', 'sample_submitter_id', 'sample_id', 'sample_type', 'aliquot_submitter_id', 'aliquot_id', 'analyte_type', 'aliquot_annotation')
+    #alq_header=('case', 'sample_submitter_id', 'sample_id', 'sample_type', 'preservation_method', 'aliquot_submitter_id', 'aliquot_id', 'analyte_type', 'aliquot_annotation')
     # force aliquot_annotation to be type str - doesn't seem to work?
     type_arg = {'aliquot_annotation': 'str'}
     #aliquots = pd.read_csv(alq_fn, sep="\t", names=alq_header, dtype=type_arg, comment='#')
@@ -282,6 +282,7 @@ def get_metadata_json(row):
     md = append_safely(md, row, 'index')
     md = append_safely(md, row, 'gdc_sample_type')
     md = append_safely(md, row, 'state')
+    md = append_safely(md, row, 'preservation_method')
     return json.dumps(md)
 
 def generate_catalog(read_data, aliquots, is_methylation):
