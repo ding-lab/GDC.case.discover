@@ -93,7 +93,7 @@ def parse_YAML(infn, outfn, case, data_model):
             sample_type = s['sample_type']
             sample_submitter_id = s['submitter_id']
             sample_id = s['id']
-            sample_preservation_method = s['preservation_method']
+            sample_preservation_method = format(s['preservation_method'])
             for p in s['portions']:
                 for a in p['analytes']:
                     analyte_type = a['analyte_type']
@@ -130,7 +130,7 @@ def parse_YAML(infn, outfn, case, data_model):
             sample_type = s['sample_type']
             sample_submitter_id = s['submitter_id']
             sample_id = s['id']
-            sample_preservation_method = s['preservation_method']
+            sample_preservation_method = format(s['preservation_method'])
             for l in s['aliquots']:
                 analyte_type = format(l['analyte_type'])    # sometimes analyte_type is `null`
                 aliquot_id=l['id']
