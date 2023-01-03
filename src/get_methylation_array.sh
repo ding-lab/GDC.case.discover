@@ -120,17 +120,19 @@ fi
 
 while read L; do
 # Columns of input data
-#    * case
-#    * sample submitter id
-#    * sample id
-#    * sample type
-#    * aliquot submitter id
-#    * aliquot id
-#    * analyte_type
+#     1  case    MILD-B5C4
+#     2  sample_submitter_id MILD-B5C4-TTP1-A
+#     3  sample_id   a2712415-89b1-44c6-9aa9-4be4a21af412
+#     4  sample_type Primary Tumor
+#     5  preservation_method Frozen
+#     6  aliquot_submitter_id    MILD-B5C4-TTP1-A-1-1-D-A869-36
+#     7  aliquot_id  2bb38050-18ec-458c-9e69-e3bf58587ddb
+#     8  analyte_type    DNA
+#     9  aliquot_annotation
 
     CASE=$(echo "$L" | cut -f 1)
-    ASID=$(echo "$L" | cut -f 5)
-    AT=$(echo "$L" | cut -f 7)
+    ASID=$(echo "$L" | cut -f 6)
+    AT=$(echo "$L" | cut -f 8)
 
     # process only DNA aliquots
     if [ "$AT" != "DNA" ]; then
