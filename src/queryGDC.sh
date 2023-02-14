@@ -20,6 +20,16 @@
 
 # #########
 
+PYTHON="/usr/bin/python3"
+JQ="jq"
+
+if ! command -v $JQ &> /dev/null
+then
+    echo "queryGDC.sh: $JQ could not be found"
+    exit 1
+fi
+
+
 # Called after running scripts to catch fatal (exit 1) errors
 # works with piped calls ( S1 | S2 | S3 > OUT )
 # Usage:
@@ -132,9 +142,9 @@ function get_json {
     PY="import json, sys; query = sys.stdin.read().rstrip(); d = { 'query': query, 'variables': 'null' }; print(json.dumps(d))"
 
     if [ $GQL == '-' ]; then
-        cat - | python -c "$PY"
+        cat - | $PYTHON -c "$PY"
     else
-        python -c "$PY" < $GQL
+        $PYTHON -c "$PY" < $GQL
     fi
     test_exit_status
 }
