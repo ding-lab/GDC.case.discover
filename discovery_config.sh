@@ -1,8 +1,9 @@
 # Common configuration for discovery
 
-export GDC_TOKEN="../token/gdc-user-token.2022-08-03T21_01_37.553Z.txt"
-PROJECT="CPTAC3"  # Administrative project associated with these cases
+export GDC_TOKEN="../token/gdc-user-token.2023-02-10T16_23_56.520Z.txt"
+PROJECT="ALCHEMIST"  # Administrative project associated with these cases
 
-#CASES="/home/mwyczalk_test/Projects/Catalog3/GDAN.catalog/Catalog3/DLBCL.cases.tsv"
-CASES="config/cases-test.dat"
+GDAN_D="/cache1/fs1/home1/Active/home/m.wyczalkowski/Projects/GDAN/GDAN.catalog"
+CASES="$GDAN_D/Catalog3/${PROJECT}.Cases.tsv"
+#CASES="config/cases-test.dat"
 
