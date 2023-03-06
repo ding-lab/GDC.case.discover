@@ -6,7 +6,9 @@ mkdir -p logs
 LOGE="logs/1_run_discovery.err"
 LOGO="logs/1_run_discovery.out"
 
-CMD="bash src/run_discovery.sh $@ -J 10 -vvv -t $GDC_TOKEN $CASES  > $LOGO 2> $LOGE"
+NJOBS="5"
+
+CMD="bash src/run_discovery.sh $@ -J $NJOBS -vvv -t $GDC_TOKEN $CASES  > $LOGO 2> $LOGE"
 >&2 echo Running: $CMD
 >&2 echo Writing logs to $LOGO and $LOGE
 eval $CMD

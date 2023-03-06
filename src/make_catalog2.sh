@@ -325,6 +325,7 @@ function get_SN {
 #    * sample submitter id
 #    * sample id
 #    * sample type
+#    * preservation method (NEW)
 #    * aliquot submitter id
 #    * aliquot id
 #    * analyte_type
@@ -333,9 +334,11 @@ function get_sample_type {
     ALIQUOT_NAME=$1
     ALIQUOTS_FN=$2
 
+#    >&2 echo DEBUG: get_sample_type ALIQUOT_NAME = $ALIQUOT_NAME  ALIQUOTS_FN = $ALIQUOTS_FN
+
 # Matching to ALIQUOT name with grep is inexact
 #    SAMPLE_TYPE=$(grep $ALIQUOT_NAME $ALIQUOTS_FN | cut -f 4 | sort -u)
-    SAMPLE_TYPE=$(awk -v AN=$ALIQUOT_NAME 'BEGIN{FS="\t";OFS="\t"}{if ($5 == AN ) print $4}' $ALIQUOTS_FN | sort -u)
+    SAMPLE_TYPE=$(awk -v AN=$ALIQUOT_NAME 'BEGIN{FS="\t";OFS="\t"}{if ($6 == AN ) print $4}' $ALIQUOTS_FN | sort -u)
     MATCH_COUNT=$(echo -n "$SAMPLE_TYPE" | grep -c '^')
     if [ $MATCH_COUNT == 0 ]; then
         >&2 echo ERROR: Sample type for aliquot $ALIQUOT_NAME not found in $ALIQUOTS_FN

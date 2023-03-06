@@ -20,7 +20,8 @@
 
 # #########
 
-PYTHON="/usr/bin/python3"
+#PYTHON="/usr/bin/python3"
+PYTHON="/diskmnt/Projects/Users/mwyczalk/miniconda3/bin/python"
 JQ="jq"
 
 if ! command -v $JQ &> /dev/null
