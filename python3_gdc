@@ -1,0 +1,26 @@
+#!/usr/bin/bash
+
+# Usage: python3_gdc script.py [ARGS]
+# Run script.py in a python3 environment with json and requests packages
+
+START_DOCKER="bash docker/WUDocker/start_docker.sh" 
+
+# Created with ./docker/1_docker_build.sh
+IMAGE="mwyczalkowski/python3_gdc:20230315"
+
+PY_SRC=$1
+# Get absolute path of script
+PY=$(readlink -f $PY_SRC)
+PYTHON3="/usr/local/bin/python3"
+
+shift
+CMD_PY="$PYTHON3 $PY $@"
+
+MAPPED_DIR="."
+
+# -l - send output to stdout
+CMD="$START_DOCKER -I $IMAGE -c \"$CMD_PY\" -l $MAPPED_DIR"
+>&2 echo $RUNNING $CMD
+eval $CMD
+
+#bash docker/WUDocker/start_docker.sh -I mwyczalkowski/python3_gdc:20230315 -c "/usr/local/bin/python3 /diskmnt/Projects/cptac_scratch/CPTAC3.workflow/discover/dev/20230314.REST-test/test1.py" -l .

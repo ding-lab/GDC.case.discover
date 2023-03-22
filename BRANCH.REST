@@ -1,0 +1,3 @@
+Switching from GraphQL API to REST API 
+
+Will run primarily in python from docker container
