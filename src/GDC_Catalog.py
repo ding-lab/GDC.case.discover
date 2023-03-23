@@ -100,7 +100,7 @@ if __name__ == "__main__":
     parser.add_argument("-t", "--token", help="Read token from file and pass as argument in query")
     parser.add_argument("-e", "--url", default="https://api.gdc.cancer.gov/", help="Define query endpoint url")
     parser.add_argument("-s", "--size", default="2000", help="Size limit to POST query")
-    parser.add_argument("-f", "--response_format", default="TSV", help="Format of POST response")
+#    parser.add_argument("-f", "--response_format", default="TSV", help="Format of POST response")
     parser.add_argument("cases", nargs='*', help="List of one or more cases.  Ignored if -i defined")
 
     args = parser.parse_args()
@@ -132,7 +132,7 @@ if __name__ == "__main__":
     params = {
         "filters": filters,
         "fields": fields,
-        "format": args.response_format,
+        "format": "TSV",
         "size": args.size 
         }
 
