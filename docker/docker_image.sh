@@ -1,1 +1,1 @@
-IMAGE="mwyczalkowski/python3_gdc:20230315"
+IMAGE="mwyczalkowski/python3_gdc:20230323"

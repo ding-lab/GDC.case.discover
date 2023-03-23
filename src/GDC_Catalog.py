@@ -5,36 +5,41 @@ import argparse
 import json
 import requests
 import sys
+import os
+import io
+import pandas as pd
+import csv
+
 
 # https://stackoverflow.com/questions/5574702/how-do-i-print-to-stderr-in-python
 # Usage: eprint("Test")
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
 
+# * CPTAC data model:  case - sample - aliquots
+# * TCGA data model: case - sample - portions - analytes - aliquots
+
 # from https://docs.gdc.cancer.gov/API/Users_Guide/scripts/Complex_Query.py
 def get_fields():
     fields = [
-        "file_id",
         "file_name",
+        "experimental_strategy",
+        "file_size",
+        "md5sum",
+        "data_format",
+        "cases.samples.portions.analytes.aliquots.submitter_id",
         "cases.submitter_id",
-        "cases.case_id",
-        "data_category",
-        "data_type",
-        "cases.samples.tumor_descriptor",
-        "cases.samples.tissue_type",
         "cases.samples.sample_type",
-        "cases.samples.submitter_id",
-        "cases.samples.sample_id",
-        "analysis.workflow_type",
-        "cases.project.project_id",
-        "cases.samples.portions.analytes.aliquots.aliquot_id",
-        "cases.samples.portions.analytes.aliquots.submitter_id"
+        "cases.samples.preservation_method"
         ]
     return ",".join(fields)
 
+# Other possible fields
+# "cases.samples.aliquots.submitter_id" - Not clear if this is necessary
+
 # cases is a list of cases, e.g.,
 #   cases_cptac3 = [ "C3L-00026", "11LU013", "C3N-00148", "PT-Q2AG" ]
-def get_filters(cases):
+def get_filters_aligned_reads(cases):
     filters = {
         "op":"and",
         "content":[
@@ -54,6 +59,17 @@ def get_filters(cases):
         }
         ]
     }
+    return filters
+
+def get_filters(cases):
+    filters = {
+        "op":"in",
+        "content":{
+            "field":"cases.submitter_id",
+            "value": cases
+        }
+    }
+    return filters
 
 def get_POST_response(params, endpt, token_string = None):
     headers = {"Content-Type": "application/json"}
@@ -85,7 +101,7 @@ if __name__ == "__main__":
     parser.add_argument("-e", "--url", default="https://api.gdc.cancer.gov/", help="Define query endpoint url")
     parser.add_argument("-s", "--size", default="2000", help="Size limit to POST query")
     parser.add_argument("-f", "--response_format", default="TSV", help="Format of POST response")
-    parser.add_argument("cases", nargs='*', help="List of one or more cases")
+    parser.add_argument("cases", nargs='*', help="List of one or more cases.  Ignored if -i defined")
 
     args = parser.parse_args()
     if args.debug:
@@ -97,12 +113,19 @@ if __name__ == "__main__":
         post_kwarg["token_string"] = args.token
 
     files_endpt = args.url+"files"
-    filters = get_filters(args.cases)
+
+    if args.input:
+        with open(args.input) as file:
+            cases = [line.rstrip() for line in file]
+    else:
+        cases = args.cases
+
+    filters = get_filters_aligned_reads(cases)
     fields = get_fields()
 
     if args.debug:
         eprint("files_endpt = " + files_endpt)
-        eprint("filters = " + str(files_endpt))
+        eprint("filters = " + str(filters))
         eprint("fields = " + str(fields))
 
     # A POST is used, so the filter parameters can be passed directly as a Dict object.
@@ -113,15 +136,22 @@ if __name__ == "__main__":
         "size": args.size 
         }
 
-
     response = get_POST_response(params, files_endpt, post_kwarg)
+    if response.text.isspace():
+        eprint("Response is empty.  Qutting")
+        sys.exit()
+
+    df = pd.read_csv(io.StringIO(response.content.decode("utf-8")), sep="\t")
+    df = df.rename(columns={'cases.0.samples.0.portions.0.analytes.0.aliquots.0.submitter_id': 'aliquot', 
+                            'cases.0.samples.0.preservation_method': 'preservation_method',
+                            'cases.0.samples.0.sample_type': 'sample_type',
+                            'cases.0.submitter_id':'case'
+                            })
+
+    df = df[["case", "sample_type", "data_format", "experimental_strategy", "preservation_method", "aliquot", "file_name", "file_size", "id", "md5sum"]]
 
     if args.output == "stdout":
-        print(response.content.decode("utf-8"))
-
+        print(df)   # not sure how useful this is
     else:
-        file = open(args.output, "w")
-        file.write(response.text)
-        file.close()
-        eprint("Written to " + args.output)
-
+        df.to_csv(args.output, sep="\t", quoting=csv.QUOTE_NONE, index=False)
+        eprint("Written to "+args.output)

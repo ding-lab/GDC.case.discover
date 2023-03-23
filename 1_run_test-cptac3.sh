@@ -1,10 +1,26 @@
 PY="src/GDC_Catalog.py"
-#CASES="C3L-00026 11LU013 C3N-00148 PT-Q2AG" 
-CASES="C3L-00026"
 
-OUT="test.out"
-ARGS="-o $OUT"
+PWD=`readlink -f .`
 
-bash python3_gdc $PY $ARGS $CASES
+# Using file
+CASES_FN="$PWD/dat/CPTAC2.Cases.dat"
+ARGS="$ARGS -i $CASES_FN"
+
+OUTD="dat-test"
+mkdir -p $OUTD
+OUTABS="$PWD/$OUTD/CPTAC-4cases.testB.tsv"
+
+#OUTABS=$(readlink -f $OUT)
+
+ARGS="$ARGS -o $OUTABS"
+
+# Debug flag
+ARGS="$ARGS"
+
+bash python3_gdc $@ $PY $ARGS 
+
+if [ $? -eq 0 ]; then
+    >&2 echo Success.  
+fi
 
 
