@@ -100,6 +100,8 @@ if __name__ == "__main__":
     parser.add_argument("-t", "--token", help="Read token from file and pass as argument in query")
     parser.add_argument("-e", "--url", default="https://api.gdc.cancer.gov/", help="Define query endpoint url")
     parser.add_argument("-s", "--size", default="2000", help="Size limit to POST query")
+    parser.add_argument("-C", "--columns", choices=["full", "import"], default="full", help="Column definitions")
+
 #    parser.add_argument("-f", "--response_format", default="TSV", help="Format of POST response")
     parser.add_argument("cases", nargs='*', help="List of one or more cases.  Ignored if -i defined")
 
@@ -148,7 +150,17 @@ if __name__ == "__main__":
                             'cases.0.submitter_id':'case'
                             })
 
-    df = df[["case", "sample_type", "data_format", "experimental_strategy", "preservation_method", "aliquot", "file_name", "file_size", "id", "md5sum"]]
+    if args.columns == "full":
+        col_defs = ["case", "sample_type", "data_format", "experimental_strategy", "preservation_method", "aliquot", "file_name", "file_size", "id", "md5sum"]
+        sort_col = "case"
+    elif args.columns == "import":
+        col_defs = ["id", "file_name", "data_format"]
+        sort_col = "id"
+    else: 
+        assert False    # Should not get here, unknown arguments caught by choices
+
+    df = df[col_defs]
+    df = df.sort_values(sort_col)
 
     if args.output == "stdout":
         print(df)   # not sure how useful this is
