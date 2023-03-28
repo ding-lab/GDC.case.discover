@@ -6,7 +6,7 @@ PWD=`readlink -f .`
 CASES_FN="$PWD/dat/CPTAC2.Cases.dat"
 ARGS="$ARGS -i $CASES_FN"
 
-#CASES=" 26OV013"
+#CASES="26OV013"
 
 OUTD="dat"
 mkdir -p $OUTD
