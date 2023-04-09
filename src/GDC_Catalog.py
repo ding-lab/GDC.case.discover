@@ -71,10 +71,14 @@ def get_filters(cases):
     }
     return filters
 
-def get_POST_response(params, endpt, token_string = None):
+def get_POST_response(params, endpt, kwargs = None):
     headers = {"Content-Type": "application/json"}
-    if token_string:
-        headers["X-Auth-Token"] = token_string
+    if kwargs:
+        headers["X-Auth-Token"] = kwargs["token_string"]
+#    eprint("DEBUG get_POST_reponse")
+#    eprint("headers = " + str(headers))
+#    eprint("endpt = " + str(endpt))
+#    eprint("json = " + str(params))
     response = requests.post(endpt, headers = headers, json = params)
     return response
 
@@ -93,6 +97,9 @@ def get_token(token_file):
 def get_data_variety_RNA_BAM(rf):
     # For RNA-Seq BAMs, evaluate filename for specific strings: "genomic", "transcriptome", and "chimeric"
     # These strings are then the data_variety value
+
+#    eprint("DEBUG 2")
+#    eprint(rf.columns)
 
     RNA_BAM_ix = ((rf['data_format']=='BAM') & (rf['experimental_strategy']=="RNA-Seq"))
     genomic_ix = (RNA_BAM_ix & rf['file_name'].str.contains("genomic"))
@@ -266,7 +273,8 @@ def generate_catalog(response):
 def get_query_response(url, cases=None, cases_fn=None, token=None):
     post_kwarg = {}
     if args.token:
-        post_kwarg["token_string"] = args.token
+        token_data = get_token(args.token)
+        post_kwarg["token_string"] = token_data
 
     files_endpt = args.url+"files"
 
@@ -292,7 +300,9 @@ def get_query_response(url, cases=None, cases_fn=None, token=None):
         "size": args.size 
         }
 
+#    eprint("DEBUG : Calling POST")
     response = get_POST_response(params, files_endpt, post_kwarg)
+#    eprint("RESPONSE = " + str(response))
     if response.text.isspace():
         eprint("Response is empty.  Qutting")
         sys.exit()
@@ -325,6 +335,8 @@ if __name__ == "__main__":
                  'cases.0.samples.0.sample_type': 'sample_type',
                  'cases.0.submitter_id':'case'}
     response = response.rename(columns=rename_dict)
+    if args.debug:
+        eprint("response = " + str(response))
 
     # Add columns: data_variety, sample_code, dataset_name
     catalog = generate_catalog(response)
