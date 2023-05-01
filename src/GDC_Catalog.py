@@ -207,7 +207,8 @@ def get_sample_code(response):
 # these from HCMI
         ["Neoplasms of Uncertain and Unknown Behavior", "X"],
         ["Next Generation Cancer Model", "L"],
-        ["Post neo-adjuvant therapy", "P"]
+        ["Expanded Next Generation Cancer Model", "L"],
+        ["Post neo-adjuvant therapy", "P"],
     ]
 
     sst = pd.DataFrame(sample_map, columns = ['sample_type', 'sample_code'])
