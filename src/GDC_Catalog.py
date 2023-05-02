@@ -207,7 +207,7 @@ def get_sample_code(response):
 # these from HCMI
         ["Neoplasms of Uncertain and Unknown Behavior", "X"],
         ["Next Generation Cancer Model", "L"],
-        ["Expanded Next Generation Cancer Model", "L"],
+        ["Expanded Next Generation Cancer Model", "Lx"],
         ["Post neo-adjuvant therapy", "P"],
     ]
 
