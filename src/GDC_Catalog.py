@@ -20,7 +20,8 @@ def eprint(*args, **kwargs):
 # * TCGA data model: case - sample - portions - analytes - aliquots
 
 # from https://docs.gdc.cancer.gov/API/Users_Guide/scripts/Complex_Query.py
-def get_fields():
+# Available fields: https://docs.gdc.cancer.gov/API/Users_Guide/Appendix_A_Available_Fields/
+def get_fields_TCGA():
     fields = [
         "file_name",
         "experimental_strategy",
@@ -30,10 +31,25 @@ def get_fields():
         "cases.samples.portions.analytes.aliquots.submitter_id",
         "cases.submitter_id",
         "cases.samples.sample_type",
-        "cases.samples.preservation_method"
+        "cases.samples.preservation_method",
+        "cases.samples.submitter_id",
         ]
     return ",".join(fields)
 
+def get_fields_CPTAC():
+    fields = [
+        "file_name",
+        "experimental_strategy",
+        "file_size",
+        "md5sum",
+        "data_format",
+        "cases.samples.aliquots.submitter_id",
+        "cases.submitter_id",
+        "cases.samples.sample_type",
+        "cases.samples.preservation_method",
+        "cases.samples.submitter_id",
+        ]
+    return ",".join(fields)
 # Other possible fields
 # "cases.samples.aliquots.submitter_id" - Not clear if this is necessary
 
@@ -286,9 +302,11 @@ def get_query_response(url, cases=None, cases_fn=None, token=None):
         cases = args.cases
 
     filters = get_filters_aligned_reads(cases)
-    fields = get_fields()
+    #fields = get_fields()
+    fields = get_fields_TCGA()
 
     if args.debug:
+        eprint("cases = " + str(cases))
         eprint("files_endpt = " + files_endpt)
         eprint("filters = " + str(filters))
         eprint("fields = " + str(fields))
@@ -334,16 +352,18 @@ if __name__ == "__main__":
     rename_dict={'cases.0.samples.0.portions.0.analytes.0.aliquots.0.submitter_id': 'aliquot', 
                  'cases.0.samples.0.preservation_method': 'preservation_method',
                  'cases.0.samples.0.sample_type': 'sample_type',
-                 'cases.0.submitter_id':'case'}
+                 'cases.0.submitter_id':'case',
+                 'cases.0.samples.0.submitter_id':'samples'}
     response = response.rename(columns=rename_dict)
     if args.debug:
         eprint("response = " + str(response))
+        eprint("response columns = " + str(response.keys()))
 
     # Add columns: data_variety, sample_code, dataset_name
     catalog = generate_catalog(response)
 
     if args.columns == "full":
-        col_defs = ["dataset_name", "case", "sample_type", "data_format", "experimental_strategy", "preservation_method", "aliquot", "file_name", "file_size", "id", "md5sum"]
+        col_defs = ["dataset_name", "case", "sample_type", "data_format", "experimental_strategy", "preservation_method", "aliquot", "file_name", "file_size", "id", "md5sum", "samples"]
         sort_col = "case"
     elif args.columns == "import":
         col_defs = ["dataset_name", "id", "file_name", "data_format", "file_size"]
