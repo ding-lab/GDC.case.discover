@@ -353,7 +353,8 @@ if __name__ == "__main__":
                  'cases.0.samples.0.preservation_method': 'preservation_method',
                  'cases.0.samples.0.sample_type': 'sample_type',
                  'cases.0.submitter_id':'case',
-                 'cases.0.samples.0.submitter_id':'samples'}
+                 'cases.0.samples.0.submitter_id':'samples',
+                 'id':'uuid'}
     response = response.rename(columns=rename_dict)
     if args.debug:
         eprint("response = " + str(response))
@@ -363,11 +364,11 @@ if __name__ == "__main__":
     catalog = generate_catalog(response)
 
     if args.columns == "full":
-        col_defs = ["dataset_name", "case", "sample_type", "data_format", "experimental_strategy", "preservation_method", "aliquot", "file_name", "file_size", "id", "md5sum", "samples"]
+        col_defs = ["dataset_name", "case", "sample_type", "data_format", "experimental_strategy", "preservation_method", "aliquot", "file_name", "file_size", "uuid", "md5sum", "samples"]
         sort_col = "case"
     elif args.columns == "import":
-        col_defs = ["dataset_name", "id", "file_name", "data_format", "file_size"]
-        sort_col = "id"
+        col_defs = ["dataset_name", "uuid", "file_name", "data_format", "file_size"]
+        sort_col = "uuid"
     else: 
         assert False    # Should not get here, unknown arguments caught by choices
 
