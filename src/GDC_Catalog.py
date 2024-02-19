@@ -114,8 +114,7 @@ def get_data_variety_RNA_BAM(rf):
     # For RNA-Seq BAMs, evaluate filename for specific strings: "genomic", "transcriptome", and "chimeric"
     # These strings are then the data_variety value
 
-#    eprint("DEBUG 2")
-#    eprint(rf.columns)
+    eprint(rf.columns)  # This is useful in case get permission errors
 
     RNA_BAM_ix = ((rf['data_format']=='BAM') & (rf['experimental_strategy']=="RNA-Seq"))
     genomic_ix = (RNA_BAM_ix & rf['file_name'].str.contains("genomic"))
