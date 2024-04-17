@@ -33,25 +33,29 @@ def get_fields_TCGA():
         "cases.samples.sample_type",
         "cases.samples.preservation_method",
         "cases.samples.submitter_id",
+# new for Ilya
+        "cases.samples.tissue_type",
+        "cases.samples.tumor_descriptor",
+        "cases.samples.specimen_type",
         ]
     return ",".join(fields)
 
-def get_fields_CPTAC():
-    fields = [
-        "file_name",
-        "experimental_strategy",
-        "file_size",
-        "md5sum",
-        "data_format",
-        "cases.samples.aliquots.submitter_id",
-        "cases.submitter_id",
-        "cases.samples.sample_type",
-        "cases.samples.preservation_method",
-        "cases.samples.submitter_id",
-        ]
-    return ",".join(fields)
-# Other possible fields
-# "cases.samples.aliquots.submitter_id" - Not clear if this is necessary
+#def get_fields_CPTAC():
+#    fields = [
+#        "file_name",
+#        "experimental_strategy",
+#        "file_size",
+#        "md5sum",
+#        "data_format",
+#        "cases.samples.aliquots.submitter_id",
+#        "cases.submitter_id",
+#        "cases.samples.sample_type",
+#        "cases.samples.preservation_method",
+#        "cases.samples.submitter_id",
+#        ]
+#    return ",".join(fields)
+## Other possible fields
+## "cases.samples.aliquots.submitter_id" - Not clear if this is necessary
 
 # cases is a list of cases, e.g.,
 #   cases_cptac3 = [ "C3L-00026", "11LU013", "C3N-00148", "PT-Q2AG" ]
@@ -339,7 +343,7 @@ if __name__ == "__main__":
     parser.add_argument("-t", "--token", help="Read token from file and pass as argument in query")
     parser.add_argument("-e", "--url", default="https://api.gdc.cancer.gov/", help="Define query endpoint url")
     parser.add_argument("-s", "--size", default="2000", help="Size limit to POST query")
-    parser.add_argument("-C", "--columns", choices=["full", "import"], default="full", help="Column definitions")
+    parser.add_argument("-C", "--columns", choices=["extra", "full", "import"], default="full", help="Column definitions")
     parser.add_argument("cases", nargs='*', help="List of one or more cases.  Ignored if -i defined")
 
     args = parser.parse_args()
@@ -353,6 +357,9 @@ if __name__ == "__main__":
                  'cases.0.samples.0.sample_type': 'sample_type',
                  'cases.0.submitter_id':'case',
                  'cases.0.samples.0.submitter_id':'samples',
+                 'cases.0.samples.0.tissue_type': 'tissue_type',
+                 'cases.0.samples.0.tumor_descriptor': 'tumor_descriptor',
+                 'cases.0.samples.0.specimen_type': 'specimen_type',
                  'id':'uuid'}
     response = response.rename(columns=rename_dict)
     if args.debug:
@@ -368,6 +375,9 @@ if __name__ == "__main__":
     elif args.columns == "import":
         col_defs = ["dataset_name", "uuid", "file_name", "data_format", "file_size"]
         sort_col = "uuid"
+    elif args.columns == "extra":
+        col_defs = ["dataset_name", "case", "sample_type", "data_format", "experimental_strategy", "preservation_method", "aliquot", "file_name", "file_size", "uuid", "md5sum", "samples", "tissue_type", "tumor_descriptor", "specimen_type"]
+        sort_col = "case"
     else: 
         assert False    # Should not get here, unknown arguments caught by choices
 
