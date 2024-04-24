@@ -3,7 +3,8 @@ PY="src/GDC_Catalog.py"
 DIR=`readlink -f .`
 
 # Using file
-CASES_FN="/home/mwyczalk_test/Projects/Catalog3/GDAN.catalog/Catalog3/HCMI.Cases.tsv"
+PROJECT="CTSP_KIRC"
+CASES_FN="/home/mwyczalk_test/Projects/Catalog3/GDAN.catalog/Catalog3/${PROJECT}.Cases.tsv"
 CASES=$(cut -f 1 $CASES_FN | tr '\n' ' ')
 #ARGS="$ARGS -i $CASES_FN"
 
@@ -11,7 +12,7 @@ CASES=$(cut -f 1 $CASES_FN | tr '\n' ' ')
 
 OUTD="dat"
 mkdir -p $OUTD
-OUTABS="$DIR/$OUTD/HCMI.Catalog-REST.tsv"
+OUTABS="$DIR/$OUTD/${PROJECT}.Catalog-REST.tsv"
 
 #OUTABS=$(readlink -f $OUT)
 
@@ -24,7 +25,7 @@ OUTABS="$DIR/$OUTD/HCMI.Catalog-REST.tsv"
 
 #TOKEN="/diskmnt/Projects/cptac_scratch/CPTAC3.workflow/discover/token/gdc-user-token.2023-03-29T18_56_03.485Z-AWG-mod.txt"
 # Put token in config
-TOKEN="$PWD/config/gdc-user-token.2023-05-01T19_43_50.254Z-AWG.txt"
+TOKEN="$PWD/config/gdc-AWG-user-token.2024-04-24T20_16_21.614Z.txt"
 # Note, the URL must end with /
 AWG_ARGS="--url https://api.awg.gdc.cancer.gov/ --token $TOKEN"
 
