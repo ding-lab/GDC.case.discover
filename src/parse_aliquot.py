@@ -91,6 +91,8 @@ def parse_YAML(infn, outfn, case, data_model):
         samples = data['data']['sample']
         for s in samples:
             sample_type = s['sample_type']
+            if sample_type is None:
+                sample_type = "unknown"
             sample_submitter_id = s['submitter_id']
             sample_id = s['id']
             sample_preservation_method = format(s['preservation_method'])
@@ -128,6 +130,8 @@ def parse_YAML(infn, outfn, case, data_model):
         samples = data['data']['sample']
         for s in samples:
             sample_type = s['sample_type']
+            if sample_type is None:
+                sample_type = "unknown"
             sample_submitter_id = s['submitter_id']
             sample_id = s['id']
             sample_preservation_method = format(s['preservation_method'])

@@ -218,7 +218,9 @@ def get_sample_code(aliquots):
 # these from HCMI
         ["Neoplasms of Uncertain and Unknown Behavior", "unknown", "X"],
         ["Next Generation Cancer Model", "model", "L"],
-        ["Post neo-adjuvant therapy", "therapy", "P"]
+        ["Post neo-adjuvant therapy", "therapy", "P"],
+# sometimes these really are "unknown" or not given
+        ["unknown", "unknown", "X"]
     ]
 
 
