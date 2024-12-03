@@ -10,6 +10,8 @@ import io
 import pandas as pd
 import csv
 
+# 'Recurrent Blood Derived Cancer - Peripheral Blood'
+
 
 # https://stackoverflow.com/questions/5574702/how-do-i-print-to-stderr-in-python
 # Usage: eprint("Test")
@@ -228,6 +230,9 @@ def get_sample_code(response):
         ["Next Generation Cancer Model", "L"],
         ["Expanded Next Generation Cancer Model", "Lx"],
         ["Post neo-adjuvant therapy", "P"],
+# from MMRF
+        ["Recurrent Blood Derived Cancer - Peripheral Blood", "Rpb"],
+        ['Recurrent Blood Derived Cancer - Bone Marrow', "Rbm"],
     ]
 
     sst = pd.DataFrame(sample_map, columns = ['sample_type', 'sample_code'])
