@@ -207,6 +207,8 @@ def get_sample_code(response):
         ['Additional - New Primary', "T"],
 # Nbc:   Buccal Cell Normal
         ["Buccal Cell Normal" , "Nbc"],
+# Nbm: Bone Marrow Normal
+        ["Bone Marrow Normal" , "Nbm"],
 # Tbm: Primary Blood Derived Cancer - Bone Marrow
         ["Primary Blood Derived Cancer - Bone Marrow" , "Tbm"],
 # Tpb: Primary Blood Derived Cancer - Peripheral Blood
