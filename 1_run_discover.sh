@@ -3,8 +3,8 @@ PY="src/GDC_Catalog.py"
 DIR=`readlink -f .`
 
 # Using file
-PROJECT="MMRF"
-CASES_FN="dat/MMRF_case_list.dat"
+PROJECT="TCGA-COAD"
+CASES_FN="/home/mwyczalk_test/Projects/Catalog3/GDAN.catalog/Catalog3/${PROJECT}.Cases.tsv"
 CASES=$(cut -f 1 $CASES_FN | tr '\n' ' ')
 #ARGS="$ARGS -i $CASES_FN"
 
@@ -25,7 +25,7 @@ OUTABS="$DIR/$OUTD/${PROJECT}.Catalog-REST.tsv"
 
 #TOKEN="/diskmnt/Projects/cptac_scratch/CPTAC3.workflow/discover/token/gdc-user-token.2023-03-29T18_56_03.485Z-AWG-mod.txt"
 # Put token in config
-TOKEN="$PWD/config/gdc-user-token.2024-12-03T19_21_46.420Z.txt"
+TOKEN="$PWD/config/gdc-user-token.2025-02-05T19_46_26.526Z.txt"
 # Note, the URL must end with /
 #AWG_ARGS="--url https://api.awg.gdc.cancer.gov/ --token $TOKEN"
 AWG_ARGS="--token $TOKEN"
