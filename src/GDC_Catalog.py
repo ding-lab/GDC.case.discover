@@ -239,9 +239,14 @@ def get_sample_code(response):
 
     sst = pd.DataFrame(sample_map, columns = ['sample_type', 'sample_code'])
     merged = response.merge(sst, on="sample_type", how="left")
+
+    # find instances where sample_type is NaN; for these, mark sample code as x
+    m=pd.isna(merged['sample_type'])
+    merged.loc[m, "sample_code"] = "x"  
+
     if merged['sample_code'].isnull().values.any():
         m=merged['sample_code'].isnull()
-        msg="Unknown sample type: {}".format(merged.loc[m, "sample_type"].unique())
+        msg="Unknown sample type: x{}x".format(merged.loc[m, "sample_type"].unique())
         raise ValueError(msg)
     return merged
 
