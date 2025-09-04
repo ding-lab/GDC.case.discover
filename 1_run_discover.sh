@@ -3,10 +3,13 @@ PY="src/GDC_Catalog.py"
 DIR=`readlink -f .`
 
 # Using file
-PROJECT="TCGA-COAD"
-CASES_FN="/home/mwyczalk_test/Projects/Catalog3/GDAN.catalog/Catalog3/${PROJECT}.Cases.tsv"
-CASES=$(cut -f 1 $CASES_FN | tr '\n' ' ')
-#ARGS="$ARGS -i $CASES_FN"
+PROJECT="TCGA"
+#CASES_FN="/home/mwyczalk_test/Projects/Catalog3/GDAN.catalog/Catalog3/${PROJECT}.Cases.tsv"
+#CASES=$(cut -f 1 $CASES_FN | tr '\n' ' ')
+
+CASES_FN="/home/mwyczalk_test/Projects/Catalog3/discovery/46.TCGA-complete/dat/Cases.dat"
+#CASES_FN="/home/mwyczalk_test/Projects/Catalog3/discovery/46.TCGA-complete/dat/Cases-1000.dat"
+ARGS="$ARGS -i $CASES_FN"
 
 #CASES="26OV013"
 
@@ -25,13 +28,14 @@ OUTABS="$DIR/$OUTD/${PROJECT}.Catalog-REST.tsv"
 
 #TOKEN="/diskmnt/Projects/cptac_scratch/CPTAC3.workflow/discover/token/gdc-user-token.2023-03-29T18_56_03.485Z-AWG-mod.txt"
 # Put token in config
-TOKEN="$PWD/config/gdc-user-token.2025-02-05T19_46_26.526Z.txt"
+TOKEN="$PWD/config/gdc-user-token.2025-09-04T16_53_36.318Z.txt"
 # Note, the URL must end with /
 #AWG_ARGS="--url https://api.awg.gdc.cancer.gov/ --token $TOKEN"
 AWG_ARGS="--token $TOKEN"
 
 
-ARGS="$ARGS -o $OUTABS -s 100000 -C full $AWG_ARGS"
+#ARGS="$ARGS -o $OUTABS -s 100000 -C full $AWG_ARGS"
+ARGS="$ARGS -o $OUTABS -s 1000000 -C full $AWG_ARGS"
 
 # Debug flag
 ARGS="$ARGS"
