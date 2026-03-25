@@ -1,17 +1,18 @@
+# This should be run on katmai not arches
+
 PY="src/GDC_Catalog.py"
 
 DIR=`readlink -f .`
 
 # Using file
-PROJECT="TCGA"
+PROJECT="GDC"
 #CASES_FN="/home/mwyczalk_test/Projects/Catalog3/GDAN.catalog/Catalog3/${PROJECT}.Cases.tsv"
 #CASES=$(cut -f 1 $CASES_FN | tr '\n' ' ')
 
-CASES_FN="/home/mwyczalk_test/Projects/Catalog3/discovery/46.TCGA-complete/dat/Cases.dat"
-#CASES_FN="/home/mwyczalk_test/Projects/Catalog3/discovery/46.TCGA-complete/dat/Cases-1000.dat"
+# passing as an argument is advised when there are very many cases
+# We are reading in the two-column Cases files, with project information provided by column 2
+CASES_FN="/home/mwyczalk_test/Projects/Catalog3/discovery/48.TCGA-CPTAC/dat/GDC.Cases.dat"
 ARGS="$ARGS -i $CASES_FN"
-
-#CASES="26OV013"
 
 OUTD="dat"
 mkdir -p $OUTD
@@ -28,7 +29,7 @@ OUTABS="$DIR/$OUTD/${PROJECT}.Catalog-REST.tsv"
 
 #TOKEN="/diskmnt/Projects/cptac_scratch/CPTAC3.workflow/discover/token/gdc-user-token.2023-03-29T18_56_03.485Z-AWG-mod.txt"
 # Put token in config
-TOKEN="$PWD/config/gdc-user-token.2025-09-04T16_53_36.318Z.txt"
+TOKEN="$PWD/dat/gdc-user-token.2026-03-03T20_01_37.928Z.txt"
 # Note, the URL must end with /
 #AWG_ARGS="--url https://api.awg.gdc.cancer.gov/ --token $TOKEN"
 AWG_ARGS="--token $TOKEN"

@@ -312,7 +312,7 @@ def get_query_response(url, cases=None, cases_fn=None, token=None):
 
     if args.cases_fn:
         with open(args.cases_fn) as file:
-            cases = [line.rstrip() for line in file]
+            cases = [line.rstrip().split("\t")[0] for line in file]
     else:
         cases = args.cases
 
@@ -344,6 +344,10 @@ def get_query_response(url, cases=None, cases_fn=None, token=None):
     df = pd.read_csv(io.StringIO(response.content.decode("utf-8")), sep="\t")
     return df
 
+def add_project(response, cases_fn):
+    cases = pd.read_csv(cases_fn, sep="\t", header=None, names=["case", "project"])
+    response = response.merge(cases, on="case", how="left")
+    return response
 
 # usage:
 # python3 GDC_Catalog.py [case1 [case2 ...]]
@@ -351,7 +355,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Query GDC to create catalog file")
     parser.add_argument("-d", "--debug", action="store_true", help="Print debugging information to stderr")
     parser.add_argument("-o", "--output", default="stdout", help="Output catalog file name")
-    parser.add_argument("-i", "--cases_fn", help="Read cases from input file.  Format: one case per line")
+    parser.add_argument("-i", "--cases_fn", help="Read cases from input file.  Format: tsv with no header and case, project columns")
     parser.add_argument("-t", "--token", help="Read token from file and pass as argument in query")
     parser.add_argument("-e", "--url", default="https://api.gdc.cancer.gov/", help="Define query endpoint url")
     parser.add_argument("-s", "--size", default="2000", help="Size limit to POST query")
@@ -378,17 +382,19 @@ if __name__ == "__main__":
         eprint("response = " + str(response))
         eprint("response columns = " + str(response.keys()))
 
+    response = add_project(response, args.cases_fn)
+
     # Add columns: data_variety, sample_code, dataset_name
     catalog = generate_catalog(response)
 
     if args.columns == "full":
-        col_defs = ["dataset_name", "case", "sample_type", "data_format", "experimental_strategy", "preservation_method", "aliquot", "file_name", "file_size", "uuid", "md5sum", "samples"]
+        col_defs = ["dataset_name", "case", "sample_type", "data_format", "experimental_strategy", "preservation_method", "aliquot", "file_name", "file_size", "uuid", "md5sum", "samples", "project"]
         sort_col = "case"
     elif args.columns == "import":
         col_defs = ["dataset_name", "uuid", "file_name", "data_format", "file_size"]
         sort_col = "uuid"
     elif args.columns == "extra":
-        col_defs = ["dataset_name", "case", "sample_type", "data_format", "experimental_strategy", "preservation_method", "aliquot", "file_name", "file_size", "uuid", "md5sum", "samples", "tissue_type", "tumor_descriptor", "specimen_type"]
+        col_defs = ["dataset_name", "case", "sample_type", "data_format", "experimental_strategy", "preservation_method", "aliquot", "file_name", "file_size", "uuid", "md5sum", "samples", "project", "tissue_type", "tumor_descriptor", "specimen_type"]
         sort_col = "case"
     else: 
         assert False    # Should not get here, unknown arguments caught by choices
